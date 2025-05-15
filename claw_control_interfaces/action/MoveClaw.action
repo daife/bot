@@ -1,0 +1,10 @@
+# Goal
+int32 command  # 0: 抓取 1: 放下 2: 查询状态
+
+---
+# Result
+int32 status   # 0: 未抓取 1: 抓取中 2: 抓取成功 3: 抓取失败 4: 初始化中
+
+---
+# Feedback
+int32 status

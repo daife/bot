@@ -1,0 +1,175 @@
+[0.046s] Invoking command in '/home/HwHiAiUser/oradar_ros/build/oradar_lidar': CONDA_PROMPT_MODIFIER=(base) _=/usr/bin/env /usr/bin/cmake /home/HwHiAiUser/oradar_ros -DCATKIN_INSTALL_INTO_PREFIX_ROOT=0 -DCMAKE_INSTALL_PREFIX=/home/HwHiAiUser/oradar_ros/install/oradar_lidar
+[0.587s] -- The C compiler identification is GNU 11.4.0
+[1.118s] -- The CXX compiler identification is GNU 11.4.0
+[1.159s] -- Detecting C compiler ABI info
+[1.361s] -- Detecting C compiler ABI info - done
+[1.379s] -- Check for working C compiler: /usr/bin/cc - skipped
+[1.385s] -- Detecting C compile features
+[1.395s] -- Detecting C compile features - done
+[1.403s] -- Detecting CXX compiler ABI info
+[1.623s] -- Detecting CXX compiler ABI info - done
+[1.646s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[1.647s] -- Detecting CXX compile features
+[1.648s] -- Detecting CXX compile features - done
+[1.683s] [0m=============================================================[0m
+[1.683s] [0m-- ROS Not Found, Ros Support is turned Off![0m
+[1.683s] [0m=============================================================[0m
+[4.457s] -- Found Python3: /usr/local/miniconda3/bin/python3 (found version "3.9.2") found components: Interpreter 
+[5.094s] -- Found rosidl_generator_c: 3.1.6 (/opt/ros/humble/share/rosidl_generator_c/cmake)
+[5.112s] -- Found rosidl_adapter: 3.1.6 (/opt/ros/humble/share/rosidl_adapter/cmake)
+[5.141s] -- Found rosidl_generator_cpp: 3.1.6 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)
+[5.192s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[5.250s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[5.420s] -- Found rmw_implementation_cmake: 6.1.2 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)
+[5.429s] -- Found rmw_fastrtps_cpp: 6.2.7 (/opt/ros/humble/share/rmw_fastrtps_cpp/cmake)
+[5.673s] -- Found OpenSSL: /usr/lib/aarch64-linux-gnu/libcrypto.so (found version "3.0.2")  
+[5.737s] -- Found FastRTPS: /opt/ros/humble/include  
+[5.844s] -- Using RMW implementation 'rmw_fastrtps_cpp' as default
+[5.886s] -- Looking for pthread.h
+[6.086s] -- Looking for pthread.h - found
+[6.090s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+[6.274s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+[6.277s] -- Found Threads: TRUE  
+[6.488s] [0m=============================================================[0m
+[6.488s] [0m-- ROS2 Found. ROS2 Support is turned On![0m
+[6.488s] [0m=============================================================[0m
+[6.496s] -- Found sensor_msgs: 4.8.0 (/opt/ros/humble/share/sensor_msgs/cmake)
+[6.613s] [0mCMake Deprecation Warning at sdk/CMakeLists.txt:36 (cmake_policy):
+[6.614s]   The OLD behavior for policy CMP0053 will be removed from a future version
+[6.614s]   of CMake.
+[6.614s] 
+[6.614s]   The cmake-policies(7) manual explains that the OLD behaviors of all
+[6.614s]   policies are deprecated and that a policy should be set to OLD only under
+[6.615s]   specific short-term circumstances.  Projects should be ported to the NEW
+[6.615s]   behavior and not rely on setting a policy to OLD.
+[6.615s] 
+[6.615s] [0m
+[6.615s] [0mCMake Deprecation Warning at sdk/CMakeLists.txt:39 (cmake_policy):
+[6.615s]   The OLD behavior for policy CMP0037 will be removed from a future version
+[6.615s]   of CMake.
+[6.616s] 
+[6.616s]   The cmake-policies(7) manual explains that the OLD behaviors of all
+[6.616s]   policies are deprecated and that a policy should be set to OLD only under
+[6.616s]   specific short-term circumstances.  Projects should be ported to the NEW
+[6.616s]   behavior and not rely on setting a policy to OLD.
+[6.616s] 
+[6.616s] [0m
+[6.617s] [0mCMake Deprecation Warning at sdk/CMakeLists.txt:42 (cmake_policy):
+[6.617s]   The OLD behavior for policy CMP0043 will be removed from a future version
+[6.617s]   of CMake.
+[6.617s] 
+[6.617s]   The cmake-policies(7) manual explains that the OLD behaviors of all
+[6.617s]   policies are deprecated and that a policy should be set to OLD only under
+[6.618s]   specific short-term circumstances.  Projects should be ported to the NEW
+[6.618s]   behavior and not rely on setting a policy to OLD.
+[6.618s] 
+[6.618s] [0m
+[6.663s] -- Found SWIG: /usr/bin/swig4.0 (found version "4.0.2")  
+[6.800s] -- Found PythonInterp: /usr/local/miniconda3/bin/python (found version "3.9.2") 
+[6.822s] -- Found PythonLibs: /usr/local/miniconda3/lib/libpython3.9.so (found version "3.9.2") 
+[6.892s] [0mCMake Deprecation Warning at sdk/cmake/install_package.cmake:101 (cmake_policy):
+[6.893s]   The OLD behavior for policy CMP0026 will be removed from a future version
+[6.893s]   of CMake.
+[6.893s] 
+[6.893s]   The cmake-policies(7) manual explains that the OLD behaviors of all
+[6.893s]   policies are deprecated and that a policy should be set to OLD only under
+[6.893s]   specific short-term circumstances.  Projects should be ported to the NEW
+[6.894s]   behavior and not rely on setting a policy to OLD.
+[6.894s] Call Stack (most recent call first):
+[6.894s]   sdk/CMakeLists.txt:105 (install_package)
+[6.894s] 
+[6.894s] [0m
+[7.323s] -- Configuring done
+[7.433s] -- Generating done
+[7.440s] [33mCMake Warning:
+[7.440s]   Manually-specified variables were not used by the project:
+[7.440s] 
+[7.441s]     CATKIN_INSTALL_INTO_PREFIX_ROOT
+[7.441s] 
+[7.441s] [0m
+[7.461s] -- Build files have been written to: /home/HwHiAiUser/oradar_ros/build/oradar_lidar
+[7.497s] Invoked command in '/home/HwHiAiUser/oradar_ros/build/oradar_lidar' returned '0': CONDA_PROMPT_MODIFIER=(base) _=/usr/bin/env /usr/bin/cmake /home/HwHiAiUser/oradar_ros -DCATKIN_INSTALL_INTO_PREFIX_ROOT=0 -DCMAKE_INSTALL_PREFIX=/home/HwHiAiUser/oradar_ros/install/oradar_lidar
+[7.501s] Invoking command in '/home/HwHiAiUser/oradar_ros/build/oradar_lidar': CONDA_PROMPT_MODIFIER=(base) _=/usr/bin/env /usr/bin/cmake --build /home/HwHiAiUser/oradar_ros/build/oradar_lidar -- -j3 -l3
+[7.633s] [  5%] [32mBuilding CXX object sdk/CMakeFiles/oradar_sdk.dir/core/base/timer.cpp.o[0m
+[8.512s] [ 10%] [32mBuilding CXX object sdk/CMakeFiles/oradar_sdk.dir/core/network/PassiveSocket.cpp.o[0m
+[9.573s] [ 15%] [32mBuilding CXX object sdk/CMakeFiles/oradar_sdk.dir/core/network/SimpleSocket.cpp.o[0m
+[11.025s] [ 20%] [32mBuilding CXX object sdk/CMakeFiles/oradar_sdk.dir/core/serial/serial.cpp.o[0m
+[12.574s] [ 25%] [32mBuilding C object sdk/CMakeFiles/oradar_sdk.dir/core/serial/impl/unix/lock.c.o[0m
+[13.059s] [ 30%] [32mBuilding CXX object sdk/CMakeFiles/oradar_sdk.dir/core/serial/impl/unix/list_ports_linux.cpp.o[0m
+[15.402s] [ 35%] [32mBuilding CXX object sdk/CMakeFiles/oradar_sdk.dir/core/serial/impl/unix/unix_serial.cpp.o[0m
+[16.926s] [ 40%] [32mBuilding CXX object sdk/CMakeFiles/oradar_sdk.dir/src/ord_lidar_c_api_driver.cpp.o[0m
+[17.996s] [ 45%] [32mBuilding CXX object sdk/CMakeFiles/oradar_sdk.dir/src/ord_lidar_driver.cpp.o[0m
+[19.070s] [01m[K/home/HwHiAiUser/oradar_ros/sdk/src/ord_lidar_driver.cpp:[m[K In member function ‘[01m[Kbool ordlidar::OrdlidarDriver::uart_data_find_init_info(unsigned char*, int)[m[K’:
+[19.071s] [01m[K/home/HwHiAiUser/oradar_ros/sdk/src/ord_lidar_driver.cpp:203:9:[m[K [01;35m[Kwarning: [m[Kno return statement in function returning non-void [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wreturn-type-Wreturn-type]8;;[m[K]
+[19.071s]   203 |         [01;35m[K}[m[K
+[19.071s]       |         [01;35m[K^[m[K
+[20.059s] [ 50%] [32mBuilding CXX object sdk/CMakeFiles/oradar_sdk.dir/src/filters/FullScanFilter.cpp.o[0m
+[21.098s] [ 55%] [32mBuilding CXX object sdk/CMakeFiles/oradar_sdk.dir/core/network/ActiveSocket.cpp.o[0m
+[21.997s] [ 60%] [32m[1mLinking CXX static library ../liboradar_sdk.a[0m
+[22.125s] [ 60%] Built target oradar_sdk
+[22.204s] [ 65%] [32mBuilding CXX object CMakeFiles/oradar_scan.dir/src/oradar_scan_node.cpp.o[0m
+[38.688s] [ 70%] [32m[1mLinking CXX executable oradar_scan[0m
+[39.299s] [ 70%] Built target oradar_scan
+[39.345s] [ 75%] [32mBuilding CXX object sdk/samples/CMakeFiles/non-blocking_test.dir/non-blocking_test.cpp.o[0m
+[40.173s] [ 80%] [32m[1mLinking CXX executable ../../non-blocking_test[0m
+[40.356s] [ 80%] Built target non-blocking_test
+[40.404s] [ 85%] [32mBuilding C object sdk/samples/CMakeFiles/blocking_c_api_test.dir/blocking_c_api_test.c.o[0m
+[40.548s] [ 90%] [32m[1mLinking CXX executable ../../blocking_c_api_test[0m
+[40.733s] [ 90%] Built target blocking_c_api_test
+[40.784s] [ 95%] [32mBuilding CXX object sdk/samples/CMakeFiles/blocking_test.dir/blocking_test.cpp.o[0m
+[41.617s] [100%] [32m[1mLinking CXX executable ../../blocking_test[0m
+[41.815s] [100%] Built target blocking_test
+[41.839s] Invoked command in '/home/HwHiAiUser/oradar_ros/build/oradar_lidar' returned '0': CONDA_PROMPT_MODIFIER=(base) _=/usr/bin/env /usr/bin/cmake --build /home/HwHiAiUser/oradar_ros/build/oradar_lidar -- -j3 -l3
+[41.861s] Invoking command in '/home/HwHiAiUser/oradar_ros/build/oradar_lidar': CONDA_PROMPT_MODIFIER=(base) _=/usr/bin/env /usr/bin/cmake --install /home/HwHiAiUser/oradar_ros/build/oradar_lidar
+[41.879s] -- Install configuration: "RELEASE"
+[41.879s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/lib/oradar_lidar/oradar_scan
+[41.882s] -- Set runtime path of "/home/HwHiAiUser/oradar_ros/install/oradar_lidar/lib/oradar_lidar/oradar_scan" to ""
+[41.882s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar//launch
+[41.882s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar//launch/ms200_scan.launch
+[41.883s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar//launch/ms200_scan.launch.py
+[41.883s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar//launch/ms200_scan_view.launch.py
+[41.883s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar//launch/ms200_scan_view.launch
+[41.883s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar//rviz2
+[41.884s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar//rviz2/oradar_scan.rviz
+[41.884s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/ament_index/resource_index/package_run_dependencies/oradar_lidar
+[41.884s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/ament_index/resource_index/parent_prefix_path/oradar_lidar
+[41.884s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/environment/ament_prefix_path.sh
+[41.884s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/environment/ament_prefix_path.dsv
+[41.885s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/environment/path.sh
+[41.885s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/environment/path.dsv
+[41.885s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/local_setup.bash
+[41.885s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/local_setup.sh
+[41.885s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/local_setup.zsh
+[41.886s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/local_setup.dsv
+[41.886s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/package.dsv
+[41.886s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/ament_index/resource_index/packages/oradar_lidar
+[41.886s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/cmake/oradar_lidarConfig.cmake
+[41.886s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/cmake/oradar_lidarConfig-version.cmake
+[41.887s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/package.xml
+[41.888s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/include/core/base/datatype.h
+[41.888s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/include/core/base/locker.h
+[41.888s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/include/core/base/thread.h
+[41.889s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/include/core/base/timer.h
+[41.889s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/include/core/base/typedef.h
+[41.889s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/include/core/base/utils.h
+[41.889s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/include/core/base/v8stdint.h
+[41.890s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/include/core/common/ChannelDevice.h
+[41.891s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/include/core/math/angles.h
+[41.891s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/include/core/network/ActiveSocket.h
+[41.891s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/include/core/network/PassiveSocket.h
+[41.892s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/include/core/network/SimpleSocket.h
+[41.892s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/include/core/network/StatTimer.h
+[41.894s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/include/core/serial/common.h
+[41.894s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/include/core/serial/serial.h
+[41.895s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/include/core/serial/impl/unix/lock.h
+[41.895s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/include/core/serial/impl/unix/unix.h
+[41.895s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/include/core/serial/impl/unix/unix_serial.h
+[41.895s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/include/src/ord_lidar_c_api_driver.h
+[41.898s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/include/src/ord_lidar_driver.h
+[41.898s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/include/src/ordlidar_protocol.h
+[41.899s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/include/src/filters/FullScanFilter.h
+[41.899s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/lib/liboradar_sdk.a
+[41.901s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/bin/blocking_test
+[41.901s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/bin/non-blocking_test
+[41.901s] -- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/bin/blocking_c_api_test
+[41.906s] Invoked command in '/home/HwHiAiUser/oradar_ros/build/oradar_lidar' returned '0': CONDA_PROMPT_MODIFIER=(base) _=/usr/bin/env /usr/bin/cmake --install /home/HwHiAiUser/oradar_ros/build/oradar_lidar

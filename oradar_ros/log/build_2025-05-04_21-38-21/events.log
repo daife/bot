@@ -1,0 +1,600 @@
+[0.000000] (-) TimerEvent: {}
+[0.000591] (oradar_lidar) JobQueued: {'identifier': 'oradar_lidar', 'dependencies': OrderedDict()}
+[0.002037] (oradar_lidar) JobStarted: {'identifier': 'oradar_lidar'}
+[0.045389] (oradar_lidar) JobProgress: {'identifier': 'oradar_lidar', 'progress': 'cmake'}
+[0.046299] (oradar_lidar) Command: {'cmd': ['/usr/bin/cmake', '/home/HwHiAiUser/oradar_ros', '-DCATKIN_INSTALL_INTO_PREFIX_ROOT=0', '-DCMAKE_INSTALL_PREFIX=/home/HwHiAiUser/oradar_ros/install/oradar_lidar'], 'cwd': '/home/HwHiAiUser/oradar_ros/build/oradar_lidar', 'env': OrderedDict([('SHELL', '/bin/bash'), ('ROS_VERSION', '2'), ('SESSION_MANAGER', 'local/orangepiaipro-20t:@/tmp/.ICE-unix/2111,unix/orangepiaipro-20t:/tmp/.ICE-unix/2111'), ('QT_ACCESSIBILITY', '1'), ('COLORTERM', 'truecolor'), ('XDG_CONFIG_DIRS', '/etc/xdg/xdg-xfce:/etc/xdg:/etc/xdg'), ('IGN_GAZEBO_SYSTEM_PLUGIN_PATH', '/opt/ros/humble/lib'), ('XDG_SESSION_PATH', '/org/freedesktop/DisplayManager/Session0'), ('XDG_MENU_PREFIX', 'xfce-'), ('TERM_PROGRAM_VERSION', '1.99.0'), ('GTK_IM_MODULE', 'ibus'), ('CONDA_EXE', '/usr/local/miniconda3/bin/conda'), ('_CE_M', ''), ('ROS_PYTHON_VERSION', '3'), ('LANGUAGE', 'en'), ('MS_ENABLE_GE', '1'), ('MANDATORY_PATH', '/usr/share/gconf/xfce.mandatory.path'), ('SSH_AUTH_SOCK', '/tmp/ssh-XXXXXXYBYYsI/agent.2279'), ('XMODIFIERS', '@im=ibus'), ('DESKTOP_SESSION', 'xfce'), ('SSH_AGENT_PID', '2280'), ('NPU_HOST_INC', '/usr/local/Ascend/ascend-toolkit/latest/runtime/include'), ('XDG_SEAT', 'seat0'), ('NPU_HOST_LIB', '/usr/local/Ascend/ascend-toolkit/latest/runtime/lib64/stub/aarch64'), ('PWD', '/home/HwHiAiUser/oradar_ros/build/oradar_lidar'), ('XDG_SESSION_DESKTOP', 'xfce'), ('LOGNAME', 'HwHiAiUser'), ('XDG_SESSION_TYPE', 'x11'), ('CONDA_PREFIX', '/usr/local/miniconda3'), ('XAUTHORITY', '/home/HwHiAiUser/.Xauthority'), ('VSCODE_GIT_ASKPASS_NODE', '/usr/share/code/code'), ('XDG_GREETER_DATA_DIR', '/var/lib/lightdm-data/HwHiAiUser'), ('GDM_LANG', 'en'), ('HOME', '/home/HwHiAiUser'), ('LANG', 'C.UTF-8'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('XDG_CURRENT_DESKTOP', 'XFCE'), ('CONDA_PROMPT_MODIFIER', '(base)'), ('MS_DEV_FORCE_ACL', '1'), ('AMENT_PREFIX_PATH', '/opt/ros/humble'), ('GIT_ASKPASS', '/usr/share/code/resources/app/extensions/git/dist/askpass.sh'), ('XDG_SEAT_PATH', '/org/freedesktop/DisplayManager/Seat0'), ('https_proxy', 'http://127.0.0.1:7890'), ('CHROME_DESKTOP', 'code.desktop'), ('CLUTTER_IM_MODULE', 'ibus'), ('TOOLCHAIN_HOME', '/usr/local/Ascend/ascend-toolkit/latest/toolkit'), ('ASCEND_TOOLKIT_HOME', '/usr/local/Ascend/ascend-toolkit/latest'), ('VSCODE_GIT_ASKPASS_EXTRA_ARGS', ''), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('XDG_SESSION_CLASS', 'user'), ('PYTHONPATH', '/usr/local/Ascend/thirdpart/aarch64/acllite:/usr/local/Ascend/ascend-toolkit/latest/python/site-packages:/usr/local/Ascend/ascend-toolkit/latest/opp/built-in/op_impl/ai_core/tbe:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages:/usr/local/Ascend/thirdpart/aarch64/acllite:/usr/local/Ascend/ascend-toolkit/latest/python/site-packages:/usr/local/Ascend/ascend-toolkit/latest/opp/built-in/op_impl/ai_core/tbe:/usr/local/Ascend/thirdpart/aarch64/acllite:/usr/local/Ascend/ascend-toolkit/laster/python/site-packages:/usr/local/Ascend/ascend-toolkit/laster/opp/built-in/op_impl/ai_core/tbe:/usr/local/Ascend/thirdpart/aarch64/acllite:/usr/local/Ascend/ascend-toolkit/laster/python/site-packages:/usr/local/Ascend/ascend-toolkit/laster/opp/built-in/op_impl/ai_core/tbe:'), ('COLCON', '1'), ('TERM', 'xterm-256color'), ('_CE_CONDA', ''), ('DEFAULTS_PATH', '/usr/share/gconf/xfce.default.path'), ('LESSOPEN', '| /usr/bin/lesspipe %s'), ('USER', 'HwHiAiUser'), ('VSCODE_GIT_IPC_HANDLE', '/run/user/1000/vscode-git-76d326f1f7.sock'), ('CONDA_SHLVL', '1'), ('DISPLAY', ':0'), ('SHLVL', '1'), ('QT_IM_MODULE', 'ibus'), ('XDG_VTNR', '7'), ('XDG_SESSION_ID', 'c2'), ('http_proxy', 'http://127.0.0.1:7890'), ('ASCEND_OPP_PATH', '/usr/local/Ascend/ascend-toolkit/latest/opp'), ('IGN_GAZEBO_RESOURCE_PATH', '/opt/ros/humble/share'), ('CONDA_PYTHON_EXE', '/usr/local/miniconda3/bin/python'), ('LD_LIBRARY_PATH', '/usr/local/Ascend/ascend-toolkit/latest/tools/aml/lib64:/usr/local/Ascend/ascend-toolkit/latest/tools/aml/lib64/plugin:/usr/local/Ascend/ascend-toolkit/latest/lib64:/usr/local/Ascend/ascend-toolkit/latest/lib64/plugin/opskernel:/usr/local/Ascend/ascend-toolkit/latest/lib64/plugin/nnengine:/usr/local/Ascend/ascend-toolkit/latest/opp/built-in/op_impl/ai_core/tbe/op_tiling/lib/linux/aarch64:/lib64:/var/davinci/driver/lib64:/var/davinci/driver/lib64/common:/var/davinci/driver/lib64/driver:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/aarch64-linux-gnu:/opt/ros/humble/lib:/usr/local/Ascend/ascend-toolkit/latest/tools/aml/lib64:/usr/local/Ascend/ascend-toolkit/latest/tools/aml/lib64/plugin:/usr/local/Ascend/ascend-toolkit/latest/lib64:/usr/local/Ascend/ascend-toolkit/latest/lib64/plugin/opskernel:/usr/local/Ascend/ascend-toolkit/latest/lib64/plugin/nnengine:/usr/local/Ascend/ascend-toolkit/latest/opp/built-in/op_impl/ai_core/tbe/op_tiling/lib/linux/aarch64:/lib64:/var/davinci/driver/lib64:/var/davinci/driver/lib64/common:/var/davinci/driver/lib64/driver:/usr/local/Ascend/ascend-toolkit/laster/runtime/lib64/stub/aarch64:/usr/local/Ascend/ascend-toolkit/laster/lib64:/usr/local/Ascend/ascend-toolkit/laster/lib64/plugin/opskernel:/usr/local/Ascend/ascend-toolkit/laster/lib64/plugin/nnengine:/usr/local/Ascend/ascend-toolkit/laster/opp/built-in/op_impl/ai_core/tbe/op_tiling:/usr/local/Ascend/driver/lib64:/var/davinci/driver/lib64:/var/davinci/driver/lib64/common:/var/davinci/driver/lib64/driver:/usr/local/Ascend/ascend-toolkit/laster/runtime/lib64/stub/aarch64:/usr/local/Ascend/ascend-toolkit/laster/lib64:/usr/local/Ascend/ascend-toolkit/laster/lib64/plugin/opskernel:/usr/local/Ascend/ascend-toolkit/laster/lib64/plugin/nnengine:/usr/local/Ascend/ascend-toolkit/laster/opp/built-in/op_impl/ai_core/tbe/op_tiling:/usr/local/Ascend/driver/lib64:/var/davinci/driver/lib64:/var/davinci/driver/lib64/common:/var/davinci/driver/lib64/driver:'), ('ASCEND_AICPU_PATH', '/usr/local/Ascend/ascend-toolkit/latest'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('ROS_LOCALHOST_ONLY', '0'), ('CONDA_DEFAULT_ENV', 'base'), ('VSCODE_GIT_ASKPASS_MAIN', '/usr/share/code/resources/app/extensions/git/dist/askpass-main.js'), ('XDG_DATA_DIRS', '/usr/share/xfce4:/usr/share/xfce:/usr/share/gnome:/usr/local/share:/usr/share:/var/lib/snapd/desktop:/usr/share'), ('GDK_BACKEND', 'x11'), ('PATH', '/usr/local/Ascend/ascend-toolkit/latest/bin:/usr/local/Ascend/ascend-toolkit/latest/compiler/ccec_compiler/bin:/usr/local/Ascend/ascend-toolkit/latest/tools/ccec_compiler/bin:/home/HwHiAiUser/.local/bin:/opt/ros/humble/bin:/usr/local/Ascend/ascend-toolkit/latest/bin:/usr/local/Ascend/ascend-toolkit/latest/compiler/ccec_compiler/bin:/usr/local/Ascend/ascend-toolkit/latest/tools/ccec_compiler/bin:/usr/local/miniconda3/bin:/usr/local/miniconda3/condabin:/usr/local/Ascend/ascend-toolkit/laster/bin:/usr/local/Ascend/ascend-toolkit/laster/compiler/ccec_compiler/bin:/home/HwHiAiUser/.local/bin:/usr/local/Ascend/ascend-toolkit/laster/bin:/usr/local/Ascend/ascend-toolkit/laster/compiler/ccec_compiler/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/home/HwHiAiUser/.config/Code/User/globalStorage/github.copilot-chat/debugCommand'), ('GDMSESSION', 'xfce'), ('ASCEND_HOME_PATH', '/usr/local/Ascend/ascend-toolkit/latest'), ('ORIGINAL_XDG_CURRENT_DESKTOP', 'XFCE'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('ROS_DISTRO', 'humble'), ('GIO_LAUNCHED_DESKTOP_FILE_PID', '3883'), ('GIO_LAUNCHED_DESKTOP_FILE', '/usr/share/applications/code.desktop'), ('TERM_PROGRAM', 'vscode'), ('_', '/usr/bin/env')]), 'shell': False}
+[0.099452] (-) TimerEvent: {}
+[0.199959] (-) TimerEvent: {}
+[0.300474] (-) TimerEvent: {}
+[0.400989] (-) TimerEvent: {}
+[0.501532] (-) TimerEvent: {}
+[0.588933] (oradar_lidar) StdoutLine: {'line': b'-- The C compiler identification is GNU 11.4.0\n'}
+[0.601622] (-) TimerEvent: {}
+[0.702082] (-) TimerEvent: {}
+[0.802700] (-) TimerEvent: {}
+[0.903220] (-) TimerEvent: {}
+[1.003739] (-) TimerEvent: {}
+[1.104255] (-) TimerEvent: {}
+[1.119503] (oradar_lidar) StdoutLine: {'line': b'-- The CXX compiler identification is GNU 11.4.0\n'}
+[1.160839] (oradar_lidar) StdoutLine: {'line': b'-- Detecting C compiler ABI info\n'}
+[1.204398] (-) TimerEvent: {}
+[1.304932] (-) TimerEvent: {}
+[1.363240] (oradar_lidar) StdoutLine: {'line': b'-- Detecting C compiler ABI info - done\n'}
+[1.380629] (oradar_lidar) StdoutLine: {'line': b'-- Check for working C compiler: /usr/bin/cc - skipped\n'}
+[1.387143] (oradar_lidar) StdoutLine: {'line': b'-- Detecting C compile features\n'}
+[1.396493] (oradar_lidar) StdoutLine: {'line': b'-- Detecting C compile features - done\n'}
+[1.404765] (oradar_lidar) StdoutLine: {'line': b'-- Detecting CXX compiler ABI info\n'}
+[1.405054] (-) TimerEvent: {}
+[1.505513] (-) TimerEvent: {}
+[1.606088] (-) TimerEvent: {}
+[1.625300] (oradar_lidar) StdoutLine: {'line': b'-- Detecting CXX compiler ABI info - done\n'}
+[1.648247] (oradar_lidar) StdoutLine: {'line': b'-- Check for working CXX compiler: /usr/bin/c++ - skipped\n'}
+[1.649362] (oradar_lidar) StdoutLine: {'line': b'-- Detecting CXX compile features\n'}
+[1.650365] (oradar_lidar) StdoutLine: {'line': b'-- Detecting CXX compile features - done\n'}
+[1.684714] (oradar_lidar) StderrLine: {'line': b'\x1b[0m=============================================================\x1b[0m\n'}
+[1.685134] (oradar_lidar) StderrLine: {'line': b'\x1b[0m-- ROS Not Found, Ros Support is turned Off!\x1b[0m\n'}
+[1.685391] (oradar_lidar) StderrLine: {'line': b'\x1b[0m=============================================================\x1b[0m\n'}
+[1.706222] (-) TimerEvent: {}
+[1.806706] (-) TimerEvent: {}
+[1.907182] (-) TimerEvent: {}
+[2.007690] (-) TimerEvent: {}
+[2.108202] (-) TimerEvent: {}
+[2.209220] (-) TimerEvent: {}
+[2.309722] (-) TimerEvent: {}
+[2.410230] (-) TimerEvent: {}
+[2.510739] (-) TimerEvent: {}
+[2.611254] (-) TimerEvent: {}
+[2.711758] (-) TimerEvent: {}
+[2.812301] (-) TimerEvent: {}
+[2.912803] (-) TimerEvent: {}
+[3.013308] (-) TimerEvent: {}
+[3.116100] (-) TimerEvent: {}
+[3.216607] (-) TimerEvent: {}
+[3.317136] (-) TimerEvent: {}
+[3.417715] (-) TimerEvent: {}
+[3.518228] (-) TimerEvent: {}
+[3.618746] (-) TimerEvent: {}
+[3.719256] (-) TimerEvent: {}
+[3.819758] (-) TimerEvent: {}
+[3.920272] (-) TimerEvent: {}
+[4.020776] (-) TimerEvent: {}
+[4.121298] (-) TimerEvent: {}
+[4.221811] (-) TimerEvent: {}
+[4.322321] (-) TimerEvent: {}
+[4.422827] (-) TimerEvent: {}
+[4.458307] (oradar_lidar) StdoutLine: {'line': b'-- Found Python3: /usr/local/miniconda3/bin/python3 (found version "3.9.2") found components: Interpreter \n'}
+[4.522969] (-) TimerEvent: {}
+[4.624136] (-) TimerEvent: {}
+[4.724645] (-) TimerEvent: {}
+[4.825149] (-) TimerEvent: {}
+[4.925699] (-) TimerEvent: {}
+[5.026424] (-) TimerEvent: {}
+[5.096116] (oradar_lidar) StdoutLine: {'line': b'-- Found rosidl_generator_c: 3.1.6 (/opt/ros/humble/share/rosidl_generator_c/cmake)\n'}
+[5.113633] (oradar_lidar) StdoutLine: {'line': b'-- Found rosidl_adapter: 3.1.6 (/opt/ros/humble/share/rosidl_adapter/cmake)\n'}
+[5.126566] (-) TimerEvent: {}
+[5.142614] (oradar_lidar) StdoutLine: {'line': b'-- Found rosidl_generator_cpp: 3.1.6 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)\n'}
+[5.193882] (oradar_lidar) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c\n'}
+[5.226710] (-) TimerEvent: {}
+[5.251530] (oradar_lidar) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp\n'}
+[5.326875] (-) TimerEvent: {}
+[5.421744] (oradar_lidar) StdoutLine: {'line': b'-- Found rmw_implementation_cmake: 6.1.2 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)\n'}
+[5.426942] (-) TimerEvent: {}
+[5.431100] (oradar_lidar) StdoutLine: {'line': b'-- Found rmw_fastrtps_cpp: 6.2.7 (/opt/ros/humble/share/rmw_fastrtps_cpp/cmake)\n'}
+[5.527132] (-) TimerEvent: {}
+[5.627642] (-) TimerEvent: {}
+[5.675163] (oradar_lidar) StdoutLine: {'line': b'-- Found OpenSSL: /usr/lib/aarch64-linux-gnu/libcrypto.so (found version "3.0.2")  \n'}
+[5.727783] (-) TimerEvent: {}
+[5.739252] (oradar_lidar) StdoutLine: {'line': b'-- Found FastRTPS: /opt/ros/humble/include  \n'}
+[5.827934] (-) TimerEvent: {}
+[5.845548] (oradar_lidar) StdoutLine: {'line': b"-- Using RMW implementation 'rmw_fastrtps_cpp' as default\n"}
+[5.888071] (oradar_lidar) StdoutLine: {'line': b'-- Looking for pthread.h\n'}
+[5.928079] (-) TimerEvent: {}
+[6.028589] (-) TimerEvent: {}
+[6.087573] (oradar_lidar) StdoutLine: {'line': b'-- Looking for pthread.h - found\n'}
+[6.091714] (oradar_lidar) StdoutLine: {'line': b'-- Performing Test CMAKE_HAVE_LIBC_PTHREAD\n'}
+[6.128762] (-) TimerEvent: {}
+[6.229335] (-) TimerEvent: {}
+[6.275789] (oradar_lidar) StdoutLine: {'line': b'-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success\n'}
+[6.278423] (oradar_lidar) StdoutLine: {'line': b'-- Found Threads: TRUE  \n'}
+[6.329472] (-) TimerEvent: {}
+[6.429971] (-) TimerEvent: {}
+[6.489579] (oradar_lidar) StderrLine: {'line': b'\x1b[0m=============================================================\x1b[0m\n'}
+[6.489975] (oradar_lidar) StderrLine: {'line': b'\x1b[0m-- ROS2 Found. ROS2 Support is turned On!\x1b[0m\n'}
+[6.490155] (oradar_lidar) StderrLine: {'line': b'\x1b[0m=============================================================\x1b[0m\n'}
+[6.498190] (oradar_lidar) StdoutLine: {'line': b'-- Found sensor_msgs: 4.8.0 (/opt/ros/humble/share/sensor_msgs/cmake)\n'}
+[6.530112] (-) TimerEvent: {}
+[6.615216] (oradar_lidar) StderrLine: {'line': b'\x1b[0mCMake Deprecation Warning at sdk/CMakeLists.txt:36 (cmake_policy):\n'}
+[6.615671] (oradar_lidar) StderrLine: {'line': b'  The OLD behavior for policy CMP0053 will be removed from a future version\n'}
+[6.615863] (oradar_lidar) StderrLine: {'line': b'  of CMake.\n'}
+[6.616027] (oradar_lidar) StderrLine: {'line': b'\n'}
+[6.616182] (oradar_lidar) StderrLine: {'line': b'  The cmake-policies(7) manual explains that the OLD behaviors of all\n'}
+[6.616333] (oradar_lidar) StderrLine: {'line': b'  policies are deprecated and that a policy should be set to OLD only under\n'}
+[6.616479] (oradar_lidar) StderrLine: {'line': b'  specific short-term circumstances.  Projects should be ported to the NEW\n'}
+[6.616625] (oradar_lidar) StderrLine: {'line': b'  behavior and not rely on setting a policy to OLD.\n'}
+[6.616770] (oradar_lidar) StderrLine: {'line': b'\n'}
+[6.616911] (oradar_lidar) StderrLine: {'line': b'\x1b[0m\n'}
+[6.617057] (oradar_lidar) StderrLine: {'line': b'\x1b[0mCMake Deprecation Warning at sdk/CMakeLists.txt:39 (cmake_policy):\n'}
+[6.617222] (oradar_lidar) StderrLine: {'line': b'  The OLD behavior for policy CMP0037 will be removed from a future version\n'}
+[6.617416] (oradar_lidar) StderrLine: {'line': b'  of CMake.\n'}
+[6.617569] (oradar_lidar) StderrLine: {'line': b'\n'}
+[6.617718] (oradar_lidar) StderrLine: {'line': b'  The cmake-policies(7) manual explains that the OLD behaviors of all\n'}
+[6.617865] (oradar_lidar) StderrLine: {'line': b'  policies are deprecated and that a policy should be set to OLD only under\n'}
+[6.618009] (oradar_lidar) StderrLine: {'line': b'  specific short-term circumstances.  Projects should be ported to the NEW\n'}
+[6.618170] (oradar_lidar) StderrLine: {'line': b'  behavior and not rely on setting a policy to OLD.\n'}
+[6.618317] (oradar_lidar) StderrLine: {'line': b'\n'}
+[6.618462] (oradar_lidar) StderrLine: {'line': b'\x1b[0m\n'}
+[6.618608] (oradar_lidar) StderrLine: {'line': b'\x1b[0mCMake Deprecation Warning at sdk/CMakeLists.txt:42 (cmake_policy):\n'}
+[6.618754] (oradar_lidar) StderrLine: {'line': b'  The OLD behavior for policy CMP0043 will be removed from a future version\n'}
+[6.618895] (oradar_lidar) StderrLine: {'line': b'  of CMake.\n'}
+[6.619035] (oradar_lidar) StderrLine: {'line': b'\n'}
+[6.619207] (oradar_lidar) StderrLine: {'line': b'  The cmake-policies(7) manual explains that the OLD behaviors of all\n'}
+[6.619359] (oradar_lidar) StderrLine: {'line': b'  policies are deprecated and that a policy should be set to OLD only under\n'}
+[6.619500] (oradar_lidar) StderrLine: {'line': b'  specific short-term circumstances.  Projects should be ported to the NEW\n'}
+[6.619663] (oradar_lidar) StderrLine: {'line': b'  behavior and not rely on setting a policy to OLD.\n'}
+[6.619813] (oradar_lidar) StderrLine: {'line': b'\n'}
+[6.619953] (oradar_lidar) StderrLine: {'line': b'\x1b[0m\n'}
+[6.630262] (-) TimerEvent: {}
+[6.664320] (oradar_lidar) StdoutLine: {'line': b'-- Found SWIG: /usr/bin/swig4.0 (found version "4.0.2")  \n'}
+[6.730604] (-) TimerEvent: {}
+[6.801455] (oradar_lidar) StdoutLine: {'line': b'-- Found PythonInterp: /usr/local/miniconda3/bin/python (found version "3.9.2") \n'}
+[6.824139] (oradar_lidar) StdoutLine: {'line': b'-- Found PythonLibs: /usr/local/miniconda3/lib/libpython3.9.so (found version "3.9.2") \n'}
+[6.830856] (-) TimerEvent: {}
+[6.894226] (oradar_lidar) StderrLine: {'line': b'\x1b[0mCMake Deprecation Warning at sdk/cmake/install_package.cmake:101 (cmake_policy):\n'}
+[6.894621] (oradar_lidar) StderrLine: {'line': b'  The OLD behavior for policy CMP0026 will be removed from a future version\n'}
+[6.894809] (oradar_lidar) StderrLine: {'line': b'  of CMake.\n'}
+[6.894969] (oradar_lidar) StderrLine: {'line': b'\n'}
+[6.895122] (oradar_lidar) StderrLine: {'line': b'  The cmake-policies(7) manual explains that the OLD behaviors of all\n'}
+[6.895274] (oradar_lidar) StderrLine: {'line': b'  policies are deprecated and that a policy should be set to OLD only under\n'}
+[6.895420] (oradar_lidar) StderrLine: {'line': b'  specific short-term circumstances.  Projects should be ported to the NEW\n'}
+[6.895566] (oradar_lidar) StderrLine: {'line': b'  behavior and not rely on setting a policy to OLD.\n'}
+[6.895709] (oradar_lidar) StderrLine: {'line': b'Call Stack (most recent call first):\n'}
+[6.895888] (oradar_lidar) StderrLine: {'line': b'  sdk/CMakeLists.txt:105 (install_package)\n'}
+[6.896039] (oradar_lidar) StderrLine: {'line': b'\n'}
+[6.896183] (oradar_lidar) StderrLine: {'line': b'\x1b[0m\n'}
+[6.930968] (-) TimerEvent: {}
+[7.031495] (-) TimerEvent: {}
+[7.132017] (-) TimerEvent: {}
+[7.232526] (-) TimerEvent: {}
+[7.324350] (oradar_lidar) StdoutLine: {'line': b'-- Configuring done\n'}
+[7.332663] (-) TimerEvent: {}
+[7.433163] (-) TimerEvent: {}
+[7.435163] (oradar_lidar) StdoutLine: {'line': b'-- Generating done\n'}
+[7.441904] (oradar_lidar) StderrLine: {'line': b'\x1b[33mCMake Warning:\n'}
+[7.442276] (oradar_lidar) StderrLine: {'line': b'  Manually-specified variables were not used by the project:\n'}
+[7.442458] (oradar_lidar) StderrLine: {'line': b'\n'}
+[7.442617] (oradar_lidar) StderrLine: {'line': b'    CATKIN_INSTALL_INTO_PREFIX_ROOT\n'}
+[7.442794] (oradar_lidar) StderrLine: {'line': b'\n'}
+[7.442944] (oradar_lidar) StderrLine: {'line': b'\x1b[0m\n'}
+[7.462430] (oradar_lidar) StdoutLine: {'line': b'-- Build files have been written to: /home/HwHiAiUser/oradar_ros/build/oradar_lidar\n'}
+[7.498623] (oradar_lidar) CommandEnded: {'returncode': 0}
+[7.500060] (oradar_lidar) JobProgress: {'identifier': 'oradar_lidar', 'progress': 'build'}
+[7.501603] (oradar_lidar) Command: {'cmd': ['/usr/bin/cmake', '--build', '/home/HwHiAiUser/oradar_ros/build/oradar_lidar', '--', '-j3', '-l3'], 'cwd': '/home/HwHiAiUser/oradar_ros/build/oradar_lidar', 'env': OrderedDict([('SHELL', '/bin/bash'), ('ROS_VERSION', '2'), ('SESSION_MANAGER', 'local/orangepiaipro-20t:@/tmp/.ICE-unix/2111,unix/orangepiaipro-20t:/tmp/.ICE-unix/2111'), ('QT_ACCESSIBILITY', '1'), ('COLORTERM', 'truecolor'), ('XDG_CONFIG_DIRS', '/etc/xdg/xdg-xfce:/etc/xdg:/etc/xdg'), ('IGN_GAZEBO_SYSTEM_PLUGIN_PATH', '/opt/ros/humble/lib'), ('XDG_SESSION_PATH', '/org/freedesktop/DisplayManager/Session0'), ('XDG_MENU_PREFIX', 'xfce-'), ('TERM_PROGRAM_VERSION', '1.99.0'), ('GTK_IM_MODULE', 'ibus'), ('CONDA_EXE', '/usr/local/miniconda3/bin/conda'), ('_CE_M', ''), ('ROS_PYTHON_VERSION', '3'), ('LANGUAGE', 'en'), ('MS_ENABLE_GE', '1'), ('MANDATORY_PATH', '/usr/share/gconf/xfce.mandatory.path'), ('SSH_AUTH_SOCK', '/tmp/ssh-XXXXXXYBYYsI/agent.2279'), ('XMODIFIERS', '@im=ibus'), ('DESKTOP_SESSION', 'xfce'), ('SSH_AGENT_PID', '2280'), ('NPU_HOST_INC', '/usr/local/Ascend/ascend-toolkit/latest/runtime/include'), ('XDG_SEAT', 'seat0'), ('NPU_HOST_LIB', '/usr/local/Ascend/ascend-toolkit/latest/runtime/lib64/stub/aarch64'), ('PWD', '/home/HwHiAiUser/oradar_ros/build/oradar_lidar'), ('XDG_SESSION_DESKTOP', 'xfce'), ('LOGNAME', 'HwHiAiUser'), ('XDG_SESSION_TYPE', 'x11'), ('CONDA_PREFIX', '/usr/local/miniconda3'), ('XAUTHORITY', '/home/HwHiAiUser/.Xauthority'), ('VSCODE_GIT_ASKPASS_NODE', '/usr/share/code/code'), ('XDG_GREETER_DATA_DIR', '/var/lib/lightdm-data/HwHiAiUser'), ('GDM_LANG', 'en'), ('HOME', '/home/HwHiAiUser'), ('LANG', 'C.UTF-8'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('XDG_CURRENT_DESKTOP', 'XFCE'), ('CONDA_PROMPT_MODIFIER', '(base)'), ('MS_DEV_FORCE_ACL', '1'), ('AMENT_PREFIX_PATH', '/opt/ros/humble'), ('GIT_ASKPASS', '/usr/share/code/resources/app/extensions/git/dist/askpass.sh'), ('XDG_SEAT_PATH', '/org/freedesktop/DisplayManager/Seat0'), ('https_proxy', 'http://127.0.0.1:7890'), ('CHROME_DESKTOP', 'code.desktop'), ('CLUTTER_IM_MODULE', 'ibus'), ('TOOLCHAIN_HOME', '/usr/local/Ascend/ascend-toolkit/latest/toolkit'), ('ASCEND_TOOLKIT_HOME', '/usr/local/Ascend/ascend-toolkit/latest'), ('VSCODE_GIT_ASKPASS_EXTRA_ARGS', ''), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('XDG_SESSION_CLASS', 'user'), ('PYTHONPATH', '/usr/local/Ascend/thirdpart/aarch64/acllite:/usr/local/Ascend/ascend-toolkit/latest/python/site-packages:/usr/local/Ascend/ascend-toolkit/latest/opp/built-in/op_impl/ai_core/tbe:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages:/usr/local/Ascend/thirdpart/aarch64/acllite:/usr/local/Ascend/ascend-toolkit/latest/python/site-packages:/usr/local/Ascend/ascend-toolkit/latest/opp/built-in/op_impl/ai_core/tbe:/usr/local/Ascend/thirdpart/aarch64/acllite:/usr/local/Ascend/ascend-toolkit/laster/python/site-packages:/usr/local/Ascend/ascend-toolkit/laster/opp/built-in/op_impl/ai_core/tbe:/usr/local/Ascend/thirdpart/aarch64/acllite:/usr/local/Ascend/ascend-toolkit/laster/python/site-packages:/usr/local/Ascend/ascend-toolkit/laster/opp/built-in/op_impl/ai_core/tbe:'), ('COLCON', '1'), ('TERM', 'xterm-256color'), ('_CE_CONDA', ''), ('DEFAULTS_PATH', '/usr/share/gconf/xfce.default.path'), ('LESSOPEN', '| /usr/bin/lesspipe %s'), ('USER', 'HwHiAiUser'), ('VSCODE_GIT_IPC_HANDLE', '/run/user/1000/vscode-git-76d326f1f7.sock'), ('CONDA_SHLVL', '1'), ('DISPLAY', ':0'), ('SHLVL', '1'), ('QT_IM_MODULE', 'ibus'), ('XDG_VTNR', '7'), ('XDG_SESSION_ID', 'c2'), ('http_proxy', 'http://127.0.0.1:7890'), ('ASCEND_OPP_PATH', '/usr/local/Ascend/ascend-toolkit/latest/opp'), ('IGN_GAZEBO_RESOURCE_PATH', '/opt/ros/humble/share'), ('CONDA_PYTHON_EXE', '/usr/local/miniconda3/bin/python'), ('LD_LIBRARY_PATH', '/usr/local/Ascend/ascend-toolkit/latest/tools/aml/lib64:/usr/local/Ascend/ascend-toolkit/latest/tools/aml/lib64/plugin:/usr/local/Ascend/ascend-toolkit/latest/lib64:/usr/local/Ascend/ascend-toolkit/latest/lib64/plugin/opskernel:/usr/local/Ascend/ascend-toolkit/latest/lib64/plugin/nnengine:/usr/local/Ascend/ascend-toolkit/latest/opp/built-in/op_impl/ai_core/tbe/op_tiling/lib/linux/aarch64:/lib64:/var/davinci/driver/lib64:/var/davinci/driver/lib64/common:/var/davinci/driver/lib64/driver:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/aarch64-linux-gnu:/opt/ros/humble/lib:/usr/local/Ascend/ascend-toolkit/latest/tools/aml/lib64:/usr/local/Ascend/ascend-toolkit/latest/tools/aml/lib64/plugin:/usr/local/Ascend/ascend-toolkit/latest/lib64:/usr/local/Ascend/ascend-toolkit/latest/lib64/plugin/opskernel:/usr/local/Ascend/ascend-toolkit/latest/lib64/plugin/nnengine:/usr/local/Ascend/ascend-toolkit/latest/opp/built-in/op_impl/ai_core/tbe/op_tiling/lib/linux/aarch64:/lib64:/var/davinci/driver/lib64:/var/davinci/driver/lib64/common:/var/davinci/driver/lib64/driver:/usr/local/Ascend/ascend-toolkit/laster/runtime/lib64/stub/aarch64:/usr/local/Ascend/ascend-toolkit/laster/lib64:/usr/local/Ascend/ascend-toolkit/laster/lib64/plugin/opskernel:/usr/local/Ascend/ascend-toolkit/laster/lib64/plugin/nnengine:/usr/local/Ascend/ascend-toolkit/laster/opp/built-in/op_impl/ai_core/tbe/op_tiling:/usr/local/Ascend/driver/lib64:/var/davinci/driver/lib64:/var/davinci/driver/lib64/common:/var/davinci/driver/lib64/driver:/usr/local/Ascend/ascend-toolkit/laster/runtime/lib64/stub/aarch64:/usr/local/Ascend/ascend-toolkit/laster/lib64:/usr/local/Ascend/ascend-toolkit/laster/lib64/plugin/opskernel:/usr/local/Ascend/ascend-toolkit/laster/lib64/plugin/nnengine:/usr/local/Ascend/ascend-toolkit/laster/opp/built-in/op_impl/ai_core/tbe/op_tiling:/usr/local/Ascend/driver/lib64:/var/davinci/driver/lib64:/var/davinci/driver/lib64/common:/var/davinci/driver/lib64/driver:'), ('ASCEND_AICPU_PATH', '/usr/local/Ascend/ascend-toolkit/latest'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('ROS_LOCALHOST_ONLY', '0'), ('CONDA_DEFAULT_ENV', 'base'), ('VSCODE_GIT_ASKPASS_MAIN', '/usr/share/code/resources/app/extensions/git/dist/askpass-main.js'), ('XDG_DATA_DIRS', '/usr/share/xfce4:/usr/share/xfce:/usr/share/gnome:/usr/local/share:/usr/share:/var/lib/snapd/desktop:/usr/share'), ('GDK_BACKEND', 'x11'), ('PATH', '/usr/local/Ascend/ascend-toolkit/latest/bin:/usr/local/Ascend/ascend-toolkit/latest/compiler/ccec_compiler/bin:/usr/local/Ascend/ascend-toolkit/latest/tools/ccec_compiler/bin:/home/HwHiAiUser/.local/bin:/opt/ros/humble/bin:/usr/local/Ascend/ascend-toolkit/latest/bin:/usr/local/Ascend/ascend-toolkit/latest/compiler/ccec_compiler/bin:/usr/local/Ascend/ascend-toolkit/latest/tools/ccec_compiler/bin:/usr/local/miniconda3/bin:/usr/local/miniconda3/condabin:/usr/local/Ascend/ascend-toolkit/laster/bin:/usr/local/Ascend/ascend-toolkit/laster/compiler/ccec_compiler/bin:/home/HwHiAiUser/.local/bin:/usr/local/Ascend/ascend-toolkit/laster/bin:/usr/local/Ascend/ascend-toolkit/laster/compiler/ccec_compiler/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/home/HwHiAiUser/.config/Code/User/globalStorage/github.copilot-chat/debugCommand'), ('GDMSESSION', 'xfce'), ('ASCEND_HOME_PATH', '/usr/local/Ascend/ascend-toolkit/latest'), ('ORIGINAL_XDG_CURRENT_DESKTOP', 'XFCE'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('ROS_DISTRO', 'humble'), ('GIO_LAUNCHED_DESKTOP_FILE_PID', '3883'), ('GIO_LAUNCHED_DESKTOP_FILE', '/usr/share/applications/code.desktop'), ('TERM_PROGRAM', 'vscode'), ('_', '/usr/bin/env')]), 'shell': False}
+[7.533356] (-) TimerEvent: {}
+[7.633884] (-) TimerEvent: {}
+[7.634458] (oradar_lidar) StdoutLine: {'line': b'[  5%] \x1b[32mBuilding CXX object sdk/CMakeFiles/oradar_sdk.dir/core/base/timer.cpp.o\x1b[0m\n'}
+[7.734033] (-) TimerEvent: {}
+[7.834597] (-) TimerEvent: {}
+[7.935096] (-) TimerEvent: {}
+[8.035596] (-) TimerEvent: {}
+[8.136111] (-) TimerEvent: {}
+[8.237967] (-) TimerEvent: {}
+[8.339110] (-) TimerEvent: {}
+[8.439624] (-) TimerEvent: {}
+[8.514191] (oradar_lidar) StdoutLine: {'line': b'[ 10%] \x1b[32mBuilding CXX object sdk/CMakeFiles/oradar_sdk.dir/core/network/PassiveSocket.cpp.o\x1b[0m\n'}
+[8.539772] (-) TimerEvent: {}
+[8.640278] (-) TimerEvent: {}
+[8.740779] (-) TimerEvent: {}
+[8.841301] (-) TimerEvent: {}
+[8.941819] (-) TimerEvent: {}
+[9.042529] (-) TimerEvent: {}
+[9.143056] (-) TimerEvent: {}
+[9.243591] (-) TimerEvent: {}
+[9.344157] (-) TimerEvent: {}
+[9.444677] (-) TimerEvent: {}
+[9.545249] (-) TimerEvent: {}
+[9.574938] (oradar_lidar) StdoutLine: {'line': b'[ 15%] \x1b[32mBuilding CXX object sdk/CMakeFiles/oradar_sdk.dir/core/network/SimpleSocket.cpp.o\x1b[0m\n'}
+[9.645348] (-) TimerEvent: {}
+[9.745855] (-) TimerEvent: {}
+[9.846367] (-) TimerEvent: {}
+[9.946886] (-) TimerEvent: {}
+[10.047409] (-) TimerEvent: {}
+[10.147927] (-) TimerEvent: {}
+[10.248457] (-) TimerEvent: {}
+[10.348971] (-) TimerEvent: {}
+[10.449515] (-) TimerEvent: {}
+[10.550029] (-) TimerEvent: {}
+[10.650538] (-) TimerEvent: {}
+[10.751249] (-) TimerEvent: {}
+[10.851758] (-) TimerEvent: {}
+[10.952270] (-) TimerEvent: {}
+[11.026794] (oradar_lidar) StdoutLine: {'line': b'[ 20%] \x1b[32mBuilding CXX object sdk/CMakeFiles/oradar_sdk.dir/core/serial/serial.cpp.o\x1b[0m\n'}
+[11.052409] (-) TimerEvent: {}
+[11.152961] (-) TimerEvent: {}
+[11.253509] (-) TimerEvent: {}
+[11.354007] (-) TimerEvent: {}
+[11.454633] (-) TimerEvent: {}
+[11.555197] (-) TimerEvent: {}
+[11.655706] (-) TimerEvent: {}
+[11.756219] (-) TimerEvent: {}
+[11.856747] (-) TimerEvent: {}
+[11.957288] (-) TimerEvent: {}
+[12.057807] (-) TimerEvent: {}
+[12.158322] (-) TimerEvent: {}
+[12.258848] (-) TimerEvent: {}
+[12.359485] (-) TimerEvent: {}
+[12.461031] (-) TimerEvent: {}
+[12.561573] (-) TimerEvent: {}
+[12.576164] (oradar_lidar) StdoutLine: {'line': b'[ 25%] \x1b[32mBuilding C object sdk/CMakeFiles/oradar_sdk.dir/core/serial/impl/unix/lock.c.o\x1b[0m\n'}
+[12.661714] (-) TimerEvent: {}
+[12.762221] (-) TimerEvent: {}
+[12.862731] (-) TimerEvent: {}
+[12.963240] (-) TimerEvent: {}
+[13.060339] (oradar_lidar) StdoutLine: {'line': b'[ 30%] \x1b[32mBuilding CXX object sdk/CMakeFiles/oradar_sdk.dir/core/serial/impl/unix/list_ports_linux.cpp.o\x1b[0m\n'}
+[13.063322] (-) TimerEvent: {}
+[13.163759] (-) TimerEvent: {}
+[13.264276] (-) TimerEvent: {}
+[13.364811] (-) TimerEvent: {}
+[13.465300] (-) TimerEvent: {}
+[13.565820] (-) TimerEvent: {}
+[13.666344] (-) TimerEvent: {}
+[13.766859] (-) TimerEvent: {}
+[13.867383] (-) TimerEvent: {}
+[13.967927] (-) TimerEvent: {}
+[14.068533] (-) TimerEvent: {}
+[14.169042] (-) TimerEvent: {}
+[14.269591] (-) TimerEvent: {}
+[14.370093] (-) TimerEvent: {}
+[14.470709] (-) TimerEvent: {}
+[14.571228] (-) TimerEvent: {}
+[14.671739] (-) TimerEvent: {}
+[14.772727] (-) TimerEvent: {}
+[14.873261] (-) TimerEvent: {}
+[14.973781] (-) TimerEvent: {}
+[15.074317] (-) TimerEvent: {}
+[15.174833] (-) TimerEvent: {}
+[15.275353] (-) TimerEvent: {}
+[15.375874] (-) TimerEvent: {}
+[15.403561] (oradar_lidar) StdoutLine: {'line': b'[ 35%] \x1b[32mBuilding CXX object sdk/CMakeFiles/oradar_sdk.dir/core/serial/impl/unix/unix_serial.cpp.o\x1b[0m\n'}
+[15.476020] (-) TimerEvent: {}
+[15.576529] (-) TimerEvent: {}
+[15.677068] (-) TimerEvent: {}
+[15.777745] (-) TimerEvent: {}
+[15.878305] (-) TimerEvent: {}
+[15.978835] (-) TimerEvent: {}
+[16.080099] (-) TimerEvent: {}
+[16.180655] (-) TimerEvent: {}
+[16.281201] (-) TimerEvent: {}
+[16.381820] (-) TimerEvent: {}
+[16.482341] (-) TimerEvent: {}
+[16.582863] (-) TimerEvent: {}
+[16.683379] (-) TimerEvent: {}
+[16.783921] (-) TimerEvent: {}
+[16.884438] (-) TimerEvent: {}
+[16.927719] (oradar_lidar) StdoutLine: {'line': b'[ 40%] \x1b[32mBuilding CXX object sdk/CMakeFiles/oradar_sdk.dir/src/ord_lidar_c_api_driver.cpp.o\x1b[0m\n'}
+[16.984583] (-) TimerEvent: {}
+[17.085115] (-) TimerEvent: {}
+[17.185670] (-) TimerEvent: {}
+[17.286186] (-) TimerEvent: {}
+[17.386733] (-) TimerEvent: {}
+[17.487251] (-) TimerEvent: {}
+[17.587781] (-) TimerEvent: {}
+[17.688333] (-) TimerEvent: {}
+[17.788884] (-) TimerEvent: {}
+[17.889478] (-) TimerEvent: {}
+[17.989999] (-) TimerEvent: {}
+[17.998253] (oradar_lidar) StdoutLine: {'line': b'[ 45%] \x1b[32mBuilding CXX object sdk/CMakeFiles/oradar_sdk.dir/src/ord_lidar_driver.cpp.o\x1b[0m\n'}
+[18.090147] (-) TimerEvent: {}
+[18.190659] (-) TimerEvent: {}
+[18.291163] (-) TimerEvent: {}
+[18.391668] (-) TimerEvent: {}
+[18.492219] (-) TimerEvent: {}
+[18.592748] (-) TimerEvent: {}
+[18.693316] (-) TimerEvent: {}
+[18.793837] (-) TimerEvent: {}
+[18.894361] (-) TimerEvent: {}
+[18.994917] (-) TimerEvent: {}
+[19.072084] (oradar_lidar) StderrLine: {'line': b'\x1b[01m\x1b[K/home/HwHiAiUser/oradar_ros/sdk/src/ord_lidar_driver.cpp:\x1b[m\x1b[K In member function \xe2\x80\x98\x1b[01m\x1b[Kbool ordlidar::OrdlidarDriver::uart_data_find_init_info(unsigned char*, int)\x1b[m\x1b[K\xe2\x80\x99:\n'}
+[19.072480] (oradar_lidar) StderrLine: {'line': b'\x1b[01m\x1b[K/home/HwHiAiUser/oradar_ros/sdk/src/ord_lidar_driver.cpp:203:9:\x1b[m\x1b[K \x1b[01;35m\x1b[Kwarning: \x1b[m\x1b[Kno return statement in function returning non-void [\x1b[01;35m\x1b[K\x1b]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wreturn-type\x07-Wreturn-type\x1b]8;;\x07\x1b[m\x1b[K]\n'}
+[19.072669] (oradar_lidar) StderrLine: {'line': b'  203 |         \x1b[01;35m\x1b[K}\x1b[m\x1b[K\n'}
+[19.072831] (oradar_lidar) StderrLine: {'line': b'      |         \x1b[01;35m\x1b[K^\x1b[m\x1b[K\n'}
+[19.095066] (-) TimerEvent: {}
+[19.195569] (-) TimerEvent: {}
+[19.296089] (-) TimerEvent: {}
+[19.396610] (-) TimerEvent: {}
+[19.497134] (-) TimerEvent: {}
+[19.597695] (-) TimerEvent: {}
+[19.698755] (-) TimerEvent: {}
+[19.799249] (-) TimerEvent: {}
+[19.899759] (-) TimerEvent: {}
+[20.000278] (-) TimerEvent: {}
+[20.060449] (oradar_lidar) StdoutLine: {'line': b'[ 50%] \x1b[32mBuilding CXX object sdk/CMakeFiles/oradar_sdk.dir/src/filters/FullScanFilter.cpp.o\x1b[0m\n'}
+[20.100427] (-) TimerEvent: {}
+[20.200960] (-) TimerEvent: {}
+[20.301972] (-) TimerEvent: {}
+[20.402519] (-) TimerEvent: {}
+[20.503079] (-) TimerEvent: {}
+[20.603640] (-) TimerEvent: {}
+[20.704169] (-) TimerEvent: {}
+[20.804739] (-) TimerEvent: {}
+[20.906431] (-) TimerEvent: {}
+[21.006967] (-) TimerEvent: {}
+[21.099467] (oradar_lidar) StdoutLine: {'line': b'[ 55%] \x1b[32mBuilding CXX object sdk/CMakeFiles/oradar_sdk.dir/core/network/ActiveSocket.cpp.o\x1b[0m\n'}
+[21.107105] (-) TimerEvent: {}
+[21.209425] (-) TimerEvent: {}
+[21.309941] (-) TimerEvent: {}
+[21.410468] (-) TimerEvent: {}
+[21.512378] (-) TimerEvent: {}
+[21.612915] (-) TimerEvent: {}
+[21.714819] (-) TimerEvent: {}
+[21.815347] (-) TimerEvent: {}
+[21.916021] (-) TimerEvent: {}
+[21.998387] (oradar_lidar) StdoutLine: {'line': b'[ 60%] \x1b[32m\x1b[1mLinking CXX static library ../liboradar_sdk.a\x1b[0m\n'}
+[22.016170] (-) TimerEvent: {}
+[22.116773] (-) TimerEvent: {}
+[22.127171] (oradar_lidar) StdoutLine: {'line': b'[ 60%] Built target oradar_sdk\n'}
+[22.206183] (oradar_lidar) StdoutLine: {'line': b'[ 65%] \x1b[32mBuilding CXX object CMakeFiles/oradar_scan.dir/src/oradar_scan_node.cpp.o\x1b[0m\n'}
+[22.216925] (-) TimerEvent: {}
+[22.317451] (-) TimerEvent: {}
+[22.417962] (-) TimerEvent: {}
+[22.518613] (-) TimerEvent: {}
+[22.619117] (-) TimerEvent: {}
+[22.719693] (-) TimerEvent: {}
+[22.820197] (-) TimerEvent: {}
+[22.920700] (-) TimerEvent: {}
+[23.021228] (-) TimerEvent: {}
+[23.121744] (-) TimerEvent: {}
+[23.222405] (-) TimerEvent: {}
+[23.322915] (-) TimerEvent: {}
+[23.423435] (-) TimerEvent: {}
+[23.523984] (-) TimerEvent: {}
+[23.624507] (-) TimerEvent: {}
+[23.725032] (-) TimerEvent: {}
+[23.825677] (-) TimerEvent: {}
+[23.926211] (-) TimerEvent: {}
+[24.029026] (-) TimerEvent: {}
+[24.137069] (-) TimerEvent: {}
+[24.244122] (-) TimerEvent: {}
+[24.344657] (-) TimerEvent: {}
+[24.445232] (-) TimerEvent: {}
+[24.545753] (-) TimerEvent: {}
+[24.646283] (-) TimerEvent: {}
+[24.746816] (-) TimerEvent: {}
+[24.847381] (-) TimerEvent: {}
+[24.947897] (-) TimerEvent: {}
+[25.048414] (-) TimerEvent: {}
+[25.148950] (-) TimerEvent: {}
+[25.251520] (-) TimerEvent: {}
+[25.352031] (-) TimerEvent: {}
+[25.452557] (-) TimerEvent: {}
+[25.553069] (-) TimerEvent: {}
+[25.654906] (-) TimerEvent: {}
+[25.757563] (-) TimerEvent: {}
+[25.858082] (-) TimerEvent: {}
+[25.958641] (-) TimerEvent: {}
+[26.059169] (-) TimerEvent: {}
+[26.159699] (-) TimerEvent: {}
+[26.260228] (-) TimerEvent: {}
+[26.360738] (-) TimerEvent: {}
+[26.461308] (-) TimerEvent: {}
+[26.561826] (-) TimerEvent: {}
+[26.662347] (-) TimerEvent: {}
+[26.762872] (-) TimerEvent: {}
+[26.863675] (-) TimerEvent: {}
+[26.964205] (-) TimerEvent: {}
+[27.065383] (-) TimerEvent: {}
+[27.165904] (-) TimerEvent: {}
+[27.266434] (-) TimerEvent: {}
+[27.366947] (-) TimerEvent: {}
+[27.467459] (-) TimerEvent: {}
+[27.567975] (-) TimerEvent: {}
+[27.668529] (-) TimerEvent: {}
+[27.769063] (-) TimerEvent: {}
+[27.869617] (-) TimerEvent: {}
+[27.970135] (-) TimerEvent: {}
+[28.070650] (-) TimerEvent: {}
+[28.171171] (-) TimerEvent: {}
+[28.271689] (-) TimerEvent: {}
+[28.372209] (-) TimerEvent: {}
+[28.472724] (-) TimerEvent: {}
+[28.573257] (-) TimerEvent: {}
+[28.673778] (-) TimerEvent: {}
+[28.774290] (-) TimerEvent: {}
+[28.874807] (-) TimerEvent: {}
+[28.975330] (-) TimerEvent: {}
+[29.075878] (-) TimerEvent: {}
+[29.176397] (-) TimerEvent: {}
+[29.276918] (-) TimerEvent: {}
+[29.377462] (-) TimerEvent: {}
+[29.477985] (-) TimerEvent: {}
+[29.578515] (-) TimerEvent: {}
+[29.679076] (-) TimerEvent: {}
+[29.779596] (-) TimerEvent: {}
+[29.880116] (-) TimerEvent: {}
+[29.980664] (-) TimerEvent: {}
+[30.081295] (-) TimerEvent: {}
+[30.181806] (-) TimerEvent: {}
+[30.282322] (-) TimerEvent: {}
+[30.382839] (-) TimerEvent: {}
+[30.483357] (-) TimerEvent: {}
+[30.583876] (-) TimerEvent: {}
+[30.684391] (-) TimerEvent: {}
+[30.784909] (-) TimerEvent: {}
+[30.885478] (-) TimerEvent: {}
+[30.986000] (-) TimerEvent: {}
+[31.086520] (-) TimerEvent: {}
+[31.187037] (-) TimerEvent: {}
+[31.287556] (-) TimerEvent: {}
+[31.388069] (-) TimerEvent: {}
+[31.488584] (-) TimerEvent: {}
+[31.589110] (-) TimerEvent: {}
+[31.689659] (-) TimerEvent: {}
+[31.790187] (-) TimerEvent: {}
+[31.890720] (-) TimerEvent: {}
+[31.991246] (-) TimerEvent: {}
+[32.093325] (-) TimerEvent: {}
+[32.193860] (-) TimerEvent: {}
+[32.294484] (-) TimerEvent: {}
+[32.395004] (-) TimerEvent: {}
+[32.495525] (-) TimerEvent: {}
+[32.596039] (-) TimerEvent: {}
+[32.696558] (-) TimerEvent: {}
+[32.797070] (-) TimerEvent: {}
+[32.897622] (-) TimerEvent: {}
+[32.998145] (-) TimerEvent: {}
+[33.098664] (-) TimerEvent: {}
+[33.199182] (-) TimerEvent: {}
+[33.299700] (-) TimerEvent: {}
+[33.400216] (-) TimerEvent: {}
+[33.500732] (-) TimerEvent: {}
+[33.601292] (-) TimerEvent: {}
+[33.701827] (-) TimerEvent: {}
+[33.802373] (-) TimerEvent: {}
+[33.902876] (-) TimerEvent: {}
+[34.003395] (-) TimerEvent: {}
+[34.105465] (-) TimerEvent: {}
+[34.205990] (-) TimerEvent: {}
+[34.306499] (-) TimerEvent: {}
+[34.407012] (-) TimerEvent: {}
+[34.507528] (-) TimerEvent: {}
+[34.608109] (-) TimerEvent: {}
+[34.709421] (-) TimerEvent: {}
+[34.809941] (-) TimerEvent: {}
+[34.910456] (-) TimerEvent: {}
+[35.010969] (-) TimerEvent: {}
+[35.111488] (-) TimerEvent: {}
+[35.212040] (-) TimerEvent: {}
+[35.312643] (-) TimerEvent: {}
+[35.413147] (-) TimerEvent: {}
+[35.513712] (-) TimerEvent: {}
+[35.614340] (-) TimerEvent: {}
+[35.714860] (-) TimerEvent: {}
+[35.815390] (-) TimerEvent: {}
+[35.915915] (-) TimerEvent: {}
+[36.016445] (-) TimerEvent: {}
+[36.116968] (-) TimerEvent: {}
+[36.217527] (-) TimerEvent: {}
+[36.318037] (-) TimerEvent: {}
+[36.418553] (-) TimerEvent: {}
+[36.519065] (-) TimerEvent: {}
+[36.619593] (-) TimerEvent: {}
+[36.720117] (-) TimerEvent: {}
+[36.820635] (-) TimerEvent: {}
+[36.921156] (-) TimerEvent: {}
+[37.021685] (-) TimerEvent: {}
+[37.122200] (-) TimerEvent: {}
+[37.223023] (-) TimerEvent: {}
+[37.323548] (-) TimerEvent: {}
+[37.424064] (-) TimerEvent: {}
+[37.524580] (-) TimerEvent: {}
+[37.625097] (-) TimerEvent: {}
+[37.725666] (-) TimerEvent: {}
+[37.826180] (-) TimerEvent: {}
+[37.926735] (-) TimerEvent: {}
+[38.027864] (-) TimerEvent: {}
+[38.128401] (-) TimerEvent: {}
+[38.228922] (-) TimerEvent: {}
+[38.329477] (-) TimerEvent: {}
+[38.429996] (-) TimerEvent: {}
+[38.530517] (-) TimerEvent: {}
+[38.631024] (-) TimerEvent: {}
+[38.689933] (oradar_lidar) StdoutLine: {'line': b'[ 70%] \x1b[32m\x1b[1mLinking CXX executable oradar_scan\x1b[0m\n'}
+[38.731171] (-) TimerEvent: {}
+[38.831677] (-) TimerEvent: {}
+[38.932190] (-) TimerEvent: {}
+[39.032738] (-) TimerEvent: {}
+[39.133533] (-) TimerEvent: {}
+[39.234049] (-) TimerEvent: {}
+[39.301216] (oradar_lidar) StdoutLine: {'line': b'[ 70%] Built target oradar_scan\n'}
+[39.334193] (-) TimerEvent: {}
+[39.346878] (oradar_lidar) StdoutLine: {'line': b'[ 75%] \x1b[32mBuilding CXX object sdk/samples/CMakeFiles/non-blocking_test.dir/non-blocking_test.cpp.o\x1b[0m\n'}
+[39.434341] (-) TimerEvent: {}
+[39.534860] (-) TimerEvent: {}
+[39.635374] (-) TimerEvent: {}
+[39.735890] (-) TimerEvent: {}
+[39.836461] (-) TimerEvent: {}
+[39.936979] (-) TimerEvent: {}
+[40.037592] (-) TimerEvent: {}
+[40.138107] (-) TimerEvent: {}
+[40.175197] (oradar_lidar) StdoutLine: {'line': b'[ 80%] \x1b[32m\x1b[1mLinking CXX executable ../../non-blocking_test\x1b[0m\n'}
+[40.238257] (-) TimerEvent: {}
+[40.338798] (-) TimerEvent: {}
+[40.357394] (oradar_lidar) StdoutLine: {'line': b'[ 80%] Built target non-blocking_test\n'}
+[40.406150] (oradar_lidar) StdoutLine: {'line': b'[ 85%] \x1b[32mBuilding C object sdk/samples/CMakeFiles/blocking_c_api_test.dir/blocking_c_api_test.c.o\x1b[0m\n'}
+[40.438936] (-) TimerEvent: {}
+[40.539443] (-) TimerEvent: {}
+[40.549444] (oradar_lidar) StdoutLine: {'line': b'[ 90%] \x1b[32m\x1b[1mLinking CXX executable ../../blocking_c_api_test\x1b[0m\n'}
+[40.639591] (-) TimerEvent: {}
+[40.735163] (oradar_lidar) StdoutLine: {'line': b'[ 90%] Built target blocking_c_api_test\n'}
+[40.739701] (-) TimerEvent: {}
+[40.786226] (oradar_lidar) StdoutLine: {'line': b'[ 95%] \x1b[32mBuilding CXX object sdk/samples/CMakeFiles/blocking_test.dir/blocking_test.cpp.o\x1b[0m\n'}
+[40.839893] (-) TimerEvent: {}
+[40.941063] (-) TimerEvent: {}
+[41.042379] (-) TimerEvent: {}
+[41.142897] (-) TimerEvent: {}
+[41.243423] (-) TimerEvent: {}
+[41.343933] (-) TimerEvent: {}
+[41.444443] (-) TimerEvent: {}
+[41.545595] (-) TimerEvent: {}
+[41.618365] (oradar_lidar) StdoutLine: {'line': b'[100%] \x1b[32m\x1b[1mLinking CXX executable ../../blocking_test\x1b[0m\n'}
+[41.645732] (-) TimerEvent: {}
+[41.746237] (-) TimerEvent: {}
+[41.817124] (oradar_lidar) StdoutLine: {'line': b'[100%] Built target blocking_test\n'}
+[41.840741] (oradar_lidar) CommandEnded: {'returncode': 0}
+[41.842921] (oradar_lidar) JobProgress: {'identifier': 'oradar_lidar', 'progress': 'install'}
+[41.846297] (-) TimerEvent: {}
+[41.861743] (oradar_lidar) Command: {'cmd': ['/usr/bin/cmake', '--install', '/home/HwHiAiUser/oradar_ros/build/oradar_lidar'], 'cwd': '/home/HwHiAiUser/oradar_ros/build/oradar_lidar', 'env': OrderedDict([('SHELL', '/bin/bash'), ('ROS_VERSION', '2'), ('SESSION_MANAGER', 'local/orangepiaipro-20t:@/tmp/.ICE-unix/2111,unix/orangepiaipro-20t:/tmp/.ICE-unix/2111'), ('QT_ACCESSIBILITY', '1'), ('COLORTERM', 'truecolor'), ('XDG_CONFIG_DIRS', '/etc/xdg/xdg-xfce:/etc/xdg:/etc/xdg'), ('IGN_GAZEBO_SYSTEM_PLUGIN_PATH', '/opt/ros/humble/lib'), ('XDG_SESSION_PATH', '/org/freedesktop/DisplayManager/Session0'), ('XDG_MENU_PREFIX', 'xfce-'), ('TERM_PROGRAM_VERSION', '1.99.0'), ('GTK_IM_MODULE', 'ibus'), ('CONDA_EXE', '/usr/local/miniconda3/bin/conda'), ('_CE_M', ''), ('ROS_PYTHON_VERSION', '3'), ('LANGUAGE', 'en'), ('MS_ENABLE_GE', '1'), ('MANDATORY_PATH', '/usr/share/gconf/xfce.mandatory.path'), ('SSH_AUTH_SOCK', '/tmp/ssh-XXXXXXYBYYsI/agent.2279'), ('XMODIFIERS', '@im=ibus'), ('DESKTOP_SESSION', 'xfce'), ('SSH_AGENT_PID', '2280'), ('NPU_HOST_INC', '/usr/local/Ascend/ascend-toolkit/latest/runtime/include'), ('XDG_SEAT', 'seat0'), ('NPU_HOST_LIB', '/usr/local/Ascend/ascend-toolkit/latest/runtime/lib64/stub/aarch64'), ('PWD', '/home/HwHiAiUser/oradar_ros/build/oradar_lidar'), ('XDG_SESSION_DESKTOP', 'xfce'), ('LOGNAME', 'HwHiAiUser'), ('XDG_SESSION_TYPE', 'x11'), ('CONDA_PREFIX', '/usr/local/miniconda3'), ('XAUTHORITY', '/home/HwHiAiUser/.Xauthority'), ('VSCODE_GIT_ASKPASS_NODE', '/usr/share/code/code'), ('XDG_GREETER_DATA_DIR', '/var/lib/lightdm-data/HwHiAiUser'), ('GDM_LANG', 'en'), ('HOME', '/home/HwHiAiUser'), ('LANG', 'C.UTF-8'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('XDG_CURRENT_DESKTOP', 'XFCE'), ('CONDA_PROMPT_MODIFIER', '(base)'), ('MS_DEV_FORCE_ACL', '1'), ('AMENT_PREFIX_PATH', '/opt/ros/humble'), ('GIT_ASKPASS', '/usr/share/code/resources/app/extensions/git/dist/askpass.sh'), ('XDG_SEAT_PATH', '/org/freedesktop/DisplayManager/Seat0'), ('https_proxy', 'http://127.0.0.1:7890'), ('CHROME_DESKTOP', 'code.desktop'), ('CLUTTER_IM_MODULE', 'ibus'), ('TOOLCHAIN_HOME', '/usr/local/Ascend/ascend-toolkit/latest/toolkit'), ('ASCEND_TOOLKIT_HOME', '/usr/local/Ascend/ascend-toolkit/latest'), ('VSCODE_GIT_ASKPASS_EXTRA_ARGS', ''), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('XDG_SESSION_CLASS', 'user'), ('PYTHONPATH', '/usr/local/Ascend/thirdpart/aarch64/acllite:/usr/local/Ascend/ascend-toolkit/latest/python/site-packages:/usr/local/Ascend/ascend-toolkit/latest/opp/built-in/op_impl/ai_core/tbe:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages:/usr/local/Ascend/thirdpart/aarch64/acllite:/usr/local/Ascend/ascend-toolkit/latest/python/site-packages:/usr/local/Ascend/ascend-toolkit/latest/opp/built-in/op_impl/ai_core/tbe:/usr/local/Ascend/thirdpart/aarch64/acllite:/usr/local/Ascend/ascend-toolkit/laster/python/site-packages:/usr/local/Ascend/ascend-toolkit/laster/opp/built-in/op_impl/ai_core/tbe:/usr/local/Ascend/thirdpart/aarch64/acllite:/usr/local/Ascend/ascend-toolkit/laster/python/site-packages:/usr/local/Ascend/ascend-toolkit/laster/opp/built-in/op_impl/ai_core/tbe:'), ('COLCON', '1'), ('TERM', 'xterm-256color'), ('_CE_CONDA', ''), ('DEFAULTS_PATH', '/usr/share/gconf/xfce.default.path'), ('LESSOPEN', '| /usr/bin/lesspipe %s'), ('USER', 'HwHiAiUser'), ('VSCODE_GIT_IPC_HANDLE', '/run/user/1000/vscode-git-76d326f1f7.sock'), ('CONDA_SHLVL', '1'), ('DISPLAY', ':0'), ('SHLVL', '1'), ('QT_IM_MODULE', 'ibus'), ('XDG_VTNR', '7'), ('XDG_SESSION_ID', 'c2'), ('http_proxy', 'http://127.0.0.1:7890'), ('ASCEND_OPP_PATH', '/usr/local/Ascend/ascend-toolkit/latest/opp'), ('IGN_GAZEBO_RESOURCE_PATH', '/opt/ros/humble/share'), ('CONDA_PYTHON_EXE', '/usr/local/miniconda3/bin/python'), ('LD_LIBRARY_PATH', '/usr/local/Ascend/ascend-toolkit/latest/tools/aml/lib64:/usr/local/Ascend/ascend-toolkit/latest/tools/aml/lib64/plugin:/usr/local/Ascend/ascend-toolkit/latest/lib64:/usr/local/Ascend/ascend-toolkit/latest/lib64/plugin/opskernel:/usr/local/Ascend/ascend-toolkit/latest/lib64/plugin/nnengine:/usr/local/Ascend/ascend-toolkit/latest/opp/built-in/op_impl/ai_core/tbe/op_tiling/lib/linux/aarch64:/lib64:/var/davinci/driver/lib64:/var/davinci/driver/lib64/common:/var/davinci/driver/lib64/driver:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/aarch64-linux-gnu:/opt/ros/humble/lib:/usr/local/Ascend/ascend-toolkit/latest/tools/aml/lib64:/usr/local/Ascend/ascend-toolkit/latest/tools/aml/lib64/plugin:/usr/local/Ascend/ascend-toolkit/latest/lib64:/usr/local/Ascend/ascend-toolkit/latest/lib64/plugin/opskernel:/usr/local/Ascend/ascend-toolkit/latest/lib64/plugin/nnengine:/usr/local/Ascend/ascend-toolkit/latest/opp/built-in/op_impl/ai_core/tbe/op_tiling/lib/linux/aarch64:/lib64:/var/davinci/driver/lib64:/var/davinci/driver/lib64/common:/var/davinci/driver/lib64/driver:/usr/local/Ascend/ascend-toolkit/laster/runtime/lib64/stub/aarch64:/usr/local/Ascend/ascend-toolkit/laster/lib64:/usr/local/Ascend/ascend-toolkit/laster/lib64/plugin/opskernel:/usr/local/Ascend/ascend-toolkit/laster/lib64/plugin/nnengine:/usr/local/Ascend/ascend-toolkit/laster/opp/built-in/op_impl/ai_core/tbe/op_tiling:/usr/local/Ascend/driver/lib64:/var/davinci/driver/lib64:/var/davinci/driver/lib64/common:/var/davinci/driver/lib64/driver:/usr/local/Ascend/ascend-toolkit/laster/runtime/lib64/stub/aarch64:/usr/local/Ascend/ascend-toolkit/laster/lib64:/usr/local/Ascend/ascend-toolkit/laster/lib64/plugin/opskernel:/usr/local/Ascend/ascend-toolkit/laster/lib64/plugin/nnengine:/usr/local/Ascend/ascend-toolkit/laster/opp/built-in/op_impl/ai_core/tbe/op_tiling:/usr/local/Ascend/driver/lib64:/var/davinci/driver/lib64:/var/davinci/driver/lib64/common:/var/davinci/driver/lib64/driver:'), ('ASCEND_AICPU_PATH', '/usr/local/Ascend/ascend-toolkit/latest'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('ROS_LOCALHOST_ONLY', '0'), ('CONDA_DEFAULT_ENV', 'base'), ('VSCODE_GIT_ASKPASS_MAIN', '/usr/share/code/resources/app/extensions/git/dist/askpass-main.js'), ('XDG_DATA_DIRS', '/usr/share/xfce4:/usr/share/xfce:/usr/share/gnome:/usr/local/share:/usr/share:/var/lib/snapd/desktop:/usr/share'), ('GDK_BACKEND', 'x11'), ('PATH', '/usr/local/Ascend/ascend-toolkit/latest/bin:/usr/local/Ascend/ascend-toolkit/latest/compiler/ccec_compiler/bin:/usr/local/Ascend/ascend-toolkit/latest/tools/ccec_compiler/bin:/home/HwHiAiUser/.local/bin:/opt/ros/humble/bin:/usr/local/Ascend/ascend-toolkit/latest/bin:/usr/local/Ascend/ascend-toolkit/latest/compiler/ccec_compiler/bin:/usr/local/Ascend/ascend-toolkit/latest/tools/ccec_compiler/bin:/usr/local/miniconda3/bin:/usr/local/miniconda3/condabin:/usr/local/Ascend/ascend-toolkit/laster/bin:/usr/local/Ascend/ascend-toolkit/laster/compiler/ccec_compiler/bin:/home/HwHiAiUser/.local/bin:/usr/local/Ascend/ascend-toolkit/laster/bin:/usr/local/Ascend/ascend-toolkit/laster/compiler/ccec_compiler/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/home/HwHiAiUser/.config/Code/User/globalStorage/github.copilot-chat/debugCommand'), ('GDMSESSION', 'xfce'), ('ASCEND_HOME_PATH', '/usr/local/Ascend/ascend-toolkit/latest'), ('ORIGINAL_XDG_CURRENT_DESKTOP', 'XFCE'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('ROS_DISTRO', 'humble'), ('GIO_LAUNCHED_DESKTOP_FILE_PID', '3883'), ('GIO_LAUNCHED_DESKTOP_FILE', '/usr/share/applications/code.desktop'), ('TERM_PROGRAM', 'vscode'), ('_', '/usr/bin/env')]), 'shell': False}
+[41.880556] (oradar_lidar) StdoutLine: {'line': b'-- Install configuration: "RELEASE"\n'}
+[41.881132] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/lib/oradar_lidar/oradar_scan\n'}
+[41.883736] (oradar_lidar) StdoutLine: {'line': b'-- Set runtime path of "/home/HwHiAiUser/oradar_ros/install/oradar_lidar/lib/oradar_lidar/oradar_scan" to ""\n'}
+[41.884086] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar//launch\n'}
+[41.884370] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar//launch/ms200_scan.launch\n'}
+[41.884608] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar//launch/ms200_scan.launch.py\n'}
+[41.884799] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar//launch/ms200_scan_view.launch.py\n'}
+[41.884964] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar//launch/ms200_scan_view.launch\n'}
+[41.885302] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar//rviz2\n'}
+[41.885503] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar//rviz2/oradar_scan.rviz\n'}
+[41.885667] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/ament_index/resource_index/package_run_dependencies/oradar_lidar\n'}
+[41.885900] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/ament_index/resource_index/parent_prefix_path/oradar_lidar\n'}
+[41.886078] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/environment/ament_prefix_path.sh\n'}
+[41.886336] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/environment/ament_prefix_path.dsv\n'}
+[41.886512] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/environment/path.sh\n'}
+[41.886736] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/environment/path.dsv\n'}
+[41.886907] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/local_setup.bash\n'}
+[41.887128] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/local_setup.sh\n'}
+[41.887296] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/local_setup.zsh\n'}
+[41.887512] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/local_setup.dsv\n'}
+[41.887678] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/package.dsv\n'}
+[41.887907] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/ament_index/resource_index/packages/oradar_lidar\n'}
+[41.888171] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/cmake/oradar_lidarConfig.cmake\n'}
+[41.888429] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/cmake/oradar_lidarConfig-version.cmake\n'}
+[41.888597] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/package.xml\n'}
+[41.889816] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/include/core/base/datatype.h\n'}
+[41.890107] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/include/core/base/locker.h\n'}
+[41.890345] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/include/core/base/thread.h\n'}
+[41.890590] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/include/core/base/timer.h\n'}
+[41.890823] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/include/core/base/typedef.h\n'}
+[41.891046] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/include/core/base/utils.h\n'}
+[41.891255] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/include/core/base/v8stdint.h\n'}
+[41.892310] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/include/core/common/ChannelDevice.h\n'}
+[41.892642] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/include/core/math/angles.h\n'}
+[41.892912] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/include/core/network/ActiveSocket.h\n'}
+[41.893165] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/include/core/network/PassiveSocket.h\n'}
+[41.894083] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/include/core/network/SimpleSocket.h\n'}
+[41.894387] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/include/core/network/StatTimer.h\n'}
+[41.896070] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/include/core/serial/common.h\n'}
+[41.896348] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/include/core/serial/serial.h\n'}
+[41.896522] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/include/core/serial/impl/unix/lock.h\n'}
+[41.896682] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/include/core/serial/impl/unix/unix.h\n'}
+[41.896861] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/include/core/serial/impl/unix/unix_serial.h\n'}
+[41.897017] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/include/src/ord_lidar_c_api_driver.h\n'}
+[41.899840] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/include/src/ord_lidar_driver.h\n'}
+[41.900249] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/include/src/ordlidar_protocol.h\n'}
+[41.900508] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/include/src/filters/FullScanFilter.h\n'}
+[41.900676] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/lib/liboradar_sdk.a\n'}
+[41.902630] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/bin/blocking_test\n'}
+[41.902954] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/bin/non-blocking_test\n'}
+[41.903213] (oradar_lidar) StdoutLine: {'line': b'-- Installing: /home/HwHiAiUser/oradar_ros/install/oradar_lidar/bin/blocking_c_api_test\n'}
+[41.907223] (oradar_lidar) CommandEnded: {'returncode': 0}
+[41.946424] (-) TimerEvent: {}
+[42.016288] (oradar_lidar) JobEnded: {'identifier': 'oradar_lidar', 'rc': 0}
+[42.017808] (-) EventReactorShutdown: {}

@@ -1,0 +1,3 @@
+│   ├── fishbot_map.png
+│   ├── fishbot_map.pgm
+│   ├── fishbot_map.yaml

@@ -1,0 +1,107 @@
+[0.768s] DEBUG:colcon:Command line arguments: ['/usr/bin/colcon', 'build']
+[0.770s] DEBUG:colcon:Parsed command line arguments: Namespace(log_base=None, log_level=None, verb_name='build', build_base='build', install_base='install', merge_install=False, symlink_install=False, test_result_base=None, continue_on_error=False, executor='parallel', parallel_workers=3, event_handlers=None, ignore_user_meta=False, metas=['./colcon.meta'], base_paths=['.'], packages_ignore=None, packages_ignore_regex=None, paths=None, packages_up_to=None, packages_up_to_regex=None, packages_above=None, packages_above_and_dependencies=None, packages_above_depth=None, packages_select_by_dep=None, packages_skip_by_dep=None, packages_skip_up_to=None, packages_select_build_failed=False, packages_skip_build_finished=False, packages_select_test_failures=False, packages_skip_test_passed=False, packages_select=None, packages_skip=None, packages_select_regex=None, packages_skip_regex=None, packages_start=None, packages_end=None, allow_overriding=[], cmake_args=None, cmake_target=None, cmake_target_skip_unavailable=False, cmake_clean_cache=False, cmake_clean_first=False, cmake_force_configure=False, ament_cmake_args=None, catkin_cmake_args=None, catkin_skip_building_tests=False, verb_parser=<colcon_defaults.argument_parser.defaults.DefaultArgumentsDecorator object at 0xe7fffca0c910>, verb_extension=<colcon_core.verb.build.BuildVerb object at 0xe7fffcb21db0>, main=<bound method BuildVerb.main of <colcon_core.verb.build.BuildVerb object at 0xe7fffcb21db0>>)
+[1.513s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) check parameters
+[1.514s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) check parameters
+[1.514s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) check parameters
+[1.514s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) check parameters
+[1.514s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) discover
+[1.514s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) discover
+[1.514s] INFO:colcon.colcon_core.package_discovery:Crawling recursively for packages in '/home/HwHiAiUser/oradar_ros'
+[1.514s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['ignore', 'ignore_ament_install']
+[1.515s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ignore'
+[1.515s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ignore_ament_install'
+[1.515s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['colcon_pkg']
+[1.515s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'colcon_pkg'
+[1.515s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['colcon_meta']
+[1.515s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'colcon_meta'
+[1.515s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['ros']
+[1.515s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ros'
+[1.575s] DEBUG:colcon.colcon_core.package_identification:Package '.' with type 'ros.catkin' and name 'oradar_lidar'
+[1.575s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) using defaults
+[1.575s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) discover
+[1.575s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) using defaults
+[1.575s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) discover
+[1.575s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) using defaults
+[1.660s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) check parameters
+[1.660s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) discover
+[1.668s] DEBUG:colcon.colcon_installed_package_information.package_discovery:Found 293 installed packages in /opt/ros/humble
+[1.709s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) using defaults
+[1.817s] Level 5:colcon.colcon_core.verb:set package 'oradar_lidar' build argument 'cmake_args' from command line to 'None'
+[1.817s] Level 5:colcon.colcon_core.verb:set package 'oradar_lidar' build argument 'cmake_target' from command line to 'None'
+[1.818s] Level 5:colcon.colcon_core.verb:set package 'oradar_lidar' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[1.818s] Level 5:colcon.colcon_core.verb:set package 'oradar_lidar' build argument 'cmake_clean_cache' from command line to 'False'
+[1.818s] Level 5:colcon.colcon_core.verb:set package 'oradar_lidar' build argument 'cmake_clean_first' from command line to 'False'
+[1.818s] Level 5:colcon.colcon_core.verb:set package 'oradar_lidar' build argument 'cmake_force_configure' from command line to 'False'
+[1.818s] Level 5:colcon.colcon_core.verb:set package 'oradar_lidar' build argument 'ament_cmake_args' from command line to 'None'
+[1.818s] Level 5:colcon.colcon_core.verb:set package 'oradar_lidar' build argument 'catkin_cmake_args' from command line to 'None'
+[1.818s] Level 5:colcon.colcon_core.verb:set package 'oradar_lidar' build argument 'catkin_skip_building_tests' from command line to 'False'
+[1.818s] DEBUG:colcon.colcon_core.verb:Building package 'oradar_lidar' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/HwHiAiUser/oradar_ros/build/oradar_lidar', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/HwHiAiUser/oradar_ros/install/oradar_lidar', 'merge_install': False, 'path': '/home/HwHiAiUser/oradar_ros', 'symlink_install': False, 'test_result_base': None}
+[1.818s] INFO:colcon.colcon_core.executor:Executing jobs using 'parallel' executor
+[1.821s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete
+[1.821s] INFO:colcon.colcon_ros.task.catkin.build:Building ROS package in '/home/HwHiAiUser/oradar_ros' with build type 'catkin'
+[1.821s] INFO:colcon.colcon_cmake.task.cmake.build:Building CMake package in '/home/HwHiAiUser/oradar_ros'
+[1.849s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_core.shell.bat': Not used on non-Windows systems
+[1.849s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[1.849s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[1.868s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/HwHiAiUser/oradar_ros/build/oradar_lidar': CONDA_PROMPT_MODIFIER=(base) _=/usr/bin/env /usr/bin/cmake /home/HwHiAiUser/oradar_ros -DCATKIN_INSTALL_INTO_PREFIX_ROOT=0 -DCMAKE_INSTALL_PREFIX=/home/HwHiAiUser/oradar_ros/install/oradar_lidar
+[9.320s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/HwHiAiUser/oradar_ros/build/oradar_lidar' returned '0': CONDA_PROMPT_MODIFIER=(base) _=/usr/bin/env /usr/bin/cmake /home/HwHiAiUser/oradar_ros -DCATKIN_INSTALL_INTO_PREFIX_ROOT=0 -DCMAKE_INSTALL_PREFIX=/home/HwHiAiUser/oradar_ros/install/oradar_lidar
+[9.324s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/HwHiAiUser/oradar_ros/build/oradar_lidar': CONDA_PROMPT_MODIFIER=(base) _=/usr/bin/env /usr/bin/cmake --build /home/HwHiAiUser/oradar_ros/build/oradar_lidar -- -j3 -l3
+[43.662s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/HwHiAiUser/oradar_ros/build/oradar_lidar' returned '0': CONDA_PROMPT_MODIFIER=(base) _=/usr/bin/env /usr/bin/cmake --build /home/HwHiAiUser/oradar_ros/build/oradar_lidar -- -j3 -l3
+[43.684s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/HwHiAiUser/oradar_ros/build/oradar_lidar': CONDA_PROMPT_MODIFIER=(base) _=/usr/bin/env /usr/bin/cmake --install /home/HwHiAiUser/oradar_ros/build/oradar_lidar
+[43.728s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/HwHiAiUser/oradar_ros/build/oradar_lidar' returned '0': CONDA_PROMPT_MODIFIER=(base) _=/usr/bin/env /usr/bin/cmake --install /home/HwHiAiUser/oradar_ros/build/oradar_lidar
+[43.729s] Level 1:colcon.colcon_core.shell:create_environment_hook('oradar_lidar', 'ros_package_path')
+[43.730s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/hook/ros_package_path.ps1'
+[43.738s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/hook/ros_package_path.dsv'
+[43.739s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/hook/ros_package_path.sh'
+[43.742s] Level 1:colcon.colcon_core.shell:create_environment_hook('oradar_lidar', 'pkg_config_path')
+[43.742s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/hook/pkg_config_path.ps1'
+[43.743s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/hook/pkg_config_path.dsv'
+[43.744s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/hook/pkg_config_path.sh'
+[43.749s] Level 1:colcon.colcon_core.shell:create_environment_hook('oradar_lidar', 'pkg_config_path_multiarch')
+[43.749s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/hook/pkg_config_path_multiarch.ps1'
+[43.750s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/hook/pkg_config_path_multiarch.dsv'
+[43.751s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/hook/pkg_config_path_multiarch.sh'
+[43.754s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(oradar_lidar)
+[43.792s] Level 1:colcon.colcon_core.environment:checking '/home/HwHiAiUser/oradar_ros/install/oradar_lidar' for CMake module files
+[43.798s] Level 1:colcon.colcon_core.environment:checking '/home/HwHiAiUser/oradar_ros/install/oradar_lidar' for CMake config files
+[43.798s] Level 1:colcon.colcon_core.shell:create_environment_hook('oradar_lidar', 'cmake_prefix_path')
+[43.800s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/hook/cmake_prefix_path.ps1'
+[43.802s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/hook/cmake_prefix_path.dsv'
+[43.803s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/hook/cmake_prefix_path.sh'
+[43.805s] Level 1:colcon.colcon_core.environment:checking '/home/HwHiAiUser/oradar_ros/install/oradar_lidar/lib'
+[43.805s] Level 1:colcon.colcon_core.environment:checking '/home/HwHiAiUser/oradar_ros/install/oradar_lidar/bin'
+[43.806s] Level 1:colcon.colcon_core.shell:create_environment_hook('oradar_lidar', 'path')
+[43.806s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/hook/path.ps1'
+[43.807s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/hook/path.dsv'
+[43.808s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/hook/path.sh'
+[43.809s] Level 1:colcon.colcon_core.environment:checking '/home/HwHiAiUser/oradar_ros/install/oradar_lidar/lib/pkgconfig/oradar_lidar.pc'
+[43.810s] Level 1:colcon.colcon_core.environment:checking '/home/HwHiAiUser/oradar_ros/install/oradar_lidar/lib/python3.10/site-packages'
+[43.810s] Level 1:colcon.colcon_core.environment:checking '/home/HwHiAiUser/oradar_ros/install/oradar_lidar/bin'
+[43.811s] Level 1:colcon.colcon_core.shell:create_environment_hook('oradar_lidar', 'pythonscriptspath')
+[43.811s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/hook/pythonscriptspath.ps1'
+[43.813s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/hook/pythonscriptspath.dsv'
+[43.813s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/hook/pythonscriptspath.sh'
+[43.815s] INFO:colcon.colcon_core.shell:Creating package script '/home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/package.ps1'
+[43.825s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/package.dsv'
+[43.827s] INFO:colcon.colcon_core.shell:Creating package script '/home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/package.sh'
+[43.830s] INFO:colcon.colcon_core.shell:Creating package script '/home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/package.bash'
+[43.833s] INFO:colcon.colcon_core.shell:Creating package script '/home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/oradar_lidar/package.zsh'
+[43.835s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/HwHiAiUser/oradar_ros/install/oradar_lidar/share/colcon-core/packages/oradar_lidar)
+[43.836s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:closing loop
+[43.838s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:loop closed
+[43.838s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete finished with '0'
+[43.838s] DEBUG:colcon.colcon_core.event_reactor:joining thread
+[43.871s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.terminal_notifier': Not used on non-Darwin systems
+[43.871s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.win32': Not used on non-Windows systems
+[43.872s] INFO:colcon.colcon_notification.desktop_notification:Sending desktop notification using 'notify2'
+[44.047s] DEBUG:colcon.colcon_core.event_reactor:joined thread
+[44.048s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/HwHiAiUser/oradar_ros/install/local_setup.ps1'
+[44.056s] INFO:colcon.colcon_core.shell:Creating prefix util module '/home/HwHiAiUser/oradar_ros/install/_local_setup_util_ps1.py'
+[44.063s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/HwHiAiUser/oradar_ros/install/setup.ps1'
+[44.068s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/HwHiAiUser/oradar_ros/install/local_setup.sh'
+[44.071s] INFO:colcon.colcon_core.shell:Creating prefix util module '/home/HwHiAiUser/oradar_ros/install/_local_setup_util_sh.py'
+[44.073s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/HwHiAiUser/oradar_ros/install/setup.sh'
+[44.076s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/HwHiAiUser/oradar_ros/install/local_setup.bash'
+[44.078s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/HwHiAiUser/oradar_ros/install/setup.bash'
+[44.081s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/HwHiAiUser/oradar_ros/install/local_setup.zsh'
+[44.082s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/HwHiAiUser/oradar_ros/install/setup.zsh'

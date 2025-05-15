@@ -1,0 +1,11 @@
+# Goal: 目标角度
+float64 pose
+---
+# Result: 最终角度
+float64 pose
+---
+# Feedback: 中间反馈的位置和状态
+float64 pose
+uint32 status
+uint32 STATUS_MOVEING = 3
+uint32 STATUS_STOP = 4
