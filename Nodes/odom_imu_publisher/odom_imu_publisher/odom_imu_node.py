@@ -13,6 +13,7 @@ import sys
 import threading
 import collections
 import struct
+import numpy as np  # Add NumPy for proper array handling
 
 class OdomImuPublisherNode(Node):
     def __init__(self):
@@ -239,10 +240,10 @@ class OdomImuPublisherNode(Node):
         imu_msg.linear_acceleration.y = ay
         imu_msg.linear_acceleration.z = az
         
-        # 协方差矩阵，-1表示未知
-        imu_msg.orientation_covariance = [0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1]
-        imu_msg.angular_velocity_covariance = [0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1]
-        imu_msg.linear_acceleration_covariance = [0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1]
+        # 协方差矩阵，使用numpy数组确保类型兼容性
+        imu_msg.orientation_covariance = np.array([0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1], dtype=np.float64)
+        imu_msg.angular_velocity_covariance = np.array([0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1], dtype=np.float64)
+        imu_msg.linear_acceleration_covariance = np.array([0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1], dtype=np.float64)
         
         # 发布IMU消息
         self.imu_publisher.publish(imu_msg)

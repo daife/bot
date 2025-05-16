@@ -12,6 +12,11 @@ import numpy as np
 import tf2_ros
 import time
 import threading
+from geometry_msgs.msg import Point, TransformStamped
+import tf2_geometry_msgs
+from tf2_ros import TransformException
+import os
+from typing import List, Tuple, Optional, Dict
 
 class ObjectDetectionNode(Node):
     """
@@ -43,6 +48,67 @@ class ObjectDetectionNode(Node):
         self.bottom_camera_info = None
         self.top_camera_info = None
         
+        # 相机内参和畸变系数
+        # 顶部相机参数 (320x240)
+        self.top_camera_matrix = np.array([
+            [240.70762, 0.0, 153.81297],
+            [0.0, 241.42526, 119.14773],
+            [0.0, 0.0, 1.0]
+        ])
+        self.top_dist_coeffs = np.array([-0.414435, 0.176258, 0.002182, -0.000329, 0.0])
+        
+        # 底部相机参数 (640x480)
+        self.bottom_camera_matrix = np.array([
+            [465.13093, 0.0, 324.81802],
+            [0.0, 466.33628, 242.54136],
+            [0.0, 0.0, 1.0]
+        ])
+        self.bottom_dist_coeffs = np.array([-0.374992, 0.133505, 0.002906, -0.002975, 0.0])
+        
+        # 相机相对位置 (top相对于bottom的位置)
+        self.camera_translation = np.array([5.0, 0.0, 11.0])  # 单位：cm
+        
+        # 特征匹配参数
+        self.feature_detector = cv2.SIFT_create()
+        self.feature_matcher = cv2.BFMatcher(cv2.NORM_L2, crossCheck=True)
+        
+        # 加载YOLO模型
+        self.declare_parameter('yolo_model_path', 'yolov5s.onnx')
+        yolo_model_path = self.get_parameter('yolo_model_path').get_parameter_value().string_value
+        
+        # 检查模型文件是否存在
+        if not os.path.exists(yolo_model_path):
+            self.get_logger().error(f"YOLO模型文件不存在: {yolo_model_path}")
+            self.get_logger().warning("将使用颜色检测作为备选方法")
+            self.yolo_net = None
+        else:
+            try:
+                self.yolo_net = cv2.dnn.readNetFromONNX(yolo_model_path)
+                self.get_logger().info(f"YOLO模型加载成功: {yolo_model_path}")
+            except Exception as e:
+                self.get_logger().error(f"YOLO模型加载失败: {str(e)}")
+                self.yolo_net = None
+        
+        # 检测阈值
+        self.declare_parameter('conf_threshold', 0.5)
+        self.declare_parameter('nms_threshold', 0.4)
+        self.declare_parameter('distance_threshold', 1.0)  # 成功检测阈值距离(m)
+        
+        self.conf_threshold = self.get_parameter('conf_threshold').get_parameter_value().double_value
+        self.nms_threshold = self.get_parameter('nms_threshold').get_parameter_value().double_value
+        self.distance_threshold = self.get_parameter('distance_threshold').get_parameter_value().double_value
+        
+        # 类别标签
+        self.classes = ['person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat',
+                       'traffic light', 'fire hydrant', 'stop sign', 'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse',
+                       'sheep', 'cow', 'elephant', 'bear', 'zebra', 'giraffe', 'backpack', 'umbrella', 'handbag', 'tie',
+                       'suitcase', 'frisbee', 'skis', 'snowboard', 'sports ball', 'kite', 'baseball bat', 'baseball glove',
+                       'skateboard', 'surfboard', 'tennis racket', 'bottle', 'wine glass', 'cup', 'fork', 'knife', 'spoon',
+                       'bowl', 'banana', 'apple', 'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza', 'donut',
+                       'cake', 'chair', 'couch', 'potted plant', 'bed', 'dining table', 'toilet', 'tv', 'laptop', 'mouse',
+                       'remote', 'keyboard', 'cell phone', 'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'book',
+                       'clock', 'vase', 'scissors', 'teddy bear', 'hair drier', 'toothbrush']
+        
         # TF相关
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer, self)
@@ -54,6 +120,19 @@ class ObjectDetectionNode(Node):
         self.detection_pub = self.create_publisher(
             DetectionResult,
             '/object_detection/result',
+            10
+        )
+        
+        # 可视化发布者
+        self.bottom_detection_pub = self.create_publisher(
+            Image,
+            '/object_detection/bottom_image',
+            10
+        )
+        
+        self.top_detection_pub = self.create_publisher(
+            Image,
+            '/object_detection/top_image',
             10
         )
         
