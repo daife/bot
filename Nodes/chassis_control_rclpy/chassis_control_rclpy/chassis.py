@@ -6,17 +6,17 @@ import struct
 class ChassisController:
     """通过串口与自定义驱动板通信的麦轮底盘控制器。"""
     
-    def __init__(self, device="/dev/ttyAMA1"):
+    def __init__(self, device="/dev/ttyAMA2"):
         """
         初始化底盘控制器。
         
         参数:
-            device: 串口设备路径，默认为ttyAMA1。
+            device: 串口设备路径，默认为ttyAMA2。
         """
         self.serial = -1
         self.device = device
         
-        # 打开固定串口设备 ttyAMA1
+        # 打开固定串口设备 ttyAMA2
         print(f"[底盘] 尝试打开串口: {self.device}")
         self.serial = wiringpi.serialOpen(self.device, 115200)
         if self.serial < 0:

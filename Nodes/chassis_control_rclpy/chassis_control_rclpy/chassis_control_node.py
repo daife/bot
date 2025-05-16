@@ -14,8 +14,8 @@ class ChassisControlNode(Node):
     def __init__(self):
         super().__init__('chassis_control_node')
         
-        # 声明并获取串口设备参数，默认为 ttyAMA1
-        self.declare_parameter('serial_device', '/dev/ttyAMA1')
+        # 声明并获取串口设备参数，默认为 ttyAMA2
+        self.declare_parameter('serial_device', '/dev/ttyAMA2')
         serial_device = self.get_parameter('serial_device').get_parameter_value().string_value
         
         # 初始化底盘控制器，使用指定的串口设备
@@ -31,7 +31,7 @@ class ChassisControlNode(Node):
         self.get_logger().info(f'麦轮底盘控制节点已启动，使用串口: {serial_device}')
         
         # 参数,限速
-        self.declare_parameter('max_linear_speed', 1.0)
+        self.declare_parameter('max_linear_speed', 0.6)
         self.declare_parameter('max_angular_speed', 1.0)
         
         self.max_linear_speed = self.get_parameter('max_linear_speed').get_parameter_value().double_value

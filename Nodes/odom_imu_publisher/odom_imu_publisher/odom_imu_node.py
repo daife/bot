@@ -19,7 +19,7 @@ class OdomImuPublisherNode(Node):
         super().__init__('odom_imu_publisher')
         
         # 声明参数
-        self.declare_parameter('serial_port', '/dev/ttyAMA2')
+        self.declare_parameter('serial_port', '/dev/ttyAMA1')
         self.declare_parameter('baud_rate', 115200)
         self.declare_parameter('frame_id', 'odom')
         self.declare_parameter('child_frame_id', 'base_link')
