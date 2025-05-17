@@ -9,8 +9,7 @@ import numpy as np
 
 class CameraPreviewNode(Node):
     """
-    摄像头预览节点，用于显示上方和下方摄像头的实时图像。
-    同时订阅两个摄像头的图像话题并在窗口中显示。
+    摄像头预览节点，用于显示上方和下方摄像头的校正后图像。
     """
 
     def __init__(self):
@@ -23,46 +22,46 @@ class CameraPreviewNode(Node):
         self.top_frame = None
         self.bottom_frame = None
         
-        # 创建订阅器
+        # 创建订阅器 - 只订阅校正后的图像话题
         self.top_camera_subscription = self.create_subscription(
             Image,
-            'top_camera/image_raw',
+            'top_camera/image_rect',
             self.top_camera_callback,
             10
         )
         self.bottom_camera_subscription = self.create_subscription(
             Image,
-            'bottom_camera/image_raw',
+            'bottom_camera/image_rect',
             self.bottom_camera_callback,
             10
         )
         
-        self.get_logger().info('摄像头预览节点已初始化，等待摄像头数据...')
+        self.get_logger().info('摄像头预览节点已初始化，等待摄像头校正图像数据...')
         
         # 创建定时器以固定频率更新显示
         self.timer = self.create_timer(0.033, self.update_display)  # 约30Hz
 
     def top_camera_callback(self, msg):
-        """处理上方摄像头图像回调"""
+        """处理上方摄像头校正图像回调"""
         try:
             self.top_frame = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
         except Exception as e:
             self.get_logger().error(f'处理上方摄像头图像时出错: {str(e)}')
 
     def bottom_camera_callback(self, msg):
-        """处理下方摄像头图像回调"""
+        """处理下方摄像头校正图像回调"""
         try:
             self.bottom_frame = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
         except Exception as e:
             self.get_logger().error(f'处理下方摄像头图像时出错: {str(e)}')
 
     def update_display(self):
-        """更新显示两个摄像头的图像"""
+        """更新显示两个摄像头的校正图像"""
         if self.top_frame is not None:
-            cv2.imshow('上方摄像头', self.top_frame)
+            cv2.imshow('上方摄像头(校正)', self.top_frame)
         
         if self.bottom_frame is not None:
-            cv2.imshow('下方摄像头', self.bottom_frame)
+            cv2.imshow('下方摄像头(校正)', self.bottom_frame)
         
         # 短时间等待键盘输入，这样窗口才能更新
         key = cv2.waitKey(1)

@@ -240,10 +240,10 @@ class OdomImuPublisherNode(Node):
         imu_msg.linear_acceleration.y = ay
         imu_msg.linear_acceleration.z = az
         
-        # 协方差矩阵，使用numpy数组确保类型兼容性
-        imu_msg.orientation_covariance = np.array([0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1], dtype=np.float64)
-        imu_msg.angular_velocity_covariance = np.array([0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1], dtype=np.float64)
-        imu_msg.linear_acceleration_covariance = np.array([0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1], dtype=np.float64)
+        # 协方差矩阵，设置为-1表示忽略这些数据
+        imu_msg.orientation_covariance = np.array([-1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], dtype=np.float64)
+        imu_msg.angular_velocity_covariance = np.array([-1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], dtype=np.float64)
+        imu_msg.linear_acceleration_covariance = np.array([-1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], dtype=np.float64)
         
         # 发布IMU消息
         self.imu_publisher.publish(imu_msg)

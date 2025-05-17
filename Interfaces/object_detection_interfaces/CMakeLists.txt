@@ -14,6 +14,7 @@ find_package(sensor_msgs REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/DetectionResult.msg"
+  "srv/EnableDetection.srv"
   DEPENDENCIES 
     std_msgs 
     geometry_msgs 
@@ -22,7 +23,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
 
 # Install message directory to make it available to other packages
 install(
-  DIRECTORY msg
+  DIRECTORY msg srv
   DESTINATION share/${PROJECT_NAME}
 )
 

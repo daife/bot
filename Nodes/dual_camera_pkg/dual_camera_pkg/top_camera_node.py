@@ -5,11 +5,13 @@ import cv2
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
 import numpy as np
+import os
+import yaml
 
 class TopCameraPublisher(Node):
     """
     发布上方摄像头图像的ROS 2节点。
-    摄像头采集的数据会作为sensor_msgs/Image类型发布。
+    摄像头采集的数据经过畸变校正后作为sensor_msgs/Image类型发布。
     """
 
     def __init__(self):
@@ -21,6 +23,7 @@ class TopCameraPublisher(Node):
         self.declare_parameter('frame_height', 240) # 图像高度
         self.declare_parameter('camera_fps', 30.0)  # 摄像头帧率
         self.declare_parameter('camera_format', 'YUYV')  # 摄像头格式
+        self.declare_parameter('calibration_file', 'config/top_camera.yaml')  # 相机标定文件路径
         
         # 获取参数值
         self.camera_device = self.get_parameter('camera_device').value
@@ -28,9 +31,13 @@ class TopCameraPublisher(Node):
         self.frame_height = self.get_parameter('frame_height').value
         self.camera_fps = self.get_parameter('camera_fps').value
         self.camera_format = self.get_parameter('camera_format').value
+        self.calibration_file = self.get_parameter('calibration_file').value
         
-        # 创建发布器
-        self.publisher = self.create_publisher(Image, 'top_camera/image_raw', 10)
+        # 加载相机标定参数
+        self.load_calibration_params()
+        
+        # 创建发布器 - 只发布校正后的图像
+        self.publisher = self.create_publisher(Image, 'top_camera/image_rect', 10)
         
         # 初始化摄像头
         self.get_logger().info(f'正在打开上方摄像头 (设备 {self.camera_device})')
@@ -54,8 +61,48 @@ class TopCameraPublisher(Node):
         
         self.get_logger().info('上方摄像头发布器已初始化')
 
+    def load_calibration_params(self):
+        """加载相机标定参数"""
+        package_path = os.path.join(os.path.dirname(os.path.dirname(__file__)))
+        cal_file_path = os.path.join(package_path, self.calibration_file)
+        
+        try:
+            with open(cal_file_path, 'r') as file:
+                self.get_logger().info(f'加载相机标定文件: {cal_file_path}')
+                calib_data = yaml.safe_load(file)
+                
+                # 提取相机矩阵和畸变系数
+                cam_matrix = np.array(calib_data['camera_matrix']['data']).reshape(3, 3)
+                dist_coeffs = np.array(calib_data['distortion_coefficients']['data'])
+                
+                self.camera_matrix = cam_matrix
+                self.dist_coeffs = dist_coeffs
+                self.get_logger().info('相机标定参数加载成功')
+                
+                # 计算畸变校正映射
+                self.mapx, self.mapy = cv2.initUndistortRectifyMap(
+                    self.camera_matrix, self.dist_coeffs, None, 
+                    self.camera_matrix, (self.frame_width, self.frame_height), 
+                    cv2.CV_32FC1)
+                
+        except Exception as e:
+            self.get_logger().error(f'加载相机标定参数失败: {str(e)}')
+            # 使用默认值
+            self.camera_matrix = np.array([
+                [240.70762, 0.0, 153.81297],
+                [0.0, 241.42526, 119.14773],
+                [0.0, 0.0, 1.0]
+            ])
+            self.dist_coeffs = np.array([-0.414435, 0.176258, 0.002182, -0.000329, 0.000000])
+            
+            # 计算畸变校正映射
+            self.mapx, self.mapy = cv2.initUndistortRectifyMap(
+                self.camera_matrix, self.dist_coeffs, None, 
+                self.camera_matrix, (self.frame_width, self.frame_height), 
+                cv2.CV_32FC1)
+
     def publish_loop(self):
-        """发布循环，读取并发布摄像头图像"""
+        """发布循环，读取并发布校正后的摄像头图像"""
         while rclpy.ok():
             ret, frame = self.cap.read()
             
@@ -64,17 +111,18 @@ class TopCameraPublisher(Node):
                 rclpy.spin_once(self, timeout_sec=0.01)
                 continue
             
-            # 将OpenCV图像转换为ROS图像消息
             try:
-                img_msg = self.bridge.cv2_to_imgmsg(frame, encoding="bgr8")
-                img_msg.header.stamp = self.get_clock().now().to_msg()
-                img_msg.header.frame_id = "top_camera_link"
+                # 校正图像畸变
+                undistorted_frame = cv2.remap(frame, self.mapx, self.mapy, cv2.INTER_LINEAR)
                 
-                # 发布图像消息
-                self.publisher.publish(img_msg)
+                # 发布校正后的图像
+                rect_img_msg = self.bridge.cv2_to_imgmsg(undistorted_frame, encoding="bgr8")
+                rect_img_msg.header.stamp = self.get_clock().now().to_msg()
+                rect_img_msg.header.frame_id = "top_camera_link_rect"
+                self.publisher.publish(rect_img_msg)
                 
             except Exception as e:
-                self.get_logger().error(f'转换图像时出错: {str(e)}')
+                self.get_logger().error(f'处理图像时出错: {str(e)}')
             
             rclpy.spin_once(self, timeout_sec=0.0)
     

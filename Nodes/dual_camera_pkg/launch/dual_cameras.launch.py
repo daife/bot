@@ -3,12 +3,34 @@ from launch import LaunchDescription
 from launch_ros.actions import Node
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
+import os
+from ament_index_python.packages import get_package_share_directory
 
 def generate_launch_description():
     """
     创建启动两个摄像头节点的启动描述。
     可以通过启动参数配置摄像头属性。
     """
+    # 获取包路径
+    pkg_dir = get_package_share_directory('dual_camera_pkg')
+    
+    # 配置文件默认路径
+    top_calibration_file = os.path.join(pkg_dir, 'config', 'top_camera.yaml')
+    bottom_calibration_file = os.path.join(pkg_dir, 'config', 'bottom_camera.yaml')
+    
+    # 声明校准文件路径的启动参数
+    top_calibration_arg = DeclareLaunchArgument(
+        'top_calibration_file',
+        default_value=top_calibration_file,
+        description='上方摄像头校准文件路径'
+    )
+    
+    bottom_calibration_arg = DeclareLaunchArgument(
+        'bottom_calibration_file',
+        default_value=bottom_calibration_file,
+        description='下方摄像头校准文件路径'
+    )
+    
     # 声明上方摄像头的启动参数
     top_camera_device_arg = DeclareLaunchArgument(
         'top_camera_device',
@@ -95,6 +117,7 @@ def generate_launch_description():
             'publish_rate': LaunchConfiguration('top_publish_rate'),
             'camera_fps': LaunchConfiguration('top_camera_fps'),
             'camera_format': LaunchConfiguration('top_camera_format'),
+            'calibration_file': LaunchConfiguration('top_calibration_file'),
         }],
         output='screen'
     )
@@ -111,12 +134,16 @@ def generate_launch_description():
             'publish_rate': LaunchConfiguration('bottom_publish_rate'),
             'camera_fps': LaunchConfiguration('bottom_camera_fps'),
             'camera_format': LaunchConfiguration('bottom_camera_format'),
+            'calibration_file': LaunchConfiguration('bottom_calibration_file'),
         }],
         output='screen'
     )
     
-    # 返回启动描述
+    # 返回启动描述 - 只包含相机节点
     return LaunchDescription([
+        # 校准文件参数
+        top_calibration_arg,
+        bottom_calibration_arg,
         # 上方摄像头参数
         top_camera_device_arg,
         top_frame_width_arg,
@@ -131,7 +158,7 @@ def generate_launch_description():
         bottom_publish_rate_arg,
         bottom_camera_fps_arg,
         bottom_camera_format_arg,
-        # 节点
+        # 节点 - 只包含相机节点
         top_camera_node,
         bottom_camera_node
     ])

@@ -1,0 +1,4 @@
+bool enable  # 是否启用检测
+---
+bool success   # 操作是否成功
+string message # 附加信息
