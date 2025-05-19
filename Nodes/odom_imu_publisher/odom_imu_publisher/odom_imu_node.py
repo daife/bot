@@ -41,8 +41,10 @@ class OdomImuPublisherNode(Node):
         self.running = False  # 控制后台线程运行
         
         # 创建发布器
+        # self.odom_publisher = self.create_publisher(Odometry, 'wheel_odom', 10)
+        # self.imu_publisher = self.create_publisher(Imu, '/imu/data', 10)
         self.odom_publisher = self.create_publisher(Odometry, 'wheel_odom', 10)
-        self.imu_publisher = self.create_publisher(Imu, '/imu/data', 10)
+        self.imu_publisher = self.create_publisher(Imu, '/imu', 10)
         
         # 初始化串口
         self.serial_fd = -1

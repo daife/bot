@@ -27,7 +27,7 @@ class KeyboardControlNode(Node):
         self.claw_action_client = ActionClient(self, MoveClaw, 'move_claw')
         
         # 控制参数
-        self.linear_speed = 0.3  # 线性速度 (m/s)
+        self.linear_speed = 1.0  # 线性速度 (m/s)
         self.angular_speed = 1.0  # 角速度 (rad/s)
         
         # 爪子状态 (0: 抓取, 1: 释放)

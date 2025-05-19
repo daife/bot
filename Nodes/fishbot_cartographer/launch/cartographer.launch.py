@@ -45,7 +45,12 @@ def generate_launch_description():
         output='screen',
         parameters=[{'use_sim_time': use_sim_time}],
         arguments=['-configuration_directory', configuration_directory,
-                   '-configuration_basename', configuration_basename])
+                   '-configuration_basename', configuration_basename],
+        # remappings=[
+        #     ('/odom', '/odometry/filtered'),  # 将默认的odom话题重映射到/odometry/filtered
+        #     ('/imu', '/imu/data')            # 将默认的imu话题重映射到/imu/data
+        # ]
+        )
 
     cartographer_occupancy_grid_node = Node(
         package='cartographer_ros',

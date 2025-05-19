@@ -34,6 +34,7 @@ def generate_launch_description():
                 # If your topics have different names, remap them here
                 # Example: ('/input/odom', '/wheel_odom'),
                 # Example: ('/input/imu', '/imu/data'),
+                ('/odometry/filtered', '/odom'),  # Remap the default output topic to /odom
             ]
         ),
     ])

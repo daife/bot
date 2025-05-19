@@ -65,7 +65,7 @@ class ChassisControlNode(Node):
         
         # 发送速度命令到底盘控制器
         try:
-            self.chassis.set_velocity(0.15*linear_y, 0.15*linear_x, 0.25*angular_z)
+            self.chassis.set_velocity(-0.25*linear_y, 0.15*linear_x, 0.5*angular_z)
         except Exception as e:
             self.get_logger().error(f'发送速度命令失败: {e}')
     
