@@ -168,20 +168,19 @@ class YoloDetectorNode(Node):
     def __init__(self):
         super().__init__('yolo_detector_node')
         
-        # 参数设置（硬编码在程序中）
-        self.display_image = True  # 控制是否显示检测画面
-        
         # 声明参数
         self.declare_parameter('model_path', 'models/yolo11s16.om')
         self.declare_parameter('device_id', 0)
         self.declare_parameter('input_size', 640)
         self.declare_parameter('num_classes', 8)  # 添加可识别物体个数参数
+        self.declare_parameter('display_image', False)  # 控制是否显示检测画面的参数
         
         # 获取参数
         model_name = self.get_parameter('model_path').value
         self.device_id = self.get_parameter('device_id').value
         self.input_size = self.get_parameter('input_size').value
         self.num_classes = self.get_parameter('num_classes').value  # 获取类别数
+        self.display_image = self.get_parameter('display_image').value  # 获取显示设置
         
         # 获取模型的完整路径
         pkg_dir = get_package_share_directory('bottom_camera_yolo_detector')
