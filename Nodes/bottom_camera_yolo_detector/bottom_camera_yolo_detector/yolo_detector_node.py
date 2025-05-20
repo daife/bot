@@ -169,7 +169,7 @@ class YoloDetectorNode(Node):
         super().__init__('yolo_detector_node')
         
         # 声明参数
-        self.declare_parameter('model_path', 'models/yolo11s16.om')
+        self.declare_parameter('model_path', 'models/yolo11s.om')
         self.declare_parameter('device_id', 0)
         self.declare_parameter('input_size', 640)
         self.declare_parameter('num_classes', 8)  # 添加可识别物体个数参数
