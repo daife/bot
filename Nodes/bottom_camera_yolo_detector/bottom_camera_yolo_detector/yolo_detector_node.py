@@ -54,7 +54,7 @@ class AclLiteResource:
 
 class YOLO11s:
     """YOLO11s模型处理类"""
-    def __init__(self, model_path, input_size=640, correct_distortion=True):
+    def __init__(self, model_path, input_size=640, correct_distortion=True, num_classes=80):
         self.model_path = model_path
         self.input_size = input_size
         self.model = None
@@ -62,6 +62,7 @@ class YOLO11s:
         self.correct_distortion = correct_distortion
         self.camera_matrix = CAMERA_MATRIX
         self.dist_coeffs = DISTORTION_COEFFS
+        self.num_classes = num_classes
 
     def init(self):
         """初始化模型和图像处理器"""
@@ -105,15 +106,20 @@ class YOLO11s:
         # 打印实际 shape
         #print("pred[0] shape:", pred[0].shape)
         arr = pred[0]
-        # 兼容 (1, 84, 8400) 输出
+        # 计算每个预测输出的维度 (4+1+num_classes)
+        expected_dim = 5 + self.num_classes
+        
+        # 兼容不同维度的输出
         if arr.ndim == 3 and arr.shape[0] == 1:
             arr = arr.squeeze(0)
-        if arr.shape[0] == 84 and arr.shape[1] == 8400:
-            arr = arr.transpose(1, 0)  # (8400, 84)
-        elif arr.shape[0] == 8400 and arr.shape[1] == 84:
+        
+        # 处理各种可能的数组形状
+        if arr.shape[0] == expected_dim and arr.shape[1] == 8400:
+            arr = arr.transpose(1, 0)  # (8400, expected_dim)
+        elif arr.shape[0] == 8400 and arr.shape[1] == expected_dim:
             pass  # already correct
         else:
-            raise ValueError(f"Unexpected pred shape: {arr.shape}")
+            raise ValueError(f"Unexpected pred shape: {arr.shape}, expected second dim to be {expected_dim}")
         
         conf_mask = arr[:, 4] > CONF_THRESH
         detections = []
@@ -122,7 +128,7 @@ class YOLO11s:
                 continue
             cx, cy, w, h = arr[i, :4]
             conf = arr[i, 4]
-            cls_scores = arr[i, 5:]
+            cls_scores = arr[i, 5:5+self.num_classes]
             # 正确还原到原图坐标
             cx = (cx - pad_info[1]) / pad_info[2]
             cy = (cy - pad_info[0]) / pad_info[2]
@@ -169,11 +175,13 @@ class YoloDetectorNode(Node):
         self.declare_parameter('model_path', 'models/yolo11s16.om')
         self.declare_parameter('device_id', 0)
         self.declare_parameter('input_size', 640)
+        self.declare_parameter('num_classes', 8)  # 添加可识别物体个数参数
         
         # 获取参数
         model_name = self.get_parameter('model_path').value
         self.device_id = self.get_parameter('device_id').value
         self.input_size = self.get_parameter('input_size').value
+        self.num_classes = self.get_parameter('num_classes').value  # 获取类别数
         
         # 获取模型的完整路径
         pkg_dir = get_package_share_directory('bottom_camera_yolo_detector')
@@ -230,7 +238,7 @@ class YoloDetectorNode(Node):
             
             # 初始化YOLO模型
             self.get_logger().info('开始初始化YOLO模型...')
-            self.yolo_model = YOLO11s(self.model_path, self.input_size, correct_distortion=False)
+            self.yolo_model = YOLO11s(self.model_path, self.input_size, correct_distortion=False, num_classes=self.num_classes)
             result = self.yolo_model.init()
             if result != SUCCESS:
                 self.get_logger().error('初始化YOLO模型失败')

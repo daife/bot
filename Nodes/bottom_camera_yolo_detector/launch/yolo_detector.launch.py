@@ -2,21 +2,40 @@ from launch import LaunchDescription
 from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
 import os
+from launch.substitutions import LaunchConfiguration
+from launch.actions import DeclareLaunchArgument
 
 def generate_launch_description():
     pkg_dir = get_package_share_directory('bottom_camera_yolo_detector')
-    model_path = os.path.join(pkg_dir, 'models', 'yolo11s16.om')
+    
+    # 声明启动参数，允许命令行覆盖
+    model_file = LaunchConfiguration('model_file', default='yolo11s16.om')
+    model_dir = LaunchConfiguration('model_dir', default=os.path.join(pkg_dir, 'models'))
     
     return LaunchDescription([
+        # 声明可以从命令行传入的参数
+        DeclareLaunchArgument(
+            'model_file',
+            default_value='yolo11s16.om',
+            description='YOLO模型文件名'
+        ),
+        
+        DeclareLaunchArgument(
+            'model_dir',
+            default_value=os.path.join(pkg_dir, 'models'),
+            description='YOLO模型所在目录'
+        ),
+        
         Node(
             package='bottom_camera_yolo_detector',
             executable='yolo_detector',
             name='bottom_camera_yolo_detector',
             output='screen',
             parameters=[{
-                'model_path': model_path,
+                'model_path': [model_dir, '/', model_file],  # 使用完全参数化的模型路径
                 'device_id': 0,
                 'input_size': 640,
+                'num_classes': 8,
             }]
         )
     ])
