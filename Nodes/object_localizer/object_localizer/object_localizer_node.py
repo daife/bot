@@ -210,10 +210,10 @@ class ObjectLocalizerNode(Node):
             try:
                 # 获取两个摄像头到base_link的变换
                 bottom_to_base = self.tf_buffer.lookup_transform(
-                    'base_link', 'bottom_camera_link_rect', rclpy.time.Time())
+                    'base_link', 'bottom_camera_link', rclpy.time.Time())
                     
                 top_to_base = self.tf_buffer.lookup_transform(
-                    'base_link', 'top_camera_link_rect', rclpy.time.Time())
+                    'base_link', 'top_camera_link', rclpy.time.Time())
                 
                 # 计算相对于摄像头的射线
                 bottom_ray = self.pixel_to_ray(
@@ -226,13 +226,13 @@ class ObjectLocalizerNode(Node):
                 
                 # 将射线表示为相对于base_link的点
                 bottom_point_msg = PointStamped()
-                bottom_point_msg.header.frame_id = 'bottom_camera_link_rect'
+                bottom_point_msg.header.frame_id = 'bottom_camera_link'
                 bottom_point_msg.point.x = bottom_ray[0]
                 bottom_point_msg.point.y = bottom_ray[1]
                 bottom_point_msg.point.z = bottom_ray[2]
                 
                 top_point_msg = PointStamped()
-                top_point_msg.header.frame_id = 'top_camera_link_rect'
+                top_point_msg.header.frame_id = 'top_camera_link'
                 top_point_msg.point.x = top_ray[0]
                 top_point_msg.point.y = top_ray[1]
                 top_point_msg.point.z = top_ray[2]

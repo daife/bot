@@ -101,34 +101,45 @@ class YOLO11s:
 
     def postprocess(self, pred, orig_shape, pad_info):
         """后处理"""
-        CONF_THRESH = 0.1
-        IOU_THRESH = 0.9
-        # 打印实际 shape
-        #print("pred[0] shape:", pred[0].shape)
+        CONF_THRESH = 0.25
+        IOU_THRESH = 0.5
+        
+        # 获取预测数组 - 预期格式 [1, 4+num_classes, 8400]
         arr = pred[0]
-        # 计算每个预测输出的维度 (4+1+num_classes)
-        expected_dim = 5 + self.num_classes
         
-        # 兼容不同维度的输出
-        if arr.ndim == 3 and arr.shape[0] == 1:
-            arr = arr.squeeze(0)
+        # 处理正确的输出格式: [1, 4+num_classes, 8400]
+        if arr.ndim == 3:
+            if arr.shape[0] == 1:  # 存在batch维度
+                arr = arr.squeeze(0)  # 形状变为 [4+num_classes, 8400]
+            
+            # 确保格式为 [8400, 4+num_classes]
+            if arr.shape[0] == 4 + self.num_classes and arr.shape[1] == 8400:
+                arr = arr.transpose(1, 0)  # 转置为 [8400, 4+num_classes]
         
-        # 处理各种可能的数组形状
-        if arr.shape[0] == expected_dim and arr.shape[1] == 8400:
-            arr = arr.transpose(1, 0)  # (8400, expected_dim)
-        elif arr.shape[0] == 8400 and arr.shape[1] == expected_dim:
-            pass  # already correct
-        else:
+        # 验证形状 - 第二维应为 4+num_classes
+        expected_dim = 4 + self.num_classes
+        if arr.shape[1] != expected_dim:
             raise ValueError(f"Unexpected pred shape: {arr.shape}, expected second dim to be {expected_dim}")
         
-        conf_mask = arr[:, 4] > CONF_THRESH
+        # 获取类别ID和置信度
+        boxes = arr[:, :4]  # 前4个值为边界框坐标
+        scores = arr[:, 4:]  # 剩余值为类别分数
+        
+        class_ids = np.argmax(scores, axis=1)
+        max_scores = np.max(scores, axis=1)
+        
+        # 应用置信度阈值
+        conf_mask = max_scores > CONF_THRESH
         detections = []
+        
         for i in range(arr.shape[0]):
             if not conf_mask[i]:
                 continue
-            cx, cy, w, h = arr[i, :4]
-            conf = arr[i, 4]
-            cls_scores = arr[i, 5:5+self.num_classes]
+                
+            cx, cy, w, h = boxes[i]
+            class_id = class_ids[i]
+            conf = max_scores[i]
+            
             # 正确还原到原图坐标
             cx = (cx - pad_info[1]) / pad_info[2]
             cy = (cy - pad_info[0]) / pad_info[2]
@@ -138,9 +149,9 @@ class YOLO11s:
             y1 = int(cy - h / 2)
             x2 = int(cx + w / 2)
             y2 = int(cy + h / 2)
-            class_id = np.argmax(cls_scores)
-            detections.append([x1, y1, x2, y2, conf, class_id])
             
+            detections.append([x1, y1, x2, y2, conf, class_id])
+        
         # NMS处理
         if not detections:
             return []

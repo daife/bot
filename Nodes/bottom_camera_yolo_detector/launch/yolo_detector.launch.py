@@ -42,7 +42,7 @@ def generate_launch_description():
                 'model_path': [model_dir, '/', model_file],  # 使用完全参数化的模型路径
                 'device_id': 0,
                 'input_size': 640,
-                'num_classes': 8,
+                'num_classes': 4,
                 'display_image': display_image,
             }]
         )
