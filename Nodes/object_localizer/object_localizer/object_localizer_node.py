@@ -23,17 +23,87 @@ class ObjectLocalizerNode(Node):
     def __init__(self):
         super().__init__('object_localizer_node')
         
-        # 声明参数
-        self.declare_parameter('confidence_threshold', 0.65)
-        self.declare_parameter('feature_match_ratio', 0.7)
-        self.declare_parameter('max_feature_points', 100)
-        self.declare_parameter('publish_debug_images', True)
+        # ----------------------- 参数声明及说明 -----------------------
         
+        # 基本参数
+        # confidence_threshold: 三角测量的置信度阈值，越高要求精度越高，但可能导致有些物体无法定位
+        # 范围: 0.0-1.0，建议值: 0.5-0.7
+        self.declare_parameter('confidence_threshold', 0.65)
+        
+        # feature_match_ratio: 特征点匹配距离比率，用于kNN匹配过滤
+        # 值越小，匹配越严格（更少但更可靠的匹配点）
+        # 值越大，匹配越宽松（更多但可能更不准确的匹配点）
+        # 范围: 0.0-1.0，建议值: 0.6-0.8
+        self.declare_parameter('feature_match_ratio', 0.9)
+        
+        # max_feature_points: 最大特征点数量，限制用于匹配的特征点数量
+        # 值越大，计算量越大但精度可能更高
+        # 值越小，计算更快但可能降低精度
+        # 范围: 10-1000，建议值: 50-200
+        self.declare_parameter('max_feature_points', 100)
+        
+        # show_debug_visualization: 是否显示调试可视化窗口
+        # True: 显示特征匹配可视化窗口（有助于调试）
+        # False: 不显示可视化窗口（适合部署环境）
+        self.declare_parameter('show_debug_visualization', True)
+        
+        # SIFT参数（影响特征点检测的质量和数量）
+        # sift_n_features: SIFT算法检测的最大特征点数
+        # 值越大，检测更多特征点，增加匹配可能，但计算量更大
+        # 范围: 10-2000，建议值: 100-500
+        self.declare_parameter('sift_n_features', 300)
+        
+        # sift_n_octave_layers: SIFT算法中每个八度层的数量
+        # 值越大，检测到的特征点尺度多样性越高，但计算量更大
+        # 范围: 1-5，建议值: 3
+        self.declare_parameter('sift_n_octave_layers', 3)
+        
+        # sift_contrast_threshold: 特征点对比度阈值
+        # 值越小，检测低对比度区域的特征点，但可能引入噪声
+        # 值越大，只检测高对比度区域的特征点，减少但更可靠
+        # 范围: 0.01-0.1，建议值: 0.04
+        self.declare_parameter('sift_contrast_threshold', 0.04)
+        
+        # sift_edge_threshold: 边缘响应阈值，用于过滤边缘上的点
+        # 值越小，边缘过滤越严格，检测特征点会偏向于角点
+        # 值越大，边缘过滤越宽松，会在边缘上检测到更多特征点
+        # 范围: 5-20，建议值: 10
+        self.declare_parameter('sift_edge_threshold', 15)
+        
+        # sift_sigma: SIFT高斯滤波器的sigma值
+        # 控制特征点检测的空间尺度，影响特征点的大小敏感性
+        # 范围: 1.0-2.0，建议值: 1.6
+        self.declare_parameter('sift_sigma', 1.6)
+        
+        # 特征匹配参数
+        # match_k: kNN匹配时查找的近邻数量
+        # 通常设为2，用于比率测试；若设为1则变为最近邻匹配
+        # 范围: 1-3，建议值: 2
+        self.declare_parameter('match_k', 2)
+        
+        # match_cross_check: 是否使用交叉检查进行匹配
+        # True: 使用交叉检查（更可靠但匹配点更少）
+        # False: 不使用交叉检查（匹配点较多但可能有误匹配）
+        # 注意: 启用交叉检查时，feature_match_ratio参数将被忽略
+        self.declare_parameter('match_cross_check', False)
+        
+        # ----------------------- 参数获取 -----------------------
         # 获取参数
         self.confidence_threshold = self.get_parameter('confidence_threshold').value
         self.feature_match_ratio = self.get_parameter('feature_match_ratio').value
         self.max_feature_points = self.get_parameter('max_feature_points').value
-        self.publish_debug_images = self.get_parameter('publish_debug_images').value
+        self.show_debug_visualization = self.get_parameter('show_debug_visualization').value
+        
+        # 获取SIFT参数
+        self.sift_n_features = self.get_parameter('sift_n_features').value
+        self.sift_n_octave_layers = self.get_parameter('sift_n_octave_layers').value
+        self.sift_contrast_threshold = self.get_parameter('sift_contrast_threshold').value
+        self.sift_edge_threshold = self.get_parameter('sift_edge_threshold').value
+        self.sift_sigma = self.get_parameter('sift_sigma').value
+        
+        # 获取匹配参数
+        self.match_k = self.get_parameter('match_k').value
+        self.match_cross_check = self.get_parameter('match_cross_check').value
         
         # 创建CV桥接器
         self.bridge = CvBridge()
@@ -55,9 +125,28 @@ class ObjectLocalizerNode(Node):
             [0.0, 0.0, 1.0]
         ])
         
+        # 调整内参矩阵适应缩放后的图像
+        self.scale_factor = 0.5  # 640x480 -> 320x240
+        self.bottom_camera_matrix_scaled = self.bottom_camera_matrix.copy()
+        self.bottom_camera_matrix_scaled[:2, :] *= self.scale_factor
+        
+        self.top_camera_matrix_scaled = self.top_camera_matrix.copy()
+        self.top_camera_matrix_scaled[:2, :] *= self.scale_factor
+        
         # 特征检测器和描述子计算器
-        self.feature_detector = cv2.SIFT_create(nfeatures=self.max_feature_points)
-        self.feature_matcher = cv2.BFMatcher()
+        self.feature_detector = cv2.SIFT_create(
+            nfeatures=self.sift_n_features,
+            nOctaveLayers=self.sift_n_octave_layers,
+            contrastThreshold=self.sift_contrast_threshold,
+            edgeThreshold=self.sift_edge_threshold,
+            sigma=self.sift_sigma
+        )
+        
+        # 根据参数设置特征匹配器
+        if self.match_cross_check:
+            self.feature_matcher = cv2.BFMatcher(cv2.NORM_L2, crossCheck=True)
+        else:
+            self.feature_matcher = cv2.BFMatcher(cv2.NORM_L2)
         
         # 存储最新的图像和检测结果
         self.top_image = None
@@ -73,10 +162,7 @@ class ObjectLocalizerNode(Node):
         self.position_publisher = self.create_publisher(
             ObjectPosition, 'object_position', 10)
         
-        # 调试图像发布器
-        if self.publish_debug_images:
-            self.debug_image_publisher = self.create_publisher(
-                Image, 'object_localizer/debug_image', 1)
+        # 移除调试图像发布器，改用cv2.imshow()直接显示
         
         # 订阅器
         self.bottom_image_subscription = self.create_subscription(
@@ -92,11 +178,20 @@ class ObjectLocalizerNode(Node):
         self.timer = self.create_timer(0.1, self.localize_object)
         
         self.get_logger().info('物体定位器节点已初始化')
+        
+        # 如果启用了可视化，创建一个命名窗口
+        if self.show_debug_visualization:
+            cv2.namedWindow('Object Localizer Visualization', cv2.WINDOW_NORMAL)
+            cv2.resizeWindow('Object Localizer Visualization', 640, 480)
     
     def bottom_image_callback(self, msg):
         """处理底部摄像头图像"""
         try:
-            self.bottom_image = self.bridge.imgmsg_to_cv2(msg, 'bgr8')
+            # 将图像转换为OpenCV格式
+            img = self.bridge.imgmsg_to_cv2(msg, 'bgr8')
+            
+            # 将图像调整为320x240
+            self.bottom_image = cv2.resize(img, (320, 240))
             self.bottom_image_updated = True
         except Exception as e:
             self.get_logger().error(f'处理底部摄像头图像错误: {e}')
@@ -104,7 +199,11 @@ class ObjectLocalizerNode(Node):
     def top_image_callback(self, msg):
         """处理顶部摄像头图像"""
         try:
-            self.top_image = self.bridge.imgmsg_to_cv2(msg, 'bgr8')
+            # 将图像转换为OpenCV格式
+            img = self.bridge.imgmsg_to_cv2(msg, 'bgr8')
+            
+            # 将图像调整为320x240
+            self.top_image = cv2.resize(img, (320, 240))
             self.top_image_updated = True
         except Exception as e:
             self.get_logger().error(f'处理顶部摄像头图像错误: {e}')
@@ -135,21 +234,26 @@ class ObjectLocalizerNode(Node):
         
         # 检查是否检测到物体
         if self.current_detection.num_objects == 0:
+            # 即使没有检测到物体也可以显示空白的调试图像
+            if self.show_debug_visualization:
+                self.publish_debug_image([], [], [], 0, 0, 0, 0)
             self.position_publisher.publish(position_msg)
             return
         
         try:
-            # 提取检测框区域
-            x = self.current_detection.x
-            y = self.current_detection.y
-            width = self.current_detection.width
-            height = self.current_detection.height
+            # 提取检测框区域 (需要考虑图像已被缩放)
+            x = int(self.current_detection.x * self.scale_factor)
+            y = int(self.current_detection.y * self.scale_factor)
+            width = int(self.current_detection.width * self.scale_factor)
+            height = int(self.current_detection.height * self.scale_factor)
             
             # 确保检测框不超出图像边界
             if (x < 0 or y < 0 or 
                 x + width > self.bottom_image.shape[1] or 
                 y + height > self.bottom_image.shape[0]):
                 self.get_logger().warn('检测框超出图像边界')
+                if self.show_debug_visualization:
+                    self.publish_debug_image([], [], [], x, y, width, height)
                 self.position_publisher.publish(position_msg)
                 return
             
@@ -159,34 +263,45 @@ class ObjectLocalizerNode(Node):
             # 检测特征点
             bottom_keypoints, bottom_descriptors = self.feature_detector.detectAndCompute(bottom_roi, None)
             
-            if bottom_descriptors is None or len(bottom_keypoints) < 4:
+            # 初始化点和匹配为空列表，以便在任何错误情况下仍能显示调试图像
+            bottom_pts = []
+            top_pts = []
+            good_matches = []
+            
+            # 检查是否有足够的特征点
+            if bottom_descriptors is None or len(bottom_keypoints) < 1:
                 self.get_logger().warn('底部图像中找不到足够的特征点')
+                if self.show_debug_visualization:
+                    self.publish_debug_image(bottom_pts, top_pts, good_matches, x, y, width, height)
                 self.position_publisher.publish(position_msg)
                 return
             
             # 在顶部摄像头图像中检测特征
             top_keypoints, top_descriptors = self.feature_detector.detectAndCompute(self.top_image, None)
             
-            if top_descriptors is None or len(top_keypoints) < 4:
+            if top_descriptors is None or len(top_keypoints) < 1:
                 self.get_logger().warn('顶部图像中找不到足够的特征点')
+                if self.show_debug_visualization:
+                    self.publish_debug_image(bottom_pts, top_pts, good_matches, x, y, width, height)
                 self.position_publisher.publish(position_msg)
                 return
             
             # 特征匹配
-            matches = self.feature_matcher.knnMatch(bottom_descriptors, top_descriptors, k=2)
+            if self.match_cross_check:
+                matches = self.feature_matcher.match(bottom_descriptors, top_descriptors)
+                # 按距离排序
+                matches = sorted(matches, key=lambda x: x.distance)
+                # 选取前N个最佳匹配
+                good_matches = matches[:min(len(matches), self.max_feature_points)]
+            else:
+                matches = self.feature_matcher.knnMatch(bottom_descriptors, top_descriptors, k=self.match_k)
+                # 筛选好的匹配
+                good_matches = []
+                for m, n in matches:
+                    if m.distance < self.feature_match_ratio * n.distance:
+                        good_matches.append(m)
             
-            # 筛选好的匹配
-            good_matches = []
-            for m, n in matches:
-                if m.distance < self.feature_match_ratio * n.distance:
-                    good_matches.append(m)
-            
-            if len(good_matches) < 4:
-                self.get_logger().warn(f'找不到足够的特征匹配点: {len(good_matches)}')
-                self.position_publisher.publish(position_msg)
-                return
-            
-            # 提取匹配点坐标
+            # 提取匹配点坐标 (无论匹配点数量如何，都提取坐标用于显示)
             bottom_pts = []
             top_pts = []
             
@@ -197,6 +312,15 @@ class ObjectLocalizerNode(Node):
                 
                 top_pt = top_keypoints[match.trainIdx].pt
                 top_pts.append(top_pt)
+            
+            # 检查是否有足够的匹配点进行三角测量
+            if len(good_matches) < 4:
+                self.get_logger().warn(f'找不到足够的特征匹配点: {len(good_matches)}')
+                # 显示目前已经匹配的点
+                if self.show_debug_visualization:
+                    self.publish_debug_image(bottom_pts, top_pts, good_matches, x, y, width, height)
+                self.position_publisher.publish(position_msg)
+                return
             
             # 使用几何变换找到一个大致的物体位置
             bottom_pts = np.array(bottom_pts)
@@ -215,14 +339,14 @@ class ObjectLocalizerNode(Node):
                 top_to_base = self.tf_buffer.lookup_transform(
                     'base_link', 'top_camera_link', rclpy.time.Time())
                 
-                # 计算相对于摄像头的射线
+                # 计算相对于摄像头的射线 - 使用缩放后的内参矩阵
                 bottom_ray = self.pixel_to_ray(
                     bottom_center[0], bottom_center[1], 
-                    self.bottom_camera_matrix)
+                    self.bottom_camera_matrix_scaled)
                     
                 top_ray = self.pixel_to_ray(
                     top_center[0], top_center[1], 
-                    self.top_camera_matrix)
+                    self.top_camera_matrix_scaled)
                 
                 # 将射线表示为相对于base_link的点
                 bottom_point_msg = PointStamped()
@@ -286,17 +410,23 @@ class ObjectLocalizerNode(Node):
                 self.position_publisher.publish(position_msg)
                 
                 # 发布调试图像
-                if self.publish_debug_images:
-                    self.publish_debug_image(bottom_pts, top_pts, good_matches)
+                if self.show_debug_visualization:
+                    self.publish_debug_image(bottom_pts, top_pts, good_matches, x, y, width, height)
                 
             except Exception as e:
                 self.get_logger().error(f'计算物体位置时出错: {e}')
                 import traceback
                 self.get_logger().error(traceback.format_exc())
+                # 尽管出错，仍然显示已匹配的点
+                if self.show_debug_visualization:
+                    self.publish_debug_image(bottom_pts, top_pts, good_matches, x, y, width, height)
                 self.position_publisher.publish(position_msg)
                 
         except Exception as e:
             self.get_logger().error(f'定位物体时出错: {e}')
+            # 在任何错误情况下，尝试显示调试信息
+            if self.show_debug_visualization:
+                self.publish_debug_image([], [], [], x, y, width, height)
             self.position_publisher.publish(position_msg)
     
     def pixel_to_ray(self, x, y, camera_matrix):
@@ -353,41 +483,36 @@ class ObjectLocalizerNode(Node):
             self.get_logger().warn('射线几乎平行，无法可靠地计算交点')
             return np.zeros(3), 0.0
     
-    def publish_debug_image(self, bottom_pts, top_pts, matches):
-        """生成并发布调试图像，显示特征匹配结果"""
-        if self.bottom_image is None or self.top_image is None:
+    def publish_debug_image(self, bottom_pts, top_pts, matches, box_x, box_y, box_width, box_height):
+        """生成并显示调试图像，显示特征匹配结果"""
+        if not self.show_debug_visualization or self.bottom_image is None or self.top_image is None:
             return
             
         try:
-            # 调整两个图像为相同大小
+            # 获取图像尺寸
             h1, w1 = self.bottom_image.shape[:2]
             h2, w2 = self.top_image.shape[:2]
             
-            # 确定拼接图像尺寸
-            height = max(h1, h2)
-            width = w1 + w2
+            # 垂直拼接图像（上下），如用户要求
+            width = max(w1, w2)
+            height = h1 + h2
             
             # 创建拼接图像
             vis = np.zeros((height, width, 3), np.uint8)
             vis[:h1, :w1] = self.bottom_image
-            vis[:h2, w1:w1+w2] = self.top_image
+            vis[h1:h1+h2, :w2] = self.top_image
             
-            # 绘制检测框
-            if self.current_detection.num_objects > 0:
-                cv2.rectangle(
-                    vis, 
-                    (self.current_detection.x, self.current_detection.y),
-                    (self.current_detection.x + self.current_detection.width, 
-                     self.current_detection.y + self.current_detection.height),
-                    (0, 255, 0), 2)
+            # 绘制底部摄像头的检测框
+            cv2.rectangle(
+                vis, 
+                (box_x, box_y),
+                (box_x + box_width, box_y + box_height),
+                (0, 255, 0), 2)
             
-            # 绘制特征匹配线
+            # 绘制特征匹配线，即使没有足够的匹配点也绘制
             for i, (bp, tp) in enumerate(zip(bottom_pts, top_pts)):
-                if i > 20:  # 限制显示的线数量
-                    break
-                    
-                # 添加w1偏移到顶部摄像头坐标
-                tp_offset = (int(tp[0]) + w1, int(tp[1]))
+                # 顶部摄像头的点需要加上h1的偏移
+                tp_offset = (int(tp[0]), int(tp[1]) + h1)
                 
                 # 画线
                 cv2.line(vis, (int(bp[0]), int(bp[1])), tp_offset, (0, 255, 0), 1)
@@ -399,15 +524,24 @@ class ObjectLocalizerNode(Node):
             # 添加文本说明
             cv2.putText(vis, "Bottom Camera", (10, 30), 
                        cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255), 2)
-            cv2.putText(vis, "Top Camera", (w1 + 10, 30), 
+            cv2.putText(vis, "Top Camera", (10, h1 + 30), 
                        cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255), 2)
             
-            # 发布调试图像
-            debug_msg = self.bridge.cv2_to_imgmsg(vis, "bgr8")
-            self.debug_image_publisher.publish(debug_msg)
+            # 显示匹配数量信息
+            cv2.putText(vis, f"Matches: {len(matches)}", (10, h1 - 10), 
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+            
+            # 使用cv2.imshow()显示结果，而不是发布到ROS话题
+            cv2.imshow('Object Localizer Visualization', vis)
+            cv2.waitKey(1)  # 非阻塞更新
             
         except Exception as e:
-            self.get_logger().error(f'发布调试图像出错: {e}')
+            self.get_logger().error(f'显示调试图像出错: {e}')
+
+    def __del__(self):
+        """析构函数，确保在节点销毁时关闭OpenCV窗口"""
+        if self.show_debug_visualization:
+            cv2.destroyAllWindows()
 
 def main(args=None):
     rclpy.init(args=args)
@@ -418,6 +552,8 @@ def main(args=None):
     except KeyboardInterrupt:
         node.get_logger().info('用户中断，关闭节点')
     finally:
+        # 确保在退出时关闭所有OpenCV窗口
+        cv2.destroyAllWindows()
         node.destroy_node()
         rclpy.shutdown()
 
