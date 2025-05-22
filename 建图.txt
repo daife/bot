@@ -1,8 +1,10 @@
-ros2 launch oradar_lidar ms200_scan_view.launch.py
+ros2 launch oradar_lidar ms200_scan.launch.py #ms200_scan_view.launch.py有可视化
 ros2 run lidar_filter_pkg lidar_filter
 ros2 run odom_imu_publisher odom_imu_node
 ros2 launch sensor_fusion_pkg sensor_fusion.launch.py
 ros2 launch sam_bot_description display.launch.py
 ros2 run chassis_control_rclpy chassis_control_node
 ros2 run arm_action_rclpy action_arm_01
-ros2 launch fishbot_cartographer cartographer.launch.py 
+ros2 run handlecontroler handle_control_node #选择用手柄控制
+ros2 launch fishbot_cartographer cartographer.launch.py #建图
+#arm节点很特殊，除了arm节点外，还用于发布机器人本体姿态，所以在建图（看似不需要arm节点）也需要启用

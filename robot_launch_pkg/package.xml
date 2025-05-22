@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>robot_launch_pkg</name>
+  <version>0.1.0</version>
+  <description>统一启动管理包，提供控制器测试、建图测试和视觉测试功能</description>
+  <maintainer email="user@example.com">HwHiAiUser</maintainer>
+  <license>TODO: License declaration</license>
+
+  <buildtool_depend>ament_python</buildtool_depend>
+  
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+  <exec_depend>chassis_control_rclpy</exec_depend>
+  <exec_depend>arm_action_rclpy</exec_depend>
+  <exec_depend>claw_action_rclpy</exec_depend>
+  <exec_depend>handlecontroler</exec_depend>
+  <exec_depend>oradar_lidar</exec_depend>
+  <exec_depend>lidar_filter_pkg</exec_depend>
+  <exec_depend>odom_imu_publisher</exec_depend>
+  <exec_depend>sensor_fusion_pkg</exec_depend>
+  <exec_depend>sam_bot_description</exec_depend>
+  <exec_depend>fishbot_cartographer</exec_depend>
+  <exec_depend>dual_camera_pkg</exec_depend>
+  <exec_depend>bottom_camera_yolo_detector</exec_depend>
+  <exec_depend>object_localizer</exec_depend>
+
+  <test_depend>ament_copyright</test_depend>
+  <test_depend>ament_flake8</test_depend>
+  <test_depend>ament_pep257</test_depend>
+  <test_depend>python3-pytest</test_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>
