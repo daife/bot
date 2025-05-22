@@ -5,10 +5,12 @@ After=network.target display-manager.service
 [Service]
 Type=simple
 User=HwHiAiUser
-ExecStart=sudo /usr/bin/bash "/home/HwHiAiUser/ros/src/unionTest/handle_test.sh" 
+ExecStart=/usr/bin/bash  "/home/HwHiAiUser/ros/src/autoScript.sh"
 [Install]
 WantedBy=multi-user.target
+
 #放至/etc/systemd/system/
+#sudo cp /home/HwHiAiUser/ros/src/ros2_bot.service /etc/systemd/system/
 
 # 启动服务
 #sudo systemctl start ros2_bot
@@ -17,4 +19,6 @@ WantedBy=multi-user.target
 # 停止服务
 #sudo systemctl stop ros2_bot
 #开启开机自启动
-#sudo systemctl enable myapp
+#sudo systemctl enable ros2_bot
+#每次修改文件后必须执行
+#sudo systemctl daemon-reload
