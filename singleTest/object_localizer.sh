@@ -1,2 +1,2 @@
-source install/setup.sh
+source /home/HwHiAiUser/ros/install/setup.sh
 ros2 launch object_localizer object_localizer.launch.py
