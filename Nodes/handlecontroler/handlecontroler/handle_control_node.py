@@ -62,7 +62,7 @@ class HandleControlNode(Node):
         # 机械臂参数
         self.arm_angle = 0.0  # 初始角度为0
         self.arm_min_angle = -20.0  # 最小角度
-        self.arm_max_angle = 20.0   # 最大角度
+        self.arm_max_angle = 19.0   # 最大角度
         self.arm_step = 1.0  # 步进值
         self.last_arm_command_time = time.time()
         self.arm_command_interval = 0.2  # 连续按下时的命令间隔(秒)

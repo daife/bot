@@ -6,7 +6,7 @@ from arm_control_interfaces.action import MoveArm
 import math
 
 class Arm:
-    def __init__(self, pwm_pin=19, min_angle=-20, max_angle=20, speed=90):
+    def __init__(self, pwm_pin=19, min_angle=-20, max_angle=19, speed=90):
         self.pwm_pin = pwm_pin
         self.min_angle = min_angle
         self.max_angle = max_angle
