@@ -6,11 +6,16 @@ from geometry_msgs.msg import Twist
 from rclpy.action import ActionClient
 from arm_control_interfaces.action import MoveArm
 from claw_control_interfaces.action import MoveClaw
+from sensor_msgs.msg import Image
+from cv_bridge import CvBridge, CvBridgeError
+import cv2
 import sys
 import threading
 import time
 import math
 import pygame
+import os
+import glob
 
 class HandleControlNode(Node):
     """
@@ -38,6 +43,15 @@ class HandleControlNode(Node):
         self.arm_action_client = ActionClient(self, MoveArm, 'move_arm')
         self.claw_action_client = ActionClient(self, MoveClaw, 'move_claw')
         
+        # 图像订阅器
+        self.cv_bridge = CvBridge()
+        self.latest_image = None
+        self.image_subscription = self.create_subscription(
+            Image,
+            'bottom_camera/image_rect',
+            self.image_callback,
+            10)
+        
         # 控制参数
         self.linear_speed = 1.0  # 线性速度 (m/s)
         self.angular_speed = 1.0  # 角速度 (rad/s)
@@ -56,6 +70,11 @@ class HandleControlNode(Node):
         # 按键状态
         self.button_states = {}
         self.hat_state = (0, 0)
+        
+        # 图像保存路径
+        self.image_save_dir = '/home/HwHiAiUser/ros/datasets/rawimg/'
+        # 确保保存目录存在
+        os.makedirs(self.image_save_dir, exist_ok=True)
         
         # 欢迎信息
         self.print_usage()
@@ -91,9 +110,19 @@ class HandleControlNode(Node):
 爪子控制:
   按钮 7 : 抓取
   按钮 9 : 释放
+
+图像控制:
+  按钮 6 : 拍摄并保存当前图像
 ---------------------------
         """
         print(usage_msg)
+
+    def image_callback(self, msg):
+        """图像话题回调函数"""
+        try:
+            self.latest_image = self.cv_bridge.imgmsg_to_cv2(msg, "bgr8")
+        except CvBridgeError as e:
+            self.get_logger().error(f'图像转换错误: {str(e)}')
     
     def timer_callback(self):
         """定时器回调，保持节点运行"""
@@ -109,6 +138,9 @@ class HandleControlNode(Node):
                         self.button_states[event.button] = True
                         self.handle_button_press(event.button)
                     elif event.type == pygame.JOYBUTTONUP:
+                        # 检测按钮6释放事件
+                        if event.button == 6 and self.button_states.get(event.button, False):
+                            self.capture_and_save_image()
                         self.button_states[event.button] = False
                     elif event.type == pygame.JOYHATMOTION:
                         self.hat_state = event.value
@@ -283,6 +315,49 @@ class HandleControlNode(Node):
         """处理爪子动作反馈"""
         feedback = feedback_msg.feedback
         self.get_logger().debug(f'收到爪子反馈: {feedback.status}')
+    
+    def capture_and_save_image(self):
+        """捕获并保存当前图像"""
+        if self.latest_image is None:
+            self.get_logger().warn('没有可用的图像')
+            return
+        
+        # 获取下一个可用的文件序号
+        next_index = self.get_next_file_index()
+        filename = f"{next_index:04d}.jpg"
+        filepath = os.path.join(self.image_save_dir, filename)
+        
+        try:
+            # 保存图像
+            cv2.imwrite(filepath, self.latest_image)
+            self.get_logger().info(f'图像已保存: {filepath}')
+        except Exception as e:
+            self.get_logger().error(f'保存图像错误: {str(e)}')
+    
+    def get_next_file_index(self):
+        """获取下一个可用的文件序号"""
+        # 获取现有的jpg文件
+        existing_files = glob.glob(os.path.join(self.image_save_dir, '*.jpg'))
+        
+        if not existing_files:
+            return 1
+        
+        # 提取现有文件的序号
+        indices = []
+        for file in existing_files:
+            basename = os.path.basename(file)
+            try:
+                index = int(os.path.splitext(basename)[0])
+                indices.append(index)
+            except ValueError:
+                # 如果文件名不是纯数字，忽略
+                continue
+        
+        if indices:
+            # 返回最大序号 + 1
+            return max(indices) + 1
+        else:
+            return 1
     
     def __del__(self):
         """析构函数，确保资源释放"""
