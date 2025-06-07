@@ -139,7 +139,7 @@ class HandleControlNode(Node):
                         self.handle_button_press(event.button)
                     elif event.type == pygame.JOYBUTTONUP:
                         # 检测按钮6释放事件
-                        if event.button == 6 and self.button_states.get(event.button, False):
+                        if event.button == 9 and self.button_states.get(event.button, False):
                             self.capture_and_save_image()
                         self.button_states[event.button] = False
                     elif event.type == pygame.JOYHATMOTION:
@@ -164,7 +164,7 @@ class HandleControlNode(Node):
         if button == 7:  # 抓取
             self.claw_state = 0
             self.send_claw_goal(self.claw_state)
-        elif button == 9:  # 释放
+        elif button == 6:  # 释放
             self.claw_state = 1
             self.send_claw_goal(self.claw_state)
         elif button == 0 or button == 4:  # 机械臂控制
