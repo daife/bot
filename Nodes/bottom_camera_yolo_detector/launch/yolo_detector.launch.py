@@ -8,8 +8,8 @@ from launch.actions import DeclareLaunchArgument
 def generate_launch_description():
     pkg_dir = get_package_share_directory('bottom_camera_yolo_detector')
     
-    # 声明启动参数，允许命令行覆盖
-    model_file = LaunchConfiguration('model_file', default='yolo11s.om')
+    # 声明启动参数，只保留模型和显示相关参数
+    model_file = LaunchConfiguration('model_file', default='yolo11s2.om')
     model_dir = LaunchConfiguration('model_dir', default=os.path.join(pkg_dir, 'models'))
     display_image = LaunchConfiguration('display_image', default='false')
     
@@ -17,7 +17,7 @@ def generate_launch_description():
         # 声明可以从命令行传入的参数
         DeclareLaunchArgument(
             'model_file',
-            default_value='yolo11s.om',
+            default_value='yolo11s2.om',
             description='YOLO模型文件名'
         ),
         
@@ -40,10 +40,8 @@ def generate_launch_description():
             output='screen',
             parameters=[{
                 'model_path': [model_dir, '/', model_file],  # 使用完全参数化的模型路径
-                'device_id': 2,
-                'input_size': 640,
-                'num_classes': 4,
                 'display_image': display_image,
+                # 移除所有ACL相关参数，使用硬编码值
             }]
         )
     ])

@@ -41,7 +41,7 @@ class AclLiteResource:
         ret = acl.rt.set_device(self.device_id)
         self.context, ret = acl.rt.create_context(self.device_id)
         self.stream, ret = acl.rt.create_stream()
-        return SUCCESS
+        return const.SUCCESS
 
     def __del__(self):
         resource_list.destroy()
@@ -66,9 +66,10 @@ class YOLO11s:
 
     def init(self):
         """初始化模型和图像处理器"""
-        self.dvpp = AclLiteImageProc()
+        # 不再创建AclLiteImageProc，因为它会尝试创建新的ACL流
+        # self.dvpp = AclLiteImageProc()
         self.model = AclLiteModel(self.model_path)
-        return SUCCESS
+        return const.SUCCESS
 
     def preprocess(self, frame):
         """图像预处理"""
@@ -101,44 +102,50 @@ class YOLO11s:
 
     def postprocess(self, pred, orig_shape, pad_info):
         """后处理"""
-        CONF_THRESH = 0.25
-        IOU_THRESH = 0.5
+        CONF_THRESH = 0.1
+        IOU_THRESH = 0.9
         
-        # 获取预测数组 - 预期格式 [1, 4+num_classes, 8400]
+        # 打印实际 shape 用于调试
+        print("pred[0] shape:", pred[0].shape)
         arr = pred[0]
         
-        # 处理正确的输出格式: [1, 4+num_classes, 8400]
-        if arr.ndim == 3:
-            if arr.shape[0] == 1:  # 存在batch维度
-                arr = arr.squeeze(0)  # 形状变为 [4+num_classes, 8400]
-            
-            # 确保格式为 [8400, 4+num_classes]
-            if arr.shape[0] == 4 + self.num_classes and arr.shape[1] == 8400:
-                arr = arr.transpose(1, 0)  # 转置为 [8400, 4+num_classes]
+        # 兼容不同的输出格式，参考工作代码的处理方式
+        if arr.ndim == 3 and arr.shape[0] == 1:
+            arr = arr.squeeze(0)
         
-        # 验证形状 - 第二维应为 4+num_classes
-        expected_dim = 4 + self.num_classes
-        if arr.shape[1] != expected_dim:
-            raise ValueError(f"Unexpected pred shape: {arr.shape}, expected second dim to be {expected_dim}")
+        # 适应新模型的输出形状
+        if arr.shape[0] == 8 and arr.shape[1] == 8400:
+            arr = arr.transpose(1, 0)  # (8400, 8)
+        elif arr.shape[0] == 8400 and arr.shape[1] == 8:
+            pass  # already correct
+        elif arr.shape[0] == 84 and arr.shape[1] == 8400:
+            arr = arr.transpose(1, 0)  # (8400, 84)
+        elif arr.shape[0] == 8400 and arr.shape[1] == 84:
+            pass  # already correct
+        elif arr.shape[0] == 4 + self.num_classes and arr.shape[1] == 8400:
+            arr = arr.transpose(1, 0)  # 转置为 [8400, 4+num_classes]
+        elif arr.shape[0] == 8400 and arr.shape[1] == 4 + self.num_classes:
+            pass  # already correct
+        else:
+            raise ValueError(f"Unexpected pred shape: {arr.shape}")
         
-        # 获取类别ID和置信度
-        boxes = arr[:, :4]  # 前4个值为边界框坐标
-        scores = arr[:, 4:]  # 剩余值为类别分数
-        
-        class_ids = np.argmax(scores, axis=1)
-        max_scores = np.max(scores, axis=1)
-        
-        # 应用置信度阈值
-        conf_mask = max_scores > CONF_THRESH
+        conf_mask = arr[:, 4] > CONF_THRESH
         detections = []
         
         for i in range(arr.shape[0]):
             if not conf_mask[i]:
                 continue
                 
-            cx, cy, w, h = boxes[i]
-            class_id = class_ids[i]
-            conf = max_scores[i]
+            cx, cy, w, h = arr[i, :4]
+            conf = arr[i, 4]
+            
+            # 根据实际输出维度决定类别数
+            if arr.shape[1] > 5:
+                cls_scores = arr[i, 5:]
+                class_id = np.argmax(cls_scores)
+            else:
+                # 如果只有5列，可能没有类别信息或只有一个类别
+                class_id = 0
             
             # 正确还原到原图坐标
             cx = (cx - pad_info[1]) / pad_info[2]
@@ -179,19 +186,22 @@ class YoloDetectorNode(Node):
     def __init__(self):
         super().__init__('yolo_detector_node')
         
-        # 声明参数
+        # 声明参数 - 只保留模型路径和显示参数
         self.declare_parameter('model_path', 'models/yolo11s.om')
-        self.declare_parameter('device_id', 0)
-        self.declare_parameter('input_size', 640)
-        self.declare_parameter('num_classes', 8)  # 添加可识别物体个数参数
         self.declare_parameter('display_image', False)  # 控制是否显示检测画面的参数
+        
+        # 硬编码ACL相关参数
+        self.device_id = 0  # 硬编码设备ID
+        self.input_size = 640  # 硬编码输入尺寸
+        self.num_classes = 4  # 硬编码类别数
         
         # 获取参数
         model_name = self.get_parameter('model_path').value
-        self.device_id = self.get_parameter('device_id').value
-        self.input_size = self.get_parameter('input_size').value
-        self.num_classes = self.get_parameter('num_classes').value  # 获取类别数
         self.display_image = self.get_parameter('display_image').value  # 获取显示设置
+        
+        self.get_logger().info(f'使用硬编码设备ID: {self.device_id}')
+        self.get_logger().info(f'使用硬编码输入尺寸: {self.input_size}')
+        self.get_logger().info(f'使用硬编码类别数: {self.num_classes}')
         
         # 获取模型的完整路径
         pkg_dir = get_package_share_directory('bottom_camera_yolo_detector')
@@ -229,12 +239,12 @@ class YoloDetectorNode(Node):
     def initialize_model(self):
         """初始化ACL资源和YOLO模型"""
         try:
-            # 初始化ACL资源
-            self.get_logger().info('开始初始化ACL资源...')
+            # 初始化ACL资源 - 使用硬编码设备ID
+            self.get_logger().info(f'开始初始化ACL资源，硬编码设备ID: {self.device_id}...')
             self.acl_resource = AclLiteResource(self.device_id)
             result = self.acl_resource.init()
-            if result != SUCCESS:
-                self.get_logger().error('初始化ACL资源失败')
+            if result != const.SUCCESS:
+                self.get_logger().error(f'初始化ACL资源失败，设备ID: {self.device_id}')
                 return
             
             self.get_logger().info('ACL资源初始化成功')
@@ -244,14 +254,29 @@ class YoloDetectorNode(Node):
                 self.get_logger().error(f'模型文件不存在: {self.model_path}')
                 return
             
-            self.get_logger().info(f'找到模型文件: {self.model_path}')
+            # 检查模型文件大小
+            model_size = os.path.getsize(self.model_path)
+            self.get_logger().info(f'找到模型文件: {self.model_path}, 大小: {model_size} bytes')
             
-            # 初始化YOLO模型
+            if model_size == 0:
+                self.get_logger().error('模型文件为空')
+                return
+            
+            # 初始化YOLO模型 - 使用硬编码参数
             self.get_logger().info('开始初始化YOLO模型...')
-            self.yolo_model = YOLO11s(self.model_path, self.input_size, correct_distortion=False, num_classes=self.num_classes)
-            result = self.yolo_model.init()
-            if result != SUCCESS:
-                self.get_logger().error('初始化YOLO模型失败')
+            try:
+                self.yolo_model = YOLO11s(self.model_path, self.input_size, correct_distortion=False, num_classes=self.num_classes)
+                result = self.yolo_model.init()
+                if result != const.SUCCESS:
+                    self.get_logger().error('初始化YOLO模型失败')
+                    return
+            except Exception as model_error:
+                self.get_logger().error(f'YOLO模型加载失败: {model_error}')
+                # 尝试列出模型目录内容
+                model_dir = os.path.dirname(self.model_path)
+                if os.path.exists(model_dir):
+                    files = os.listdir(model_dir)
+                    self.get_logger().info(f'模型目录 {model_dir} 中的文件: {files}')
                 return
             
             self.initialized = True
