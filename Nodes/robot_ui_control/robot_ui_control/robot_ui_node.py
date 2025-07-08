@@ -16,6 +16,7 @@ from std_msgs.msg import String
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import OccupancyGrid, Odometry
+from std_msgs.msg import Bool, Float32, Int32
 
 # 尝试导入CV Bridge，如果失败则给出提示
 try:
@@ -195,6 +196,112 @@ class RobotUINode(Node):
             self.get_logger().error(f'Error killing node {node_name}: {e}')
             return False
 
+    def subscribe_to_other_topic(self, topic_name: str, msg_type: str):
+        """订阅其他类型话题"""
+        # 先清理现有的订阅器，避免重复订阅
+        self.cleanup_subscriptions()
+        
+        try:
+            # 根据消息类型创建相应的订阅器
+            if 'String' in msg_type:
+                self.other_subscriptions[topic_name] = self.create_subscription(
+                    String,
+                    topic_name,
+                    lambda msg, topic=topic_name: self.other_topic_callback(msg, topic, 'String'),
+                    10
+                )
+            elif 'Bool' in msg_type:
+                self.other_subscriptions[topic_name] = self.create_subscription(
+                    Bool,
+                    topic_name,
+                    lambda msg, topic=topic_name: self.other_topic_callback(msg, topic, 'Bool'),
+                    10
+                )
+            elif 'Float32' in msg_type:
+                self.other_subscriptions[topic_name] = self.create_subscription(
+                    Float32,
+                    topic_name,
+                    lambda msg, topic=topic_name: self.other_topic_callback(msg, topic, 'Float32'),
+                    10
+                )
+            elif 'Int32' in msg_type:
+                self.other_subscriptions[topic_name] = self.create_subscription(
+                    Int32,
+                    topic_name,
+                    lambda msg, topic=topic_name: self.other_topic_callback(msg, topic, 'Int32'),
+                    10
+                )
+            elif 'Twist' in msg_type:
+                self.other_subscriptions[topic_name] = self.create_subscription(
+                    Twist,
+                    topic_name,
+                    lambda msg, topic=topic_name: self.other_topic_callback(msg, topic, 'Twist'),
+                    10
+                )
+            elif 'Odometry' in msg_type:
+                self.other_subscriptions[topic_name] = self.create_subscription(
+                    Odometry,
+                    topic_name,
+                    lambda msg, topic=topic_name: self.other_topic_callback(msg, topic, 'Odometry'),
+                    10
+                )
+            else:
+                # 对于不支持的类型，直接使用ros2 topic echo
+                self.get_logger().info(f'Using ros2 topic echo for unsupported type: {msg_type}')
+                return False
+                
+            self.get_logger().info(f'Subscribed to topic: {topic_name} ({msg_type})')
+            return True
+            
+        except Exception as e:
+            self.get_logger().error(f'Error subscribing to topic {topic_name}: {e}')
+            return False
+
+    def cleanup_subscriptions(self):
+        """清理所有其他话题订阅器"""
+        for topic_name, subscription in list(self.other_subscriptions.items()):
+            try:
+                subscription.destroy()
+            except Exception as e:
+                self.get_logger().warning(f'Error destroying subscription for {topic_name}: {e}')
+        self.other_subscriptions.clear()
+
+    def other_topic_callback(self, msg, topic_name, msg_type):
+        """其他话题回调"""
+        try:
+            if msg_type == 'String':
+                data = msg.data
+            elif msg_type == 'Bool':
+                data = str(msg.data)
+            elif msg_type == 'Float32':
+                data = f"{msg.data:.6f}"
+            elif msg_type == 'Int32':
+                data = str(msg.data)
+            elif msg_type == 'Twist':
+                data = f"Linear: x={msg.linear.x:.3f}, y={msg.linear.y:.3f}, z={msg.linear.z:.3f}\n"
+                data += f"Angular: x={msg.angular.x:.3f}, y={msg.angular.y:.3f}, z={msg.angular.z:.3f}"
+            elif msg_type == 'Odometry':
+                pos = msg.pose.pose.position
+                ori = msg.pose.pose.orientation
+                data = f"Position: x={pos.x:.3f}, y={pos.y:.3f}, z={pos.z:.3f}\n"
+                data += f"Orientation: x={ori.x:.3f}, y={ori.y:.3f}, z={ori.z:.3f}, w={ori.w:.3f}"
+            else:
+                data = str(msg)
+                
+            # 存储最新数据，只保留最新的10条记录
+            if topic_name not in self.topic_data:
+                self.topic_data[topic_name] = []
+            
+            timestamp = time.strftime("%H:%M:%S", time.localtime())
+            self.topic_data[topic_name].append(f"[{timestamp}] {data}")
+            
+            # 保持最新的10条记录
+            if len(self.topic_data[topic_name]) > 10:
+                self.topic_data[topic_name] = self.topic_data[topic_name][-10:]
+                
+        except Exception as e:
+            self.get_logger().error(f'Error processing topic data for {topic_name}: {e}')
+
 
 class ROSWorker(QObject):
     """ROS工作线程"""
@@ -239,6 +346,10 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.ros_node = ros_node
         self.image_labels = {}  # 存储图像显示标签
+        self.topic_text_displays = {}  # 存储话题文本显示
+        self.current_topic_display = None  # 当前显示的话题
+        self.topic_update_timer = None  # 话题更新定时器
+        self.is_updating_selectors = False  # 防止递归更新选择器
         
         # 设置窗口
         self.setWindowTitle('Robot Control UI')
@@ -263,31 +374,37 @@ class MainWindow(QMainWindow):
         # 启动ROS工作线程
         self.setup_ros_worker()
         
-        # 设置样式
+        # 设置深色主题样式
         self.setStyleSheet("""
             QMainWindow {
-                background-color: #2b2b2b;
-                color: white;
+                background-color: #2d2d2d;
+                color: #ffffff;
             }
             QTabWidget::pane {
                 border: 1px solid #5a5a5a;
-                background-color: #3b3b3b;
+                background-color: #3d3d3d;
             }
             QTabBar::tab {
                 background-color: #4a4a4a;
-                color: white;
+                color: #ffffff;
                 padding: 8px 16px;
                 margin-right: 2px;
+                border-top-left-radius: 4px;
+                border-top-right-radius: 4px;
             }
             QTabBar::tab:selected {
                 background-color: #0078d4;
             }
+            QTabBar::tab:hover {
+                background-color: #5a5a5a;
+            }
             QPushButton {
                 background-color: #0078d4;
-                color: white;
+                color: #ffffff;
                 border: none;
                 padding: 8px 16px;
                 border-radius: 4px;
+                font-weight: bold;
             }
             QPushButton:hover {
                 background-color: #106ebe;
@@ -295,24 +412,75 @@ class MainWindow(QMainWindow):
             QPushButton:pressed {
                 background-color: #005a9e;
             }
+            QPushButton:disabled {
+                background-color: #666666;
+                color: #cccccc;
+            }
             QTreeWidget {
-                background-color: #2b2b2b;
-                color: white;
+                background-color: #2d2d2d;
+                color: #ffffff;
                 border: 1px solid #5a5a5a;
+                alternate-background-color: #3d3d3d;
+            }
+            QTreeWidget::item {
+                padding: 4px;
+                border-bottom: 1px solid #404040;
+            }
+            QTreeWidget::item:selected {
+                background-color: #0078d4;
+            }
+            QTreeWidget::item:hover {
+                background-color: #4a4a4a;
             }
             QLabel {
-                color: white;
+                color: #ffffff;
             }
             QTextEdit {
-                background-color: #2b2b2b;
-                color: white;
+                background-color: #2d2d2d;
+                color: #ffffff;
                 border: 1px solid #5a5a5a;
+                border-radius: 4px;
+                padding: 4px;
             }
             QComboBox {
                 background-color: #4a4a4a;
-                color: white;
+                color: #ffffff;
                 border: 1px solid #5a5a5a;
-                padding: 4px;
+                padding: 4px 8px;
+                border-radius: 4px;
+            }
+            QComboBox::drop-down {
+                border: none;
+            }
+            QComboBox::down-arrow {
+                border: 2px solid #ffffff;
+                border-top-color: transparent;
+                border-left-color: transparent;
+                border-right-color: transparent;
+                width: 0px;
+                height: 0px;
+            }
+            QComboBox QAbstractItemView {
+                background-color: #4a4a4a;
+                color: #ffffff;
+                selection-background-color: #0078d4;
+            }
+            QGroupBox {
+                color: #ffffff;
+                border: 2px solid #5a5a5a;
+                border-radius: 4px;
+                margin-top: 10px;
+                font-weight: bold;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px 0 5px;
+            }
+            QScrollArea {
+                background-color: #2d2d2d;
+                border: 1px solid #5a5a5a;
+                border-radius: 4px;
             }
         """)
 
@@ -376,9 +544,9 @@ class MainWindow(QMainWindow):
         
         layout.addLayout(btn_layout)
         
-        # 话题树
+        # 话题树 - 移除了Publishers和Subscribers列
         self.topic_tree = QTreeWidget()
-        self.topic_tree.setHeaderLabels(["Topic Name", "Message Type", "Publishers", "Subscribers"])
+        self.topic_tree.setHeaderLabels(["Topic Name", "Message Type"])
         layout.addWidget(self.topic_tree)
         
         self.tab_widget.addTab(tab, "Topic Viewer")
@@ -576,7 +744,8 @@ class MainWindow(QMainWindow):
         self.topic_tree.clear()
         
         for topic_name, msg_type in topics.items():
-            item = QTreeWidgetItem([topic_name, msg_type, "N/A", "N/A"])
+            # 只显示话题名称和消息类型
+            item = QTreeWidgetItem([topic_name, msg_type])
             self.topic_tree.addTopLevelItem(item)
             
         # 更新内容选择器
@@ -584,23 +753,45 @@ class MainWindow(QMainWindow):
 
     def update_content_selectors(self, topics):
         """更新内容选择器选项"""
-        current_type = self.content_type_combo.currentText()
-        
-        self.content_selector.clear()
-        
-        if current_type == "Image Topics":
-            image_topics = [topic for topic, msg_type in topics.items() 
-                           if 'Image' in msg_type]
-            self.content_selector.addItems(image_topics)
+        if self.is_updating_selectors:
+            return
             
-            # 订阅新的图像话题
-            for topic in image_topics:
-                self.ros_node.subscribe_to_image_topic(topic)
+        self.is_updating_selectors = True
+        
+        try:
+            current_type = self.content_type_combo.currentText()
+            current_selection = self.content_selector.currentText()
+            
+            # 暂时断开信号连接
+            self.content_selector.currentTextChanged.disconnect()
+            
+            self.content_selector.clear()
+            
+            if current_type == "Image Topics":
+                image_topics = [topic for topic, msg_type in topics.items() 
+                               if 'Image' in msg_type]
+                self.content_selector.addItems(image_topics)
                 
-        elif current_type == "Other Topics":
-            other_topics = [topic for topic, msg_type in topics.items() 
-                           if 'Image' not in msg_type]
-            self.content_selector.addItems(other_topics)
+                # 订阅新的图像话题
+                for topic in image_topics:
+                    self.ros_node.subscribe_to_image_topic(topic)
+                    
+            elif current_type == "Other Topics":
+                other_topics = [topic for topic, msg_type in topics.items() 
+                               if 'Image' not in msg_type]
+                self.content_selector.addItems(other_topics)
+                
+                # 尝试恢复之前的选择
+                if current_selection in other_topics:
+                    index = self.content_selector.findText(current_selection)
+                    if index >= 0:
+                        self.content_selector.setCurrentIndex(index)
+            
+            # 重新连接信号
+            self.content_selector.currentTextChanged.connect(self.on_content_selected)
+            
+        finally:
+            self.is_updating_selectors = False
 
     def update_image_display(self, topic_name, image):
         """更新图像显示"""
@@ -660,40 +851,223 @@ class MainWindow(QMainWindow):
         except Exception as e:
             QMessageBox.warning(self, "Error", f"Failed to start rqt_graph: {e}")
 
+
     def on_content_type_changed(self, content_type):
         """内容类型改变时的处理"""
+        if self.is_updating_selectors:
+            return
+            
+        # 停止定时器
+        if self.topic_update_timer:
+            self.topic_update_timer.stop()
+            self.topic_update_timer = None
+        
+        # 重置当前显示
+        self.current_topic_display = None
+        
+        # 清理所有订阅
+        self.ros_node.cleanup_subscriptions()
+        
+        # 暂时断开信号连接
+        self.content_selector.currentTextChanged.disconnect()
+        
+        # 清空选择器
         self.content_selector.clear()
         
         if content_type == "URDF Viewer":
             self.content_selector.addItems(["Robot URDF"])
         elif content_type == "Navigation Viewer":
             self.content_selector.addItems(["Costmap", "Path", "Robot Pose"])
+        
+        # 重新连接信号
+        self.content_selector.currentTextChanged.connect(self.on_content_selected)
 
     def on_content_selected(self, selection):
         """内容选择改变时的处理"""
+        if self.is_updating_selectors or not selection:
+            return
+            
         content_type = self.content_type_combo.currentText()
+        
+        # 停止之前的定时器
+        if self.topic_update_timer:
+            self.topic_update_timer.stop()
+            self.topic_update_timer = None
+        
+        # 重置当前显示的话题
+        self.current_topic_display = None
         
         if content_type == "URDF Viewer" and selection == "Robot URDF":
             self.show_urdf_viewer()
         elif content_type == "Navigation Viewer":
             self.show_navigation_viewer(selection)
+        elif content_type == "Other Topics" and selection:
+            self.show_topic_content(selection)
+
+    def show_topic_content(self, topic_name):
+        """显示话题内容"""
+        try:
+            # 获取话题的消息类型
+            topics = self.ros_node.get_topic_list()
+            if topic_name not in topics:
+                error_label = QLabel(f"Topic {topic_name} not found")
+                error_label.setAlignment(Qt.AlignCenter)
+                error_label.setStyleSheet("color: #ff6b6b; font-size: 14px; padding: 20px;")
+                self.content_display.setWidget(error_label)
+                return
+            
+            msg_type = topics[topic_name]
+            
+            # 清理之前的话题数据
+            if topic_name in self.ros_node.topic_data:
+                del self.ros_node.topic_data[topic_name]
+            
+            # 尝试订阅话题
+            success = self.ros_node.subscribe_to_other_topic(topic_name, msg_type)
+            
+            if success:
+                # 创建新的文本显示区域
+                text_widget = QTextEdit()
+                text_widget.setReadOnly(True)
+                text_widget.setStyleSheet("""
+                    QTextEdit {
+                        background-color: #1e1e1e;
+                        color: #ffffff;
+                        border: 1px solid #5a5a5a;
+                        border-radius: 4px;
+                        padding: 8px;
+                        font-family: 'Courier New', monospace;
+                        font-size: 12px;
+                    }
+                """)
+                
+                # 清理旧的widget
+                if topic_name in self.topic_text_displays:
+                    old_widget = self.topic_text_displays[topic_name]
+                    if old_widget:
+                        old_widget.hide()
+                        old_widget.deleteLater()
+                
+                self.topic_text_displays[topic_name] = text_widget
+                
+                # 设置当前显示的话题
+                self.current_topic_display = topic_name
+                
+                # 先设置widget，然后再启动定时器
+                self.content_display.setWidget(text_widget)
+                
+                # 创建新的定时器
+                self.topic_update_timer = QTimer()
+                self.topic_update_timer.timeout.connect(self.update_topic_content_display)
+                self.topic_update_timer.start(1000)  # 每1秒更新一次
+                
+                # 显示初始提示信息
+                text_widget.append(f"Waiting for data from topic: {topic_name} (type: {msg_type})")
+                
+            else:
+                # 如果订阅失败，使用ros2 topic echo
+                self.show_topic_with_echo(topic_name)
+                
+        except Exception as e:
+            error_label = QLabel(f"Error showing topic content: {e}")
+            error_label.setAlignment(Qt.AlignCenter)
+            error_label.setStyleSheet("color: #ff6b6b; font-size: 14px; padding: 20px;")
+            self.content_display.setWidget(error_label)
+
+    def show_topic_with_echo(self, topic_name):
+        """使用ros2 topic echo显示话题内容"""
+        try:
+            # 启动ros2 topic echo在新终端
+            subprocess.Popen(['gnome-terminal', '--', 'ros2', 'topic', 'echo', topic_name])
+            
+            info_label = QLabel(f"Topic echo launched for: {topic_name}\nCheck the terminal window to view the topic data")
+            info_label.setAlignment(Qt.AlignCenter)
+            info_label.setWordWrap(True)
+            info_label.setStyleSheet("font-size: 14px; padding: 20px; color: #ffffff;")
+            self.content_display.setWidget(info_label)
+            
+        except Exception as e:
+            error_label = QLabel(f"Error launching topic echo: {e}")
+            error_label.setAlignment(Qt.AlignCenter)
+            error_label.setStyleSheet("color: #ff6b6b; font-size: 14px; padding: 20px;")
+            self.content_display.setWidget(error_label)
+
+    def update_topic_content_display(self):
+        """更新话题内容显示"""
+        try:
+            if (self.current_topic_display and 
+                self.current_topic_display in self.topic_text_displays and
+                self.current_topic_display in self.ros_node.topic_data):
+                
+                topic_name = self.current_topic_display
+                text_widget = self.topic_text_displays[topic_name]
+                
+                # 检查widget是否仍然有效
+                if text_widget and hasattr(text_widget, 'isVisible') and not text_widget.isHidden():
+                    # 获取新数据
+                    topic_data = self.ros_node.topic_data[topic_name]
+                    
+                    if topic_data:
+                        # 清空并重新填充内容
+                        text_widget.clear()
+                        text_widget.append(f"Topic: {topic_name}\n" + "="*50)
+                        for data_line in topic_data:
+                            text_widget.append(data_line)
+                        
+                        # 滚动到底部
+                        cursor = text_widget.textCursor()
+                        cursor.movePosition(cursor.End)
+                        text_widget.setTextCursor(cursor)
+                        
+        except RuntimeError as e:
+            # QTextEdit被删除的情况
+            if "wrapped C/C++ object" in str(e):
+                # 停止定时器并清理
+                if self.topic_update_timer:
+                    self.topic_update_timer.stop()
+                    self.topic_update_timer = None
+                if self.current_topic_display in self.topic_text_displays:
+                    del self.topic_text_displays[self.current_topic_display]
+        except Exception as e:
+            # 如果出现其他错误，停止定时器
+            if self.topic_update_timer:
+                self.topic_update_timer.stop()
+                self.topic_update_timer = None
+            print(f'Error updating topic display: {e}')
 
     def show_urdf_viewer(self):
         """显示URDF查看器"""
         try:
-            # 启动RViz显示URDF
-            subprocess.Popen(['ros2', 'launch', 'sam_bot_description', 'display.launch.py'])
+            # 获取sam_bot_description包的路径
+            pkg_share_result = subprocess.run([
+                'ros2', 'pkg', 'prefix', 'sam_bot_description'
+            ], capture_output=True, text=True)
             
-            info_label = QLabel("URDF Viewer launched in RViz\nCheck the RViz window to view the robot model")
+            if pkg_share_result.returncode == 0:
+                pkg_path = pkg_share_result.stdout.strip()
+                rviz_config_path = os.path.join(pkg_path, 'share', 'sam_bot_description', 'rviz', 'urdf_config.rviz')
+                
+                # 检查配置文件是否存在
+                if os.path.exists(rviz_config_path):
+                    # 启动RViz并加载URDF配置
+                    subprocess.Popen(['rviz2', '-d', rviz_config_path])
+                else:
+                    # 如果配置文件不存在，直接启动RViz
+                    subprocess.Popen(['rviz2'])
+            else:
+                # 如果找不到包，直接启动RViz
+                subprocess.Popen(['rviz2'])
+            
+            info_label = QLabel("RViz URDF Viewer launched\nThe robot model should be visible if sam_bot_description is running\nAdd 'RobotModel' display if not visible")
             info_label.setAlignment(Qt.AlignCenter)
             info_label.setWordWrap(True)
-            info_label.setStyleSheet("font-size: 14px; padding: 20px;")
+            info_label.setStyleSheet("font-size: 14px; padding: 20px; color: #ffffff;")
             self.content_display.setWidget(info_label)
             
         except Exception as e:
             error_label = QLabel(f"Error launching URDF viewer: {e}")
             error_label.setAlignment(Qt.AlignCenter)
-            error_label.setStyleSheet("color: red; font-size: 14px; padding: 20px;")
+            error_label.setStyleSheet("color: #ff6b6b; font-size: 14px; padding: 20px;")
             self.content_display.setWidget(error_label)
 
     def show_navigation_viewer(self, viewer_type):
@@ -701,20 +1075,27 @@ class MainWindow(QMainWindow):
         try:
             # 根据类型启动不同的查看器
             if viewer_type == "Costmap":
-                subprocess.Popen(['rqt_plot', '/local_costmap/costmap'])
+                # 启动RViz显示导航相关信息
+                nav2_config = '/opt/ros/humble/share/nav2_bringup/rviz/nav2_default_view.rviz'
+                if os.path.exists(nav2_config):
+                    subprocess.Popen(['rviz2', '-d', nav2_config])
+                else:
+                    subprocess.Popen(['rviz2'])
             elif viewer_type == "Robot Pose":
                 subprocess.Popen(['rqt_plot', '/odom/pose/pose/position/x:y'])
+            elif viewer_type == "Path":
+                subprocess.Popen(['rqt_plot', '/plan'])
                 
             info_label = QLabel(f"{viewer_type} viewer launched\nCheck the new window to view the data")
             info_label.setAlignment(Qt.AlignCenter)
             info_label.setWordWrap(True)
-            info_label.setStyleSheet("font-size: 14px; padding: 20px;")
+            info_label.setStyleSheet("font-size: 14px; padding: 20px; color: #ffffff;")
             self.content_display.setWidget(info_label)
             
         except Exception as e:
             error_label = QLabel(f"Error launching {viewer_type} viewer: {e}")
             error_label.setAlignment(Qt.AlignCenter)
-            error_label.setStyleSheet("color: red; font-size: 14px; padding: 20px;")
+            error_label.setStyleSheet("color: #ff6b6b; font-size: 14px; padding: 20px;")
             self.content_display.setWidget(error_label)
 
     def start_controller(self, controller_type):
@@ -757,6 +1138,25 @@ class MainWindow(QMainWindow):
 
     def closeEvent(self, event):
         """窗口关闭事件"""
+        # 停止定时器
+        if self.topic_update_timer:
+            self.topic_update_timer.stop()
+            self.topic_update_timer = None
+        
+        # 清理订阅器
+        self.ros_node.cleanup_subscriptions()
+        
+        # 安全清理文本显示widgets
+        for topic_name, widget in list(self.topic_text_displays.items()):
+            try:
+                if widget and hasattr(widget, 'deleteLater'):
+                    widget.hide()
+                    widget.deleteLater()
+            except RuntimeError:
+                # widget已经被删除
+                pass
+        self.topic_text_displays.clear()
+        
         # 停止工作线程
         if hasattr(self, 'worker'):
             self.worker.stop()

@@ -34,7 +34,7 @@ def generate_launch_description():
     )
 
     return launch.LaunchDescription([
-        launch.actions.DeclareLaunchArgument(name='gui', default_value='True',
+        launch.actions.DeclareLaunchArgument(name='gui', default_value='False',#改成默认不启动gui界面
                                             description='Flag to enable joint_state_publisher_gui'),
         launch.actions.DeclareLaunchArgument(name='model', default_value=default_model_path,
                                             description='Absolute path to robot urdf file'),
@@ -45,5 +45,6 @@ def generate_launch_description():
          #joint_state_publisher_gui_node,
         #注释掉，不然会冲突，导致角度变化后冲突抽搐
         robot_state_publisher_node,
-        rviz_node
+        #rviz_node
+        #并且注释掉rviz节点才能真的不可视化，UI界面会单独启动RViz
     ])
