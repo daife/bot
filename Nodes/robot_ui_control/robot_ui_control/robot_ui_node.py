@@ -245,9 +245,33 @@ class RobotUINode(Node):
                     lambda msg, topic=topic_name: self.other_topic_callback(msg, topic, 'Odometry'),
                     10
                 )
+            elif 'TFMessage' in msg_type:
+                try:
+                    from tf2_msgs.msg import TFMessage
+                    self.other_subscriptions[topic_name] = self.create_subscription(
+                        TFMessage,
+                        topic_name,
+                        lambda msg, topic=topic_name: self.other_topic_callback(msg, topic, 'TFMessage'),
+                        10
+                    )
+                except ImportError:
+                    self.get_logger().info(f'tf2_msgs not available for {topic_name}, will use alternative display')
+                    return False
+            elif 'JointState' in msg_type:
+                try:
+                    from sensor_msgs.msg import JointState
+                    self.other_subscriptions[topic_name] = self.create_subscription(
+                        JointState,
+                        topic_name,
+                        lambda msg, topic=topic_name: self.other_topic_callback(msg, topic, 'JointState'),
+                        10
+                    )
+                except ImportError:
+                    self.get_logger().info(f'sensor_msgs not available for {topic_name}, will use alternative display')
+                    return False
             else:
-                # 对于不支持的类型，直接使用ros2 topic echo
-                self.get_logger().info(f'Using ros2 topic echo for unsupported type: {msg_type}')
+                # 对于不支持的类型，不输出错误信息
+                self.get_logger().info(f'Message type {msg_type} not directly supported, will use alternative display')
                 return False
                 
             self.get_logger().info(f'Subscribed to topic: {topic_name} ({msg_type})')
@@ -256,7 +280,6 @@ class RobotUINode(Node):
         except Exception as e:
             self.get_logger().error(f'Error subscribing to topic {topic_name}: {e}')
             return False
-
     def cleanup_subscriptions(self):
         """清理所有其他话题订阅器"""
         for topic_name, subscription in list(self.other_subscriptions.items()):
@@ -285,6 +308,27 @@ class RobotUINode(Node):
                 ori = msg.pose.pose.orientation
                 data = f"Position: x={pos.x:.3f}, y={pos.y:.3f}, z={pos.z:.3f}\n"
                 data += f"Orientation: x={ori.x:.3f}, y={ori.y:.3f}, z={ori.z:.3f}, w={ori.w:.3f}"
+            elif msg_type == 'TFMessage':
+                transforms_info = []
+                for transform in msg.transforms:
+                    frame_id = transform.header.frame_id
+                    child_frame_id = transform.child_frame_id
+                    translation = transform.transform.translation
+                    rotation = transform.transform.rotation
+                    transforms_info.append(
+                        f"{frame_id} -> {child_frame_id}: "
+                        f"pos({translation.x:.3f}, {translation.y:.3f}, {translation.z:.3f}) "
+                        f"rot({rotation.x:.3f}, {rotation.y:.3f}, {rotation.z:.3f}, {rotation.w:.3f})"
+                    )
+                data = "\n".join(transforms_info)
+            elif msg_type == 'JointState':
+                joint_info = []
+                for i, name in enumerate(msg.name):
+                    pos = msg.position[i] if i < len(msg.position) else 0.0
+                    vel = msg.velocity[i] if i < len(msg.velocity) else 0.0
+                    effort = msg.effort[i] if i < len(msg.effort) else 0.0
+                    joint_info.append(f"{name}: pos={pos:.3f}, vel={vel:.3f}, effort={effort:.3f}")
+                data = "\n".join(joint_info)
             else:
                 data = str(msg)
                 
@@ -975,19 +1019,88 @@ class MainWindow(QMainWindow):
             self.content_display.setWidget(error_label)
 
     def show_topic_with_echo(self, topic_name):
-        """使用ros2 topic echo显示话题内容"""
+        """使用备用方法显示话题内容"""
         try:
-            # 启动ros2 topic echo在新终端
-            subprocess.Popen(['gnome-terminal', '--', 'ros2', 'topic', 'echo', topic_name])
+            # 尝试不同的终端模拟器，优先使用xfce4-terminal
+            terminal_commands = [
+                ['xfce4-terminal', '--hold', '-e', f'ros2 topic echo {topic_name}'],
+                ['x-terminal-emulator', '-e', 'bash', '-c', f'ros2 topic echo {topic_name}; read -p "Press enter to close..."'],
+                ['xterm', '-hold', '-e', f'ros2 topic echo {topic_name}'],
+                ['konsole', '--hold', '-e', 'bash', '-c', f'ros2 topic echo {topic_name}'],
+                ['gnome-terminal', '--', 'bash', '-c', f'ros2 topic echo {topic_name}; read -p "Press enter to close..."']
+            ]
             
-            info_label = QLabel(f"Topic echo launched for: {topic_name}\nCheck the terminal window to view the topic data")
-            info_label.setAlignment(Qt.AlignCenter)
-            info_label.setWordWrap(True)
-            info_label.setStyleSheet("font-size: 14px; padding: 20px; color: #ffffff;")
-            self.content_display.setWidget(info_label)
+            terminal_launched = False
+            for cmd in terminal_commands:
+                try:
+                    subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    terminal_launched = True
+                    self.get_logger().info(f'Launched terminal with command: {" ".join(cmd[:2])}')
+                    break
+                except (FileNotFoundError, subprocess.SubprocessError, OSError) as e:
+                    self.get_logger().debug(f'Failed to launch {cmd[0]}: {e}')
+                    continue
+            
+            if terminal_launched:
+                info_label = QLabel(f"Topic echo launched for: {topic_name}\nCheck the terminal window to view the topic data")
+                info_label.setAlignment(Qt.AlignCenter)
+                info_label.setWordWrap(True)
+                info_label.setStyleSheet("font-size: 14px; padding: 20px; color: #ffffff;")
+                self.content_display.setWidget(info_label)
+            else:
+                # 如果无法启动终端，显示一个简单的信息页面
+                self.show_topic_info_page(topic_name)
+                
+        except Exception as e:
+            self.show_topic_info_page(topic_name, str(e))
+
+    def show_topic_info_page(self, topic_name, error_msg=None):
+        """显示话题信息页面（当无法启动终端时的备用方案）"""
+        try:
+            # 获取话题信息
+            result = subprocess.run(['ros2', 'topic', 'info', topic_name], 
+                                   capture_output=True, text=True, timeout=5)
+            
+            info_text = f"Topic: {topic_name}\n"
+            info_text += "=" * 50 + "\n\n"
+            
+            if error_msg:
+                info_text += f"Terminal launch error: {error_msg}\n\n"
+            
+            if result.returncode == 0:
+                info_text += "Topic Info:\n"
+                info_text += result.stdout
+            else:
+                info_text += "Could not get topic info\n"
+            
+            info_text += "\n" + "=" * 50 + "\n"
+            info_text += "Note: This topic type is not directly supported for real-time viewing.\n"
+            info_text += "To view real-time data, please use one of these commands in a terminal:\n\n"
+            info_text += f"ros2 topic echo {topic_name}\n"
+            info_text += f"ros2 topic hz {topic_name}\n"
+            info_text += f"ros2 topic bw {topic_name}\n\n"
+            info_text += "Available terminals: xfce4-terminal, xterm, konsole, gnome-terminal"
+            
+            # 创建文本显示widget
+            text_widget = QTextEdit()
+            text_widget.setReadOnly(True)
+            text_widget.setStyleSheet("""
+                QTextEdit {
+                    background-color: #1e1e1e;
+                    color: #ffffff;
+                    border: 1px solid #5a5a5a;
+                    border-radius: 4px;
+                    padding: 8px;
+                    font-family: 'Courier New', monospace;
+                    font-size: 12px;
+                }
+            """)
+            text_widget.setText(info_text)
+            
+            self.content_display.setWidget(text_widget)
             
         except Exception as e:
-            error_label = QLabel(f"Error launching topic echo: {e}")
+            error_label = QLabel(f"Error showing topic info: {e}\n\nTopic: {topic_name}")
             error_label.setAlignment(Qt.AlignCenter)
             error_label.setStyleSheet("color: #ff6b6b; font-size: 14px; padding: 20px;")
             self.content_display.setWidget(error_label)
@@ -1034,6 +1147,7 @@ class MainWindow(QMainWindow):
                 self.topic_update_timer.stop()
                 self.topic_update_timer = None
             print(f'Error updating topic display: {e}')
+
 
     def show_urdf_viewer(self):
         """显示URDF查看器"""
