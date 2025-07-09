@@ -170,22 +170,72 @@ class RobotUINode(Node):
         if self.active_controller and self.active_controller in self.controller_processes:
             try:
                 process = self.controller_processes[self.active_controller]
+                
+                # 首先尝试正常终止
                 process.terminate()
-                process.wait(timeout=5)
+                
+                # 等待进程结束，如果5秒内没有结束则强制杀死
+                try:
+                    process.wait(timeout=3)
+                    self.get_logger().info(f'Controller {self.active_controller} terminated gracefully')
+                except subprocess.TimeoutExpired:
+                    # 如果正常终止失败，强制杀死进程
+                    self.get_logger().warning(f'Controller {self.active_controller} did not terminate gracefully, forcing kill')
+                    process.kill()
+                    try:
+                        process.wait(timeout=2)
+                    except subprocess.TimeoutExpired:
+                        self.get_logger().error(f'Failed to kill controller {self.active_controller} process')
+                
+                # 额外使用pkill确保相关节点被完全终止
+                controller_node_names = {
+                    'handle': 'handle_control_node',
+                    'keyboard': 'keyboard_control_node'
+                }
+                
+                if self.active_controller in controller_node_names:
+                    node_name = controller_node_names[self.active_controller]
+                    try:
+                        # 使用pkill杀死相关进程
+                        subprocess.run(['pkill', '-f', node_name], timeout=3)
+                        self.get_logger().info(f'Killed {node_name} processes with pkill')
+                    except Exception as e:
+                        self.get_logger().warning(f'pkill failed for {node_name}: {e}')
+                
                 del self.controller_processes[self.active_controller]
                 self.get_logger().info(f'Stopped {self.active_controller} controller')
+                
             except Exception as e:
                 self.get_logger().error(f'Error stopping controller: {e}')
+                
+                # 即使出错也尝试清理
+                try:
+                    if self.active_controller in self.controller_processes:
+                        del self.controller_processes[self.active_controller]
+                except:
+                    pass
+                    
             finally:
                 self.active_controller = None
+        else:
+            self.get_logger().info('No active controller to stop')
 
     def kill_node(self, node_name: str):
         """终止指定节点"""
         try:
-            # 使用pkill终止节点进程
-            subprocess.run(['pkill', '-f', node_name], timeout=5)
-            self.get_logger().info(f'Killed node: {node_name}')
+            # 使用更强力的方式终止节点进程
+            # 首先尝试使用pkill -f 匹配完整命令行
+            result1 = subprocess.run(['pkill', '-f', node_name], timeout=5, capture_output=True)
+            
+            # 然后尝试使用pkill匹配进程名
+            result2 = subprocess.run(['pkill', node_name], timeout=5, capture_output=True)
+            
+            # 最后尝试使用killall
+            result3 = subprocess.run(['killall', node_name], timeout=5, capture_output=True)
+            
+            self.get_logger().info(f'Killed node: {node_name} (pkill -f: {result1.returncode}, pkill: {result2.returncode}, killall: {result3.returncode})')
             return True
+            
         except Exception as e:
             self.get_logger().error(f'Error killing node {node_name}: {e}')
             return False
@@ -893,9 +943,26 @@ class MainWindow(QMainWindow):
 
     def stop_controller(self):
         """停止当前控制器"""
-        self.ros_node.stop_current_controller()
-        self.controller_status_label.setText("No controller active")
-        self.controller_status_label.setStyleSheet("color: #888;")
+        if self.ros_node.active_controller:
+            # 显示确认对话框
+            reply = QMessageBox.question(self, 'Stop Controller', 
+                                        f'Are you sure you want to stop the {self.ros_node.active_controller} controller?',
+                                        QMessageBox.Yes | QMessageBox.No, 
+                                        QMessageBox.Yes)
+            
+            if reply == QMessageBox.Yes:
+                self.ros_node.stop_current_controller()
+                
+                # 等待一小段时间让进程完全终止
+                QTimer.singleShot(1000, lambda: self.refresh_nodes())  # 1秒后刷新节点列表
+                
+                self.controller_status_label.setText("No controller active")
+                self.controller_status_label.setStyleSheet("color: #888;")
+                
+                # 显示成功消息
+                QMessageBox.information(self, "Success", "Controller stopped successfully")
+        else:
+            QMessageBox.information(self, "Info", "No controller is currently active")
 
     def kill_node(self, node_name):
         """终止节点"""
