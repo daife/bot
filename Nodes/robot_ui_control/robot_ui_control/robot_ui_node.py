@@ -648,7 +648,11 @@ class MainWindow(QMainWindow):
             current_selection = self.content_selector.currentText()
             
             # 暂时断开信号连接
-            self.content_selector.currentTextChanged.disconnect()
+            try:
+                self.content_selector.currentTextChanged.disconnect()
+            except TypeError:
+                # 如果没有连接的信号，会抛出TypeError，可以忽略
+                pass
             
             self.content_selector.clear()
             
@@ -671,6 +675,10 @@ class MainWindow(QMainWindow):
                     index = self.content_selector.findText(current_selection)
                     if index >= 0:
                         self.content_selector.setCurrentIndex(index)
+            elif current_type == "URDF Viewer":
+                self.content_selector.addItems(["Robot URDF"])
+            elif current_type == "Navigation Viewer":
+                self.content_selector.addItems(["Costmap", "Path", "Robot Pose"])
             
             # 重新连接信号
             self.content_selector.currentTextChanged.connect(self.on_content_selected)
@@ -743,7 +751,11 @@ class MainWindow(QMainWindow):
             return
             
         # 暂时断开信号连接
-        self.content_selector.currentTextChanged.disconnect()
+        try:
+            self.content_selector.currentTextChanged.disconnect()
+        except TypeError:
+            # 如果没有连接的信号，会抛出TypeError，可以忽略
+            pass
         
         # 清空选择器
         self.content_selector.clear()
@@ -755,6 +767,13 @@ class MainWindow(QMainWindow):
         
         # 重新连接信号
         self.content_selector.currentTextChanged.connect(self.on_content_selected)
+        
+        # 如果有默认选项，触发选择事件
+        if self.content_selector.count() > 0:
+            # 手动触发选择事件
+            current_text = self.content_selector.currentText()
+            if current_text:
+                self.on_content_selected(current_text)
 
     def on_content_selected(self, selection):
         """内容选择改变时的处理"""
