@@ -32,7 +32,7 @@ try:
                                  QPushButton, QLabel, QTextEdit, QComboBox, QGroupBox,
                                  QScrollArea, QSplitter, QFrame, QMessageBox, QProgressBar,
                                  QCheckBox, QSpinBox, QDoubleSpinBox)
-    from PyQt5.QtCore import Qt, QTimer, pyqtSignal, QThread, QObject
+    from PyQt5.QtCore import Qt, QTimer, pyqtSignal, QThread, QObject, QSize
     from PyQt5.QtGui import QPixmap, QFont, QIcon, QPalette, QColor, QImage
     PYQT5_AVAILABLE = True
 except ImportError:
@@ -477,6 +477,29 @@ class MainWindow(QMainWindow):
         # 节点树
         self.node_tree = QTreeWidget()
         self.node_tree.setHeaderLabels(["节点名称", "状态", "操作"])
+        
+        # 设置列宽
+        self.node_tree.setColumnWidth(0, 400)  # 节点名称列加宽
+        self.node_tree.setColumnWidth(1, 100)  # 状态列
+        self.node_tree.setColumnWidth(2, 100)  # 操作列
+        
+        # 设置行高
+        self.node_tree.setStyleSheet("""
+            QTreeWidget::item {
+                height: 40px;
+                padding: 8px;
+                border-bottom: 1px solid #404040;
+            }
+            QTreeWidget::item:selected {
+                background-color: #0078d4;
+                height: 40px;
+            }
+            QTreeWidget::item:hover {
+                background-color: #4a4a4a;
+                height: 40px;
+            }
+        """)
+        
         layout.addWidget(self.node_tree)
         
         self.tab_widget.addTab(tab, "节点管理")
@@ -507,6 +530,28 @@ class MainWindow(QMainWindow):
         # 话题树
         self.topic_tree = QTreeWidget()
         self.topic_tree.setHeaderLabels(["话题名称", "消息类型"])
+        
+        # 设置列宽
+        self.topic_tree.setColumnWidth(0, 400)  # 话题名称列加宽
+        self.topic_tree.setColumnWidth(1, 300)  # 消息类型列
+        
+        # 设置行高
+        self.topic_tree.setStyleSheet("""
+            QTreeWidget::item {
+                height: 35px;
+                padding: 6px;
+                border-bottom: 1px solid #404040;
+            }
+            QTreeWidget::item:selected {
+                background-color: #0078d4;
+                height: 35px;
+            }
+            QTreeWidget::item:hover {
+                background-color: #4a4a4a;
+                height: 35px;
+            }
+        """)
+        
         layout.addWidget(self.topic_tree)
         
         self.tab_widget.addTab(tab, "话题查看")
@@ -894,10 +939,13 @@ class MainWindow(QMainWindow):
         for node_name in nodes:
             item = QTreeWidgetItem([node_name, "运行中"])
             
+            # 设置行高 - 使用QSize对象
+            item.setSizeHint(0, QSize(0, 40))
+            
             # 添加终止按钮
             kill_btn = QPushButton("终止")
             kill_btn.clicked.connect(lambda checked, name=node_name: self.kill_node(name))
-            kill_btn.setStyleSheet("background-color: #d13438; max-width: 60px;")
+            kill_btn.setStyleSheet("background-color: #d13438; max-width: 60px; height: 30px;")
             
             self.node_tree.addTopLevelItem(item)
             self.node_tree.setItemWidget(item, 2, kill_btn)
@@ -1167,6 +1215,22 @@ class MainWindow(QMainWindow):
             self.controller_status_label.setStyleSheet("color: #4CAF50; font-weight: bold;")
         else:
             QMessageBox.warning(self, "错误", f"无法启动{controller_type}控制器")
+
+    def send_velocity(self, linear_x, linear_y, angular_z):
+        """发送速度控制命令"""
+        try:
+            twist = Twist()
+            twist.linear.x = linear_x
+            twist.linear.y = linear_y
+            twist.linear.z = 0.0
+            twist.angular.x = 0.0
+            twist.angular.y = 0.0
+            twist.angular.z = angular_z
+            
+            self.ros_node.cmd_vel_publisher.publish(twist)
+            
+        except Exception as e:
+            self.ros_node.get_logger().error(f'Error sending velocity command: {e}')
 
     def stop_controller(self):
         """停止当前控制器"""
