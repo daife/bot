@@ -300,11 +300,12 @@ class MainWindow(QMainWindow):
         self.tab_widget = QTabWidget()
         layout.addWidget(self.tab_widget)
         
-        # 创建四个标签页
+        # 创建五个标签页
         self.create_node_manager_tab()
         self.create_topic_viewer_tab()
         self.create_content_viewer_tab()
         self.create_controller_tab()
+        self.create_quick_tester_tab()  # 新增快捷测试器标签页
         
         # 启动ROS工作线程
         self.setup_ros_worker()
@@ -658,6 +659,209 @@ class MainWindow(QMainWindow):
         layout.addWidget(manual_group)
         
         self.tab_widget.addTab(tab, "Controller")
+
+    def create_quick_tester_tab(self):
+        """创建快捷测试器标签页"""
+        tab = QWidget()
+        layout = QVBoxLayout(tab)
+        
+        # 标题
+        title = QLabel("Quick Tester")
+        title.setFont(QFont("Arial", 16, QFont.Bold))
+        layout.addWidget(title)
+        
+        # 快速终端按钮
+        terminal_group = QGroupBox("Quick Terminal")
+        terminal_layout = QVBoxLayout(terminal_group)
+        
+        quick_terminal_btn = QPushButton("Open Terminal (Root Mode)")
+        quick_terminal_btn.clicked.connect(self.open_quick_terminal)
+        quick_terminal_btn.setStyleSheet("background-color: #28a745; font-size: 14px; padding: 10px;")
+        terminal_layout.addWidget(quick_terminal_btn)
+        
+        terminal_info = QLabel("Opens xfce4-terminal in root mode with ROS environment sourced")
+        terminal_info.setStyleSheet("color: #888; font-size: 12px;")
+        terminal_layout.addWidget(terminal_info)
+        
+        layout.addWidget(terminal_group)
+        
+        # 测试脚本区域
+        scripts_group = QGroupBox("Test Scripts")
+        scripts_layout = QVBoxLayout(scripts_group)
+        
+        # 创建滚动区域
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_widget = QWidget()
+        scroll_layout = QVBoxLayout(scroll_widget)
+        
+        # SingleTest 部分
+        single_test_group = QGroupBox("Single Test")
+        single_test_layout = QVBoxLayout(single_test_group)
+        
+        # 扫描 singleTest 目录中的 .sh 文件
+        single_test_scripts = self.scan_test_scripts('/home/HwHiAiUser/ros/src/singleTest')
+        for script_name, script_path in single_test_scripts:
+            script_layout = QHBoxLayout()
+            
+            script_btn = QPushButton(script_name)
+            script_btn.clicked.connect(lambda checked, path=script_path, name=script_name: 
+                                     self.run_test_script(path, name))
+            script_btn.setMinimumHeight(35)
+            script_layout.addWidget(script_btn)
+            
+            # 添加脚本描述（从脚本中提取注释或基于文件名判断）
+            description = self.get_script_description(script_name, script_path)
+            desc_label = QLabel(description)
+            desc_label.setStyleSheet("color: #ccc; font-size: 11px;")
+            desc_label.setWordWrap(True)
+            script_layout.addWidget(desc_label)
+            
+            single_test_layout.addLayout(script_layout)
+        
+        scroll_layout.addWidget(single_test_group)
+        
+        # UnionTest 部分（如果存在）
+        union_test_path = '/home/HwHiAiUser/ros/src/unionTest'
+        if os.path.exists(union_test_path):
+            union_test_group = QGroupBox("Union Test")
+            union_test_layout = QVBoxLayout(union_test_group)
+            
+            union_test_scripts = self.scan_test_scripts(union_test_path)
+            for script_name, script_path in union_test_scripts:
+                script_layout = QHBoxLayout()
+                
+                script_btn = QPushButton(script_name)
+                script_btn.clicked.connect(lambda checked, path=script_path, name=script_name: 
+                                         self.run_test_script(path, name))
+                script_btn.setMinimumHeight(35)
+                script_btn.setStyleSheet("background-color: #17a2b8;")  # 不同颜色区分
+                script_layout.addWidget(script_btn)
+                
+                description = self.get_script_description(script_name, script_path)
+                desc_label = QLabel(description)
+                desc_label.setStyleSheet("color: #ccc; font-size: 11px;")
+                desc_label.setWordWrap(True)
+                script_layout.addWidget(desc_label)
+                
+                union_test_layout.addLayout(script_layout)
+            
+            scroll_layout.addWidget(union_test_group)
+        
+        scroll_area.setWidget(scroll_widget)
+        scripts_layout.addWidget(scroll_area)
+        
+        layout.addWidget(scripts_group)
+        
+        self.tab_widget.addTab(tab, "Quick Tester")
+
+    def scan_test_scripts(self, directory_path):
+        """扫描指定目录中的.sh文件"""
+        scripts = []
+        try:
+            if os.path.exists(directory_path):
+                for filename in sorted(os.listdir(directory_path)):
+                    if filename.endswith('.sh'):
+                        script_path = os.path.join(directory_path, filename)
+                        # 移除.sh后缀作为显示名称
+                        script_name = filename[:-3]
+                        scripts.append((script_name, script_path))
+        except Exception as e:
+            self.ros_node.get_logger().error(f'Error scanning {directory_path}: {e}')
+        
+        return scripts
+
+    def get_script_description(self, script_name, script_path):
+        """获取脚本描述"""
+        descriptions = {
+            'chassis_control_rclpy': 'Chassis control node for robot movement',
+            'fishbot_cartographer': 'SLAM mapping using Cartographer',
+            'fishbot_navigation2': 'Navigation stack (未完成)',
+            'handlecontroler': 'Gamepad/joystick controller',
+            'keyboardcontroler': 'Keyboard control interface',
+            'oradar_lidar-ms200_scan': 'LiDAR scanning without visualization',
+            'oradar_lidar-ms200_scan_view': 'LiDAR scanning with RViz visualization',
+            'sam_bot_description': 'Robot URDF model display',
+            'sensor_fusion_pkg': 'Sensor data fusion package',
+            'task_manager': 'Global task scheduler (未完成)'
+        }
+        
+        # 如果有预定义描述就使用，否则尝试从文件中读取
+        if script_name in descriptions:
+            return descriptions[script_name]
+        
+        # 尝试从脚本文件中提取注释
+        try:
+            with open(script_path, 'r', encoding='utf-8') as f:
+                lines = f.readlines()
+                for line in lines:
+                    line = line.strip()
+                    if line.startswith('#') and not line.startswith('#!/') and len(line) > 1:
+                        comment = line[1:].strip()
+                        if comment:
+                            return comment
+        except:
+            pass
+        
+        return "Test script"
+
+    def open_quick_terminal(self):
+        """打开快速终端"""
+        try:
+            # 构建启动命令：打开终端，切换到root，然后source环境
+            terminal_cmd = [
+                'xfce4-terminal',
+                '--hold',
+                '--title', 'ROS Quick Terminal (Root)',
+                '--working-directory', '/home/HwHiAiUser/ros',
+                '-e', 'sudo bash -c "cd /home/HwHiAiUser/ros && source install/setup.bash && echo \\"ROS environment sourced. Ready for testing.\\" && bash"'
+            ]
+            
+            subprocess.Popen(terminal_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            self.ros_node.get_logger().info('Opened quick terminal in root mode')
+            
+        except Exception as e:
+            QMessageBox.warning(self, "Error", f"Failed to open terminal: {str(e)}")
+            self.ros_node.get_logger().error(f'Failed to open quick terminal: {e}')
+
+    def run_test_script(self, script_path, script_name):
+        """运行测试脚本"""
+        # 显示确认对话框
+        reply = QMessageBox.question(self, 'Run Test Script', 
+                                    f'Do you want to run the test script:\n\n{script_name}\n\nPath: {script_path}',
+                                    QMessageBox.Yes | QMessageBox.No, 
+                                    QMessageBox.No)
+        
+        if reply == QMessageBox.Yes:
+            try:
+                # 检查脚本文件是否存在
+                if not os.path.exists(script_path):
+                    QMessageBox.warning(self, "Error", f"Script file not found:\n{script_path}")
+                    return
+                
+                # 确保脚本有执行权限
+                os.chmod(script_path, 0o755)
+                
+                # 构建终端命令：在root模式下运行脚本
+                terminal_cmd = [
+                    'xfce4-terminal',
+                    '--hold',
+                    '--title', f'Running: {script_name}',
+                    '--working-directory', '/home/HwHiAiUser/ros',
+                    '-e', f'sudo bash -c "cd /home/HwHiAiUser/ros && {script_path}"'
+                ]
+                
+                subprocess.Popen(terminal_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                
+                # 显示成功消息
+                QMessageBox.information(self, "Script Launched", 
+                                      f"Test script '{script_name}' has been launched in a new terminal.\n\nCheck the terminal window for output.")
+                
+                self.ros_node.get_logger().info(f'Launched test script: {script_name} at {script_path}')
+                
+            except Exception as e:
+                QMessageBox.warning(self, "Error", f"Failed to run script '{script_name}':\n\n{str(e)}")
+                self.ros_node.get_logger().error(f'Failed to run test script {script_name}: {e}')
 
     def update_node_list(self, nodes):
         """更新节点列表"""
