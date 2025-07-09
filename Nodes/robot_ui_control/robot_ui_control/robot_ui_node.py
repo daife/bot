@@ -287,7 +287,7 @@ class MainWindow(QMainWindow):
         self.is_updating_selectors = False  # 防止递归更新选择器
         
         # 设置窗口
-        self.setWindowTitle('Robot Control UI')
+        self.setWindowTitle('机器人控制界面')
         self.setGeometry(100, 100, 1200, 800)
         
         # 创建中央widget和标签页
@@ -418,6 +418,30 @@ class MainWindow(QMainWindow):
                 border: 1px solid #5a5a5a;
                 border-radius: 4px;
             }
+            /* 弹窗样式 */
+            QMessageBox {
+                background-color: #2d2d2d;
+                color: #ffffff;
+            }
+            QMessageBox QLabel {
+                color: #ffffff;
+                font-size: 14px;
+            }
+            QMessageBox QPushButton {
+                background-color: #0078d4;
+                color: #ffffff;
+                border: none;
+                padding: 8px 16px;
+                border-radius: 4px;
+                font-weight: bold;
+                min-width: 80px;
+            }
+            QMessageBox QPushButton:hover {
+                background-color: #106ebe;
+            }
+            QMessageBox QPushButton:pressed {
+                background-color: #005a9e;
+            }
         """)
 
     def setup_ros_worker(self):
@@ -441,21 +465,21 @@ class MainWindow(QMainWindow):
         layout = QVBoxLayout(tab)
         
         # 标题
-        title = QLabel("Node Manager")
+        title = QLabel("节点管理器")
         title.setFont(QFont("Arial", 16, QFont.Bold))
         layout.addWidget(title)
         
         # 刷新按钮
-        refresh_btn = QPushButton("Refresh Nodes")
+        refresh_btn = QPushButton("刷新节点")
         refresh_btn.clicked.connect(self.refresh_nodes)
         layout.addWidget(refresh_btn)
         
         # 节点树
         self.node_tree = QTreeWidget()
-        self.node_tree.setHeaderLabels(["Node Name", "Status", "Actions"])
+        self.node_tree.setHeaderLabels(["节点名称", "状态", "操作"])
         layout.addWidget(self.node_tree)
         
-        self.tab_widget.addTab(tab, "Node Manager")
+        self.tab_widget.addTab(tab, "节点管理")
 
     def create_topic_viewer_tab(self):
         """创建话题查看器标签页"""
@@ -463,29 +487,29 @@ class MainWindow(QMainWindow):
         layout = QVBoxLayout(tab)
         
         # 标题
-        title = QLabel("Topic Viewer")
+        title = QLabel("话题查看器")
         title.setFont(QFont("Arial", 16, QFont.Bold))
         layout.addWidget(title)
         
         # 控制按钮
         btn_layout = QHBoxLayout()
         
-        refresh_topics_btn = QPushButton("Refresh Topics")
+        refresh_topics_btn = QPushButton("刷新话题")
         refresh_topics_btn.clicked.connect(self.refresh_topics)
         btn_layout.addWidget(refresh_topics_btn)
         
-        show_graph_btn = QPushButton("Show RQT Graph")
+        show_graph_btn = QPushButton("显示RQT图形")
         show_graph_btn.clicked.connect(self.show_rqt_graph)
         btn_layout.addWidget(show_graph_btn)
         
         layout.addLayout(btn_layout)
         
-        # 话题树 - 移除了Publishers和Subscribers列
+        # 话题树
         self.topic_tree = QTreeWidget()
-        self.topic_tree.setHeaderLabels(["Topic Name", "Message Type"])
+        self.topic_tree.setHeaderLabels(["话题名称", "消息类型"])
         layout.addWidget(self.topic_tree)
         
-        self.tab_widget.addTab(tab, "Topic Viewer")
+        self.tab_widget.addTab(tab, "话题查看")
 
     def create_content_viewer_tab(self):
         """创建内容查看器标签页"""
@@ -493,7 +517,7 @@ class MainWindow(QMainWindow):
         layout = QVBoxLayout(tab)
         
         # 标题
-        title = QLabel("Content Viewer")
+        title = QLabel("内容查看器")
         title.setFont(QFont("Arial", 16, QFont.Bold))
         layout.addWidget(title)
         
@@ -501,14 +525,14 @@ class MainWindow(QMainWindow):
         selector_layout = QHBoxLayout()
         
         self.content_type_combo = QComboBox()
-        self.content_type_combo.addItems(["Image Topics", "Other Topics", "URDF Viewer", "Navigation Viewer"])
+        self.content_type_combo.addItems(["图像话题", "其他话题", "URDF查看器", "导航查看器"])
         self.content_type_combo.currentTextChanged.connect(self.on_content_type_changed)
-        selector_layout.addWidget(QLabel("Content Type:"))
+        selector_layout.addWidget(QLabel("内容类型:"))
         selector_layout.addWidget(self.content_type_combo)
         
         self.content_selector = QComboBox()
         self.content_selector.currentTextChanged.connect(self.on_content_selected)
-        selector_layout.addWidget(QLabel("Select:"))
+        selector_layout.addWidget(QLabel("选择:"))
         selector_layout.addWidget(self.content_selector)
         
         layout.addLayout(selector_layout)
@@ -519,14 +543,14 @@ class MainWindow(QMainWindow):
         self.content_display.setMinimumHeight(400)
         
         # 默认显示标签
-        default_label = QLabel("Select content type and item to display")
+        default_label = QLabel("请选择内容类型和项目进行显示")
         default_label.setAlignment(Qt.AlignCenter)
         default_label.setStyleSheet("font-size: 14px; color: #888;")
         self.content_display.setWidget(default_label)
         
         layout.addWidget(self.content_display)
         
-        self.tab_widget.addTab(tab, "Content Viewer")
+        self.tab_widget.addTab(tab, "内容查看")
 
     def create_controller_tab(self):
         """创建控制器选择器标签页"""
@@ -534,60 +558,60 @@ class MainWindow(QMainWindow):
         layout = QVBoxLayout(tab)
         
         # 标题
-        title = QLabel("Controller Selector")
+        title = QLabel("控制器选择器")
         title.setFont(QFont("Arial", 16, QFont.Bold))
         layout.addWidget(title)
         
         # 当前控制器状态
-        status_group = QGroupBox("Current Status")
+        status_group = QGroupBox("当前状态")
         status_layout = QVBoxLayout(status_group)
         
-        self.controller_status_label = QLabel("No controller active")
+        self.controller_status_label = QLabel("无控制器运行")
         status_layout.addWidget(self.controller_status_label)
         
         layout.addWidget(status_group)
         
         # 控制器选择
-        controller_group = QGroupBox("Available Controllers")
+        controller_group = QGroupBox("可用控制器")
         controller_layout = QVBoxLayout(controller_group)
         
         # 手柄控制器
         handle_layout = QHBoxLayout()
-        self.handle_btn = QPushButton("Start Handle Controller")
+        self.handle_btn = QPushButton("启动手柄控制器")
         self.handle_btn.clicked.connect(lambda: self.start_controller('handle'))
         handle_layout.addWidget(self.handle_btn)
-        handle_layout.addWidget(QLabel("Control robot with gamepad"))
+        handle_layout.addWidget(QLabel("使用手柄控制机器人"))
         controller_layout.addLayout(handle_layout)
         
         # 键盘控制器
         keyboard_layout = QHBoxLayout()
-        self.keyboard_btn = QPushButton("Start Keyboard Controller")
+        self.keyboard_btn = QPushButton("启动键盘控制器")
         self.keyboard_btn.clicked.connect(lambda: self.start_controller('keyboard'))
         keyboard_layout.addWidget(self.keyboard_btn)
-        keyboard_layout.addWidget(QLabel("Control robot with keyboard"))
+        keyboard_layout.addWidget(QLabel("使用键盘控制机器人"))
         controller_layout.addLayout(keyboard_layout)
         
         # 自动控制器（未完成）
         auto_layout = QHBoxLayout()
-        self.auto_btn = QPushButton("Start Auto Controller")
+        self.auto_btn = QPushButton("启动自动控制器")
         self.auto_btn.setEnabled(False)
         self.auto_btn.setStyleSheet("background-color: #666; color: #ccc;")
         auto_layout.addWidget(self.auto_btn)
-        auto_layout.addWidget(QLabel("Autonomous navigation (Coming Soon)"))
+        auto_layout.addWidget(QLabel("自主导航 (即将推出)"))
         controller_layout.addLayout(auto_layout)
         
         # 网络控制器（未完成）
         network_layout = QHBoxLayout()
-        self.network_btn = QPushButton("Start Network Controller")
+        self.network_btn = QPushButton("启动网络控制器")
         self.network_btn.setEnabled(False)
         self.network_btn.setStyleSheet("background-color: #666; color: #ccc;")
         network_layout.addWidget(self.network_btn)
-        network_layout.addWidget(QLabel("Remote network control (Coming Soon)"))
+        network_layout.addWidget(QLabel("远程网络控制 (即将推出)"))
         controller_layout.addLayout(network_layout)
         
         # 停止按钮
         stop_layout = QHBoxLayout()
-        self.stop_controller_btn = QPushButton("Stop Current Controller")
+        self.stop_controller_btn = QPushButton("停止当前控制器")
         self.stop_controller_btn.clicked.connect(self.stop_controller)
         self.stop_controller_btn.setStyleSheet("background-color: #d13438;")
         stop_layout.addWidget(self.stop_controller_btn)
@@ -596,7 +620,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(controller_group)
         
         # 手动控制区域
-        manual_group = QGroupBox("Manual Control (Test)")
+        manual_group = QGroupBox("手动控制 (测试)")
         manual_layout = QVBoxLayout(manual_group)
         
         # 创建方向控制按钮
@@ -619,7 +643,7 @@ class MainWindow(QMainWindow):
         left_btn.released.connect(lambda: self.send_velocity(0.0, 0.0, 0.0))
         middle_row.addWidget(left_btn)
         
-        stop_btn = QPushButton("STOP")
+        stop_btn = QPushButton("停止")
         stop_btn.clicked.connect(lambda: self.send_velocity(0.0, 0.0, 0.0))
         stop_btn.setStyleSheet("background-color: #d13438;")
         middle_row.addWidget(stop_btn)
@@ -644,12 +668,12 @@ class MainWindow(QMainWindow):
         
         # 旋转控制
         rotation_layout = QHBoxLayout()
-        rotate_left_btn = QPushButton("Rotate Left")
+        rotate_left_btn = QPushButton("左转")
         rotate_left_btn.pressed.connect(lambda: self.send_velocity(0.0, 0.0, 0.5))
         rotate_left_btn.released.connect(lambda: self.send_velocity(0.0, 0.0, 0.0))
         rotation_layout.addWidget(rotate_left_btn)
         
-        rotate_right_btn = QPushButton("Rotate Right")
+        rotate_right_btn = QPushButton("右转")
         rotate_right_btn.pressed.connect(lambda: self.send_velocity(0.0, 0.0, -0.5))
         rotate_right_btn.released.connect(lambda: self.send_velocity(0.0, 0.0, 0.0))
         rotation_layout.addWidget(rotate_right_btn)
@@ -658,7 +682,7 @@ class MainWindow(QMainWindow):
         
         layout.addWidget(manual_group)
         
-        self.tab_widget.addTab(tab, "Controller")
+        self.tab_widget.addTab(tab, "控制器")
 
     def create_quick_tester_tab(self):
         """创建快捷测试器标签页"""
@@ -666,27 +690,27 @@ class MainWindow(QMainWindow):
         layout = QVBoxLayout(tab)
         
         # 标题
-        title = QLabel("Quick Tester")
+        title = QLabel("快捷测试器")
         title.setFont(QFont("Arial", 16, QFont.Bold))
         layout.addWidget(title)
         
         # 快速终端按钮
-        terminal_group = QGroupBox("Quick Terminal")
+        terminal_group = QGroupBox("快速终端")
         terminal_layout = QVBoxLayout(terminal_group)
         
-        quick_terminal_btn = QPushButton("Open Terminal (Root Mode)")
+        quick_terminal_btn = QPushButton("打开终端 (管理员模式)")
         quick_terminal_btn.clicked.connect(self.open_quick_terminal)
         quick_terminal_btn.setStyleSheet("background-color: #28a745; font-size: 14px; padding: 10px;")
         terminal_layout.addWidget(quick_terminal_btn)
         
-        terminal_info = QLabel("Opens xfce4-terminal in root mode with ROS environment sourced")
+        terminal_info = QLabel("在管理员模式下打开xfce4终端并自动加载ROS环境")
         terminal_info.setStyleSheet("color: #888; font-size: 12px;")
         terminal_layout.addWidget(terminal_info)
         
         layout.addWidget(terminal_group)
         
         # 测试脚本区域
-        scripts_group = QGroupBox("Test Scripts")
+        scripts_group = QGroupBox("测试脚本")
         scripts_layout = QVBoxLayout(scripts_group)
         
         # 创建滚动区域
@@ -696,7 +720,7 @@ class MainWindow(QMainWindow):
         scroll_layout = QVBoxLayout(scroll_widget)
         
         # SingleTest 部分
-        single_test_group = QGroupBox("Single Test")
+        single_test_group = QGroupBox("单项测试")
         single_test_layout = QVBoxLayout(single_test_group)
         
         # 扫描 singleTest 目录中的 .sh 文件
@@ -710,7 +734,7 @@ class MainWindow(QMainWindow):
             script_btn.setMinimumHeight(35)
             script_layout.addWidget(script_btn)
             
-            # 添加脚本描述（从脚本中提取注释或基于文件名判断）
+            # 添加脚本描述
             description = self.get_script_description(script_name, script_path)
             desc_label = QLabel(description)
             desc_label.setStyleSheet("color: #ccc; font-size: 11px;")
@@ -724,7 +748,7 @@ class MainWindow(QMainWindow):
         # UnionTest 部分（如果存在）
         union_test_path = '/home/HwHiAiUser/ros/src/unionTest'
         if os.path.exists(union_test_path):
-            union_test_group = QGroupBox("Union Test")
+            union_test_group = QGroupBox("联合测试")
             union_test_layout = QVBoxLayout(union_test_group)
             
             union_test_scripts = self.scan_test_scripts(union_test_path)
@@ -735,7 +759,7 @@ class MainWindow(QMainWindow):
                 script_btn.clicked.connect(lambda checked, path=script_path, name=script_name: 
                                          self.run_test_script(path, name))
                 script_btn.setMinimumHeight(35)
-                script_btn.setStyleSheet("background-color: #17a2b8;")  # 不同颜色区分
+                script_btn.setStyleSheet("background-color: #17a2b8;")
                 script_layout.addWidget(script_btn)
                 
                 description = self.get_script_description(script_name, script_path)
@@ -753,7 +777,7 @@ class MainWindow(QMainWindow):
         
         layout.addWidget(scripts_group)
         
-        self.tab_widget.addTab(tab, "Quick Tester")
+        self.tab_widget.addTab(tab, "快捷测试")
 
     def scan_test_scripts(self, directory_path):
         """扫描指定目录中的.sh文件"""
@@ -774,16 +798,16 @@ class MainWindow(QMainWindow):
     def get_script_description(self, script_name, script_path):
         """获取脚本描述"""
         descriptions = {
-            'chassis_control_rclpy': 'Chassis control node for robot movement',
-            'fishbot_cartographer': 'SLAM mapping using Cartographer',
-            'fishbot_navigation2': 'Navigation stack (未完成)',
-            'handlecontroler': 'Gamepad/joystick controller',
-            'keyboardcontroler': 'Keyboard control interface',
-            'oradar_lidar-ms200_scan': 'LiDAR scanning without visualization',
-            'oradar_lidar-ms200_scan_view': 'LiDAR scanning with RViz visualization',
-            'sam_bot_description': 'Robot URDF model display',
-            'sensor_fusion_pkg': 'Sensor data fusion package',
-            'task_manager': 'Global task scheduler (未完成)'
+            'chassis_control_rclpy': '底盘控制节点，用于机器人移动',
+            'fishbot_cartographer': '使用Cartographer进行SLAM建图',
+            'fishbot_navigation2': '导航功能栈 (未完成)',
+            'handlecontroler': '手柄/游戏手柄控制器',
+            'keyboardcontroler': '键盘控制接口',
+            'oradar_lidar-ms200_scan': 'LiDAR扫描（无可视化）',
+            'oradar_lidar-ms200_scan_view': 'LiDAR扫描（带RViz可视化）',
+            'sam_bot_description': '机器人URDF模型显示',
+            'sensor_fusion_pkg': '传感器数据融合包',
+            'task_manager': '全局任务调度器 (未完成)'
         }
         
         # 如果有预定义描述就使用，否则尝试从文件中读取
@@ -803,7 +827,7 @@ class MainWindow(QMainWindow):
         except:
             pass
         
-        return "Test script"
+        return "测试脚本"
 
     def open_quick_terminal(self):
         """打开快速终端"""
@@ -812,23 +836,23 @@ class MainWindow(QMainWindow):
             terminal_cmd = [
                 'xfce4-terminal',
                 '--hold',
-                '--title', 'ROS Quick Terminal (Root)',
+                '--title', 'ROS快速终端 (管理员模式)',
                 '--working-directory', '/home/HwHiAiUser/ros',
-                '-e', 'sudo bash -c "cd /home/HwHiAiUser/ros && source install/setup.bash && echo \\"ROS environment sourced. Ready for testing.\\" && bash"'
+                '-e', 'sudo bash -c "cd /home/HwHiAiUser/ros && source install/setup.bash && echo \\"ROS环境已加载，准备测试\\" && bash"'
             ]
             
             subprocess.Popen(terminal_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            self.ros_node.get_logger().info('Opened quick terminal in root mode')
+            self.ros_node.get_logger().info('已在管理员模式下打开快速终端')
             
         except Exception as e:
-            QMessageBox.warning(self, "Error", f"Failed to open terminal: {str(e)}")
-            self.ros_node.get_logger().error(f'Failed to open quick terminal: {e}')
+            QMessageBox.warning(self, "错误", f"无法打开终端: {str(e)}")
+            self.ros_node.get_logger().error(f'无法打开快速终端: {e}')
 
     def run_test_script(self, script_path, script_name):
         """运行测试脚本"""
         # 显示确认对话框
-        reply = QMessageBox.question(self, 'Run Test Script', 
-                                    f'Do you want to run the test script:\n\n{script_name}\n\nPath: {script_path}',
+        reply = QMessageBox.question(self, '运行测试脚本', 
+                                    f'是否要运行测试脚本:\n\n{script_name}\n\n路径: {script_path}',
                                     QMessageBox.Yes | QMessageBox.No, 
                                     QMessageBox.No)
         
@@ -836,7 +860,7 @@ class MainWindow(QMainWindow):
             try:
                 # 检查脚本文件是否存在
                 if not os.path.exists(script_path):
-                    QMessageBox.warning(self, "Error", f"Script file not found:\n{script_path}")
+                    QMessageBox.warning(self, "错误", f"脚本文件未找到:\n{script_path}")
                     return
                 
                 # 确保脚本有执行权限
@@ -846,7 +870,7 @@ class MainWindow(QMainWindow):
                 terminal_cmd = [
                     'xfce4-terminal',
                     '--hold',
-                    '--title', f'Running: {script_name}',
+                    '--title', f'运行中: {script_name}',
                     '--working-directory', '/home/HwHiAiUser/ros',
                     '-e', f'sudo bash -c "cd /home/HwHiAiUser/ros && {script_path}"'
                 ]
@@ -854,24 +878,24 @@ class MainWindow(QMainWindow):
                 subprocess.Popen(terminal_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 
                 # 显示成功消息
-                QMessageBox.information(self, "Script Launched", 
-                                      f"Test script '{script_name}' has been launched in a new terminal.\n\nCheck the terminal window for output.")
+                QMessageBox.information(self, "脚本已启动", 
+                                      f"测试脚本 '{script_name}' 已在新终端中启动。\n\n请查看终端窗口获取输出信息。")
                 
-                self.ros_node.get_logger().info(f'Launched test script: {script_name} at {script_path}')
+                self.ros_node.get_logger().info(f'已启动测试脚本: {script_name} at {script_path}')
                 
             except Exception as e:
-                QMessageBox.warning(self, "Error", f"Failed to run script '{script_name}':\n\n{str(e)}")
-                self.ros_node.get_logger().error(f'Failed to run test script {script_name}: {e}')
+                QMessageBox.warning(self, "错误", f"无法运行脚本 '{script_name}':\n\n{str(e)}")
+                self.ros_node.get_logger().error(f'无法运行测试脚本 {script_name}: {e}')
 
     def update_node_list(self, nodes):
         """更新节点列表"""
         self.node_tree.clear()
         
         for node_name in nodes:
-            item = QTreeWidgetItem([node_name, "Running"])
+            item = QTreeWidgetItem([node_name, "运行中"])
             
             # 添加终止按钮
-            kill_btn = QPushButton("Kill")
+            kill_btn = QPushButton("终止")
             kill_btn.clicked.connect(lambda checked, name=node_name: self.kill_node(name))
             kill_btn.setStyleSheet("background-color: #d13438; max-width: 60px;")
             
@@ -905,12 +929,11 @@ class MainWindow(QMainWindow):
             try:
                 self.content_selector.currentTextChanged.disconnect()
             except TypeError:
-                # 如果没有连接的信号，会抛出TypeError，可以忽略
                 pass
             
             self.content_selector.clear()
             
-            if current_type == "Image Topics":
+            if current_type == "图像话题":
                 image_topics = [topic for topic, msg_type in topics.items() 
                                if 'Image' in msg_type]
                 self.content_selector.addItems(image_topics)
@@ -919,7 +942,7 @@ class MainWindow(QMainWindow):
                 for topic in image_topics:
                     self.ros_node.subscribe_to_image_topic(topic)
                     
-            elif current_type == "Other Topics":
+            elif current_type == "其他话题":
                 other_topics = [topic for topic, msg_type in topics.items() 
                                if 'Image' not in msg_type]
                 self.content_selector.addItems(other_topics)
@@ -929,10 +952,10 @@ class MainWindow(QMainWindow):
                     index = self.content_selector.findText(current_selection)
                     if index >= 0:
                         self.content_selector.setCurrentIndex(index)
-            elif current_type == "URDF Viewer":
-                self.content_selector.addItems(["Robot URDF"])
-            elif current_type == "Navigation Viewer":
-                self.content_selector.addItems(["Costmap", "Path", "Robot Pose"])
+            elif current_type == "URDF查看器":
+                self.content_selector.addItems(["机器人URDF"])
+            elif current_type == "导航查看器":
+                self.content_selector.addItems(["代价地图", "路径", "机器人位姿"])
             
             # 重新连接信号
             self.content_selector.currentTextChanged.connect(self.on_content_selected)
@@ -947,7 +970,7 @@ class MainWindow(QMainWindow):
             
         current_selection = self.content_selector.currentText()
         
-        if (self.content_type_combo.currentText() == "Image Topics" and 
+        if (self.content_type_combo.currentText() == "图像话题" and 
             current_selection == topic_name):
             
             # 转换图像格式并显示
@@ -996,7 +1019,7 @@ class MainWindow(QMainWindow):
         try:
             subprocess.Popen(['rqt_graph'])
         except Exception as e:
-            QMessageBox.warning(self, "Error", f"Failed to start rqt_graph: {e}")
+            QMessageBox.warning(self, "错误", f"无法启动rqt_graph: {e}")
 
 
     def on_content_type_changed(self, content_type):
@@ -1008,23 +1031,21 @@ class MainWindow(QMainWindow):
         try:
             self.content_selector.currentTextChanged.disconnect()
         except TypeError:
-            # 如果没有连接的信号，会抛出TypeError，可以忽略
             pass
         
         # 清空选择器
         self.content_selector.clear()
         
-        if content_type == "URDF Viewer":
-            self.content_selector.addItems(["Robot URDF"])
-        elif content_type == "Navigation Viewer":
-            self.content_selector.addItems(["Costmap", "Path", "Robot Pose"])
+        if content_type == "URDF查看器":
+            self.content_selector.addItems(["机器人URDF"])
+        elif content_type == "导航查看器":
+            self.content_selector.addItems(["代价地图", "路径", "机器人位姿"])
         
         # 重新连接信号
         self.content_selector.currentTextChanged.connect(self.on_content_selected)
         
         # 如果有默认选项，触发选择事件
         if self.content_selector.count() > 0:
-            # 手动触发选择事件
             current_text = self.content_selector.currentText()
             if current_text:
                 self.on_content_selected(current_text)
@@ -1036,11 +1057,11 @@ class MainWindow(QMainWindow):
             
         content_type = self.content_type_combo.currentText()
         
-        if content_type == "URDF Viewer" and selection == "Robot URDF":
+        if content_type == "URDF查看器" and selection == "机器人URDF":
             self.show_urdf_viewer()
-        elif content_type == "Navigation Viewer":
+        elif content_type == "导航查看器":
             self.show_navigation_viewer(selection)
-        elif content_type == "Other Topics" and selection:
+        elif content_type == "其他话题" and selection:
             self.show_topic_with_terminal(selection)
 
     def show_topic_with_terminal(self, topic_name):
@@ -1050,28 +1071,28 @@ class MainWindow(QMainWindow):
             subprocess.Popen([
                 'xfce4-terminal', 
                 '--hold', 
-                '--title', f'ROS2 Topic: {topic_name}',
+                '--title', f'ROS2话题: {topic_name}',
                 '-e', f'ros2 topic echo {topic_name}'
             ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             
             # 在UI中显示确认信息
-            info_label = QLabel(f"Terminal opened for topic: {topic_name}\n\nShowing real-time data with:\nros2 topic echo {topic_name}\n\nThe terminal window should appear separately.")
+            info_label = QLabel(f"已为话题打开终端: {topic_name}\n\n正在显示实时数据:\nros2 topic echo {topic_name}\n\n终端窗口将单独显示。")
             info_label.setAlignment(Qt.AlignCenter)
             info_label.setWordWrap(True)
             info_label.setStyleSheet("font-size: 14px; padding: 20px; color: #ffffff;")
             self.content_display.setWidget(info_label)
             
-            self.ros_node.get_logger().info(f'Opened terminal for topic: {topic_name}')
+            self.ros_node.get_logger().info(f'已为话题打开终端: {topic_name}')
             
         except Exception as e:
             # 如果启动失败，显示错误信息和备用方案
-            error_label = QLabel(f"Failed to open terminal for topic: {topic_name}\n\nError: {str(e)}\n\nPlease manually run in terminal:\nros2 topic echo {topic_name}")
+            error_label = QLabel(f"无法为话题打开终端: {topic_name}\n\n错误: {str(e)}\n\n请手动在终端中运行:\nros2 topic echo {topic_name}")
             error_label.setAlignment(Qt.AlignCenter)
             error_label.setWordWrap(True)
             error_label.setStyleSheet("color: #ff6b6b; font-size: 14px; padding: 20px;")
             self.content_display.setWidget(error_label)
             
-            self.ros_node.get_logger().error(f'Failed to open terminal for {topic_name}: {e}')
+            self.ros_node.get_logger().error(f'无法为话题打开终端 {topic_name}: {e}')
 
     def show_urdf_viewer(self):
         """显示URDF查看器"""
@@ -1096,14 +1117,14 @@ class MainWindow(QMainWindow):
                 # 如果找不到包，直接启动RViz
                 subprocess.Popen(['rviz2'])
             
-            info_label = QLabel("RViz URDF Viewer launched\nThe robot model should be visible if sam_bot_description is running\nAdd 'RobotModel' display if not visible")
+            info_label = QLabel("RViz URDF查看器已启动\n如果sam_bot_description正在运行，机器人模型应该可见\n如果不可见，请添加'RobotModel'显示")
             info_label.setAlignment(Qt.AlignCenter)
             info_label.setWordWrap(True)
             info_label.setStyleSheet("font-size: 14px; padding: 20px; color: #ffffff;")
             self.content_display.setWidget(info_label)
             
         except Exception as e:
-            error_label = QLabel(f"Error launching URDF viewer: {e}")
+            error_label = QLabel(f"启动URDF查看器时出错: {e}")
             error_label.setAlignment(Qt.AlignCenter)
             error_label.setStyleSheet("color: #ff6b6b; font-size: 14px; padding: 20px;")
             self.content_display.setWidget(error_label)
@@ -1112,26 +1133,26 @@ class MainWindow(QMainWindow):
         """显示导航查看器"""
         try:
             # 根据类型启动不同的查看器
-            if viewer_type == "Costmap":
+            if viewer_type == "代价地图":
                 # 启动RViz显示导航相关信息
                 nav2_config = '/opt/ros/humble/share/nav2_bringup/rviz/nav2_default_view.rviz'
                 if os.path.exists(nav2_config):
                     subprocess.Popen(['rviz2', '-d', nav2_config])
                 else:
                     subprocess.Popen(['rviz2'])
-            elif viewer_type == "Robot Pose":
+            elif viewer_type == "机器人位姿":
                 subprocess.Popen(['rqt_plot', '/odom/pose/pose/position/x:y'])
-            elif viewer_type == "Path":
+            elif viewer_type == "路径":
                 subprocess.Popen(['rqt_plot', '/plan'])
                 
-            info_label = QLabel(f"{viewer_type} viewer launched\nCheck the new window to view the data")
+            info_label = QLabel(f"{viewer_type}查看器已启动\n请查看新窗口以查看数据")
             info_label.setAlignment(Qt.AlignCenter)
             info_label.setWordWrap(True)
             info_label.setStyleSheet("font-size: 14px; padding: 20px; color: #ffffff;")
             self.content_display.setWidget(info_label)
             
         except Exception as e:
-            error_label = QLabel(f"Error launching {viewer_type} viewer: {e}")
+            error_label = QLabel(f"启动{viewer_type}查看器时出错: {e}")
             error_label.setAlignment(Qt.AlignCenter)
             error_label.setStyleSheet("color: #ff6b6b; font-size: 14px; padding: 20px;")
             self.content_display.setWidget(error_label)
@@ -1140,17 +1161,22 @@ class MainWindow(QMainWindow):
         """启动控制器"""
         success = self.ros_node.start_controller(controller_type)
         if success:
-            self.controller_status_label.setText(f"Active: {controller_type.title()} Controller")
+            controller_names = {'handle': '手柄', 'keyboard': '键盘'}
+            display_name = controller_names.get(controller_type, controller_type)
+            self.controller_status_label.setText(f"活动: {display_name}控制器")
             self.controller_status_label.setStyleSheet("color: #4CAF50; font-weight: bold;")
         else:
-            QMessageBox.warning(self, "Error", f"Failed to start {controller_type} controller")
+            QMessageBox.warning(self, "错误", f"无法启动{controller_type}控制器")
 
     def stop_controller(self):
         """停止当前控制器"""
         if self.ros_node.active_controller:
+            controller_names = {'handle': '手柄', 'keyboard': '键盘'}
+            display_name = controller_names.get(self.ros_node.active_controller, self.ros_node.active_controller)
+            
             # 显示确认对话框
-            reply = QMessageBox.question(self, 'Stop Controller', 
-                                        f'Are you sure you want to stop the {self.ros_node.active_controller} controller?',
+            reply = QMessageBox.question(self, '停止控制器', 
+                                        f'确定要停止{display_name}控制器吗？',
                                         QMessageBox.Yes | QMessageBox.No, 
                                         QMessageBox.Yes)
             
@@ -1160,36 +1186,35 @@ class MainWindow(QMainWindow):
                 # 等待一小段时间让进程完全终止
                 QTimer.singleShot(1000, lambda: self.refresh_nodes())  # 1秒后刷新节点列表
                 
-                self.controller_status_label.setText("No controller active")
+                self.controller_status_label.setText("无控制器运行")
                 self.controller_status_label.setStyleSheet("color: #888;")
                 
                 # 显示成功消息
-                QMessageBox.information(self, "Success", "Controller stopped successfully")
+                QMessageBox.information(self, "成功", "控制器已成功停止")
         else:
-            QMessageBox.information(self, "Info", "No controller is currently active")
+            QMessageBox.information(self, "信息", "当前没有运行的控制器")
 
     def kill_node(self, node_name):
         """终止节点"""
-        reply = QMessageBox.question(self, 'Confirm Kill Node', 
-                                    f'Are you sure you want to kill node: {node_name}?',
+        reply = QMessageBox.question(self, '确认终止节点', 
+                                    f'确定要终止节点: {node_name}？',
                                     QMessageBox.Yes | QMessageBox.No, 
                                     QMessageBox.No)
         
         if reply == QMessageBox.Yes:
             success = self.ros_node.kill_node(node_name)
             if success:
-                QMessageBox.information(self, "Success", f"Node {node_name} killed successfully")
+                QMessageBox.information(self, "成功", f"节点 {node_name} 已成功终止")
                 self.refresh_nodes()
             else:
-                QMessageBox.warning(self, "Error", f"Failed to kill node {node_name}")
+                QMessageBox.warning(self, "错误", f"无法终止节点 {node_name}")
 
-    def send_velocity(self, linear_x, linear_y, angular_z):
-        """发送速度命令"""
-        msg = Twist()
-        msg.linear.x = linear_x
-        msg.linear.y = linear_y
-        msg.angular.z = angular_z
-        self.ros_node.cmd_vel_publisher.publish(msg)
+    def show_rqt_graph(self):
+        """显示RQT图形界面"""
+        try:
+            subprocess.Popen(['rqt_graph'])
+        except Exception as e:
+            QMessageBox.warning(self, "错误", f"无法启动rqt_graph: {e}")
 
     def closeEvent(self, event):
         """窗口关闭事件"""        
