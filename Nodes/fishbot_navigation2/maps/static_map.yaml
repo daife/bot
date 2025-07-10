@@ -1,0 +1,6 @@
+image: static_map.pgm       # 地图文件名
+resolution: 0.005        # 分辨率（米/像素）
+origin: [0.0, 0.0, 0.0] # 地图原点（x,y,角度）
+negate: 0               # 是否反转颜色（0：不反转）
+occupied_thresh: 0.65   # 大于此值为障碍
+free_thresh: 0.196      # 小于此值为自由
