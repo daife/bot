@@ -400,7 +400,7 @@ class PaperSegmentationDVPP:
             output = pred[0]  # 检测输出 [N, 4+1+32] (bbox + conf + mask_coeffs)
             proto = pred[1]   # 掩膜原型 [32, H, W]
         else:
-            self.get_logger().error("模型输出格式不正确，需要包含掩膜原型")
+            print("ERROR: 模型输出格式不正确，需要包含掩膜原型")
             return None
         
         # 处理输出维度
@@ -412,7 +412,7 @@ class PaperSegmentationDVPP:
         
         # 解析输出：前4列是bbox，第5列是置信度，后面是掩膜系数
         if output.shape[1] < 6:  # 至少需要bbox(4) + conf(1) + mask_coeffs(1+)
-            self.get_logger().error("输出维度不足，无法提取掩膜信息")
+            print("ERROR: 输出维度不足，无法提取掩膜信息")
             return None
         
         boxes = output[:, :4]
@@ -492,8 +492,27 @@ class PaperSegmentationDVPP:
             return mask
             
         except Exception as e:
-            self.get_logger().error(f"生成分割掩膜失败: {e}")
+            print(f"ERROR: 生成分割掩膜失败: {e}")
             return None
+    
+    def remove_padding_and_scale_mask(self, mask, orig_shape):
+        """移除填充并缩放掩膜到原图尺寸"""
+        try:
+            # 从640x640移除填充，提取中间的640x480区域
+            y_offset = (640 - 480) // 2
+            mask_cropped = mask[y_offset:y_offset+480, :]
+            
+            # 缩放到原图尺寸
+            if mask_cropped.shape != orig_shape:
+                mask_scaled = cv2.resize(mask_cropped, (orig_shape[1], orig_shape[0]))
+            else:
+                mask_scaled = mask_cropped
+            
+            return mask_scaled
+            
+        except Exception as e:
+            print(f"ERROR: 移除填充和缩放失败: {e}")
+            return mask
     
     def calculate_paper_center_from_mask(self, mask):
         """直接从掩膜计算纸条中心点"""
@@ -526,7 +545,7 @@ class PaperSegmentationDVPP:
                     
                     return (center_x, center_y)
             except Exception as e:
-                self.get_logger().debug(f"骨架化失败，使用备选方法: {e}")
+                print(f"DEBUG: 骨架化失败，使用备选方法: {e}")
             
             # 方法2：使用距离变换找到中心
             try:
@@ -541,7 +560,7 @@ class PaperSegmentationDVPP:
                         center_y = int(max_points[0][center_idx])
                         return (center_x, center_y)
             except Exception as e:
-                self.get_logger().debug(f"距离变换失败，使用质心: {e}")
+                print(f"DEBUG: 距离变换失败，使用质心: {e}")
             
             # 方法3：直接使用质心
             y_coords, x_coords = np.where(binary_mask > 0)
@@ -551,7 +570,7 @@ class PaperSegmentationDVPP:
             return (center_x, center_y)
             
         except Exception as e:
-            self.get_logger().error(f"计算纸条中心点失败: {e}")
+            print(f"ERROR: 计算纸条中心点失败: {e}")
             return None
 
     def cleanup(self):
@@ -782,6 +801,11 @@ class PaperLocalizerNode(Node):
                         self.latest_center = (result['center_x'], result['center_y'])
                         self.latest_confidence = result['confidence']
                         self.latest_mask = result['mask']
+                        
+                        self.get_logger().debug(
+                            f"后处理完成: 中心点=({result['center_x']}, {result['center_y']}), "
+                            f"置信度={result['confidence']:.3f}"
+                        )
                     else:
                         self.latest_center = None
                         self.latest_confidence = 0.0
