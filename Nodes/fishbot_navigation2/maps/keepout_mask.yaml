@@ -1,0 +1,3 @@
+image: keepout_mask.pgm
+resolution: 0.005  # 必须与主地图一致
+origin: [0.0, 0.0, 0.0]
