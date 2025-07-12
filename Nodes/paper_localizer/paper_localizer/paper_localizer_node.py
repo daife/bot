@@ -686,6 +686,7 @@ class PaperLocalizerNode(Node):
             self.get_logger().error("无法打开摄像头")
             return
             
+        # 设置摄像头参数 - 与main-seg-dvaipp.py完全相同
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, CAMERA_WIDTH)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, CAMERA_HEIGHT)
         self.cap.set(cv2.CAP_PROP_FPS, CAMERA_FPS)
@@ -696,7 +697,18 @@ class PaperLocalizerNode(Node):
         actual_width = self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)
         actual_height = self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
         actual_fps = self.cap.get(cv2.CAP_PROP_FPS)
-        self.get_logger().info(f"摄像头设置: {actual_width}x{actual_height} @ {actual_fps}fps (MJPG raw)")
+        fourcc = self.cap.get(cv2.CAP_PROP_FOURCC)
+        convert_rgb = self.cap.get(cv2.CAP_PROP_CONVERT_RGB)
+        
+        self.get_logger().info(f"摄像头设置: {actual_width}x{actual_height} @ {actual_fps}fps")
+        self.get_logger().info(f"FOURCC: {int(fourcc)}, Convert RGB: {int(convert_rgb)}")
+        
+        # 预热摄像头
+        for i in range(5):
+            ret, _ = self.cap.read()
+            if ret:
+                self.get_logger().info(f"摄像头预热 {i+1}/5")
+            time.sleep(0.1)
 
     def process_camera_frame(self):
         """处理摄像头帧"""
@@ -719,8 +731,9 @@ class PaperLocalizerNode(Node):
                     yuv_input = self.paper_seg.create_yuv_input_buffer_optimized(yuv_addr)
                     
                     if yuv_input is not None:
-                        # 模型推理
+                        # 模型推理 - 使用与main-seg-dvaipp相同的方式
                         try:
+                            # 确保使用AclLiteModel.execute方法，传入列表格式的输入
                             pred = self.paper_seg.model.execute([yuv_input])
                             
                             # 后处理获取中心点
@@ -730,6 +743,7 @@ class PaperLocalizerNode(Node):
                                 self.latest_center = (result['center_x'], result['center_y'])
                                 self.latest_confidence = result['confidence']
                                 self.latest_mask = result['mask']
+                                self.get_logger().debug(f"检测到纸条: 中心({result['center_x']}, {result['center_y']}), 置信度{result['confidence']:.3f}")
                             else:
                                 self.latest_center = None
                                 self.latest_confidence = 0.0
@@ -737,7 +751,38 @@ class PaperLocalizerNode(Node):
                                 
                         except Exception as e:
                             self.get_logger().error(f"模型推理失败: {e}")
-                            
+                            # 打印更详细的错误信息
+                            import traceback
+                            self.get_logger().error(f"详细错误: {traceback.format_exc()}")
+            else:
+                # 如果不是原始MJPG数据，尝试重新编码
+                if len(frame_data.shape) == 3:
+                    # BGR图像，重新编码为JPEG
+                    _, jpeg_encoded = cv2.imencode('.jpg', frame_data)
+                    jpeg_data = jpeg_encoded.tobytes()
+                    
+                    # 使用优化的DVPP处理
+                    yuv_addr = self.paper_seg.process_jpeg_to_yuv_optimized(jpeg_data)
+                    if yuv_addr is not None:
+                        yuv_input = self.paper_seg.create_yuv_input_buffer_optimized(yuv_addr)
+                        
+                        if yuv_input is not None:
+                            try:
+                                pred = self.paper_seg.model.execute([yuv_input])
+                                result = self.paper_seg.postprocess_paper_center(pred, orig_shape=(480, 640))
+                                
+                                if result is not None:
+                                    self.latest_center = (result['center_x'], result['center_y'])
+                                    self.latest_confidence = result['confidence']
+                                    self.latest_mask = result['mask']
+                                else:
+                                    self.latest_center = None
+                                    self.latest_confidence = 0.0
+                                    self.latest_mask = None
+                                    
+                            except Exception as e:
+                                self.get_logger().error(f"BGR->JPEG模型推理失败: {e}")
+                                
         except Exception as e:
             self.get_logger().error(f"图像处理出错: {e}")
 
