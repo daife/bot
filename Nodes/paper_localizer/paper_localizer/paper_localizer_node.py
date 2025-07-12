@@ -34,6 +34,11 @@ HI_FALSE = 0
 ACL_MEMCPY_HOST_TO_DEVICE = 1
 ACL_MEMCPY_DEVICE_TO_HOST = 2
 
+# Camera settings
+CAMERA_WIDTH = 640
+CAMERA_HEIGHT = 480
+CAMERA_FPS = 120
+
 class AclLiteResource:
     """ACL资源管理类"""
     def __init__(self, device_id=0):
@@ -611,12 +616,10 @@ class PaperLocalizerNode(Node):
         
         # 声明参数
         self.declare_parameter('model_path', 'yolo11s-seg-self-aipp.om')
-        self.declare_parameter('camera_topic', '/bottom_camera/image_rect')
         self.declare_parameter('publish_rate', 10.0)
         
         # 获取参数
         self.model_path = self.get_parameter('model_path').value
-        self.camera_topic = self.get_parameter('camera_topic').value
         self.publish_rate = self.get_parameter('publish_rate').value
         
         # 初始化ACL资源
@@ -629,15 +632,8 @@ class PaperLocalizerNode(Node):
             self.get_logger().error("模型或DVPP初始化失败")
             return
         
-        # 创建CV桥接器
-        self.bridge = CvBridge()
-        
         # 创建发布器
         self.pose_publisher = self.create_publisher(Pose, 'paper_center_pose', 10)
-        
-        # 创建订阅器
-        self.image_subscription = self.create_subscription(
-            Image, self.camera_topic, self.image_callback, 10)
         
         # 创建定时器控制发布频率
         self.timer = self.create_timer(1.0 / self.publish_rate, self.timer_callback)
@@ -647,48 +643,109 @@ class PaperLocalizerNode(Node):
         self.latest_confidence = 0.0
         self.latest_mask = None
         
-        self.get_logger().info(f'纸条定位节点已启动，订阅话题: {self.camera_topic}')
+        # 初始化摄像头
+        self.cap = None
+        self.init_camera()
+        
+        self.get_logger().info(f'纸条定位节点已启动')
 
-    def image_callback(self, msg):
-        """图像回调函数"""
+    def find_target_camera(self):
+        """使用pyudev查找目标摄像头设备"""
+        context = pyudev.Context()
+        target_serial = "HD_Camera_Manufacturer_USB_2.0_Camera"
+        
+        video_devices = []
+        for device in context.list_devices(subsystem='video4linux'):
+            if device.get('ID_SERIAL') == target_serial:
+                device_node = device.device_node
+                if device_node and '/dev/video' in device_node:
+                    video_devices.append(device_node)
+        
+        if video_devices:
+            video_devices.sort()
+            self.get_logger().info(f"找到目标摄像头设备: {video_devices}")
+            return video_devices[0]
+        else:
+            self.get_logger().warn(f"未找到ID_SERIAL为 {target_serial} 的摄像头设备")
+            return None
+
+    def init_camera(self):
+        """初始化摄像头"""
+        # 查找目标摄像头
+        camera_device = self.find_target_camera()
+        if camera_device is None:
+            self.get_logger().warn("未找到目标摄像头，使用默认摄像头 /dev/video0")
+            camera_device = "/dev/video0"
+        
+        device_index = int(camera_device.replace('/dev/video', ''))
+        self.get_logger().info(f"使用摄像头设备: {camera_device} (索引: {device_index})")
+
+        # 打开摄像头并设置参数（使用v4l2获取原始MJPG数据）
+        self.cap = cv2.VideoCapture(device_index, cv2.CAP_V4L2)
+        if not self.cap.isOpened():
+            self.get_logger().error("无法打开摄像头")
+            return
+            
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, CAMERA_WIDTH)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, CAMERA_HEIGHT)
+        self.cap.set(cv2.CAP_PROP_FPS, CAMERA_FPS)
+        self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
+        self.cap.set(cv2.CAP_PROP_CONVERT_RGB, 0)  # 获取原始MJPG数据
+        
+        # 验证摄像头设置
+        actual_width = self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+        actual_height = self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+        actual_fps = self.cap.get(cv2.CAP_PROP_FPS)
+        self.get_logger().info(f"摄像头设置: {actual_width}x{actual_height} @ {actual_fps}fps (MJPG raw)")
+
+    def process_camera_frame(self):
+        """处理摄像头帧"""
+        if self.cap is None or not self.cap.isOpened():
+            return
+            
+        ret, frame_data = self.cap.read()
+        if not ret or frame_data is None:
+            return
+        
         try:
-            # 将ROS图像消息转换为OpenCV格式
-            cv_image = self.bridge.imgmsg_to_cv2(msg, 'bgr8')
-            
-            # 将图像编码为JPEG格式
-            _, jpeg_data = cv2.imencode('.jpg', cv_image)
-            jpeg_bytes = jpeg_data.tobytes()
-            
-            # 使用DVPP处理
-            yuv_addr = self.paper_seg.process_jpeg_to_yuv_optimized(jpeg_bytes)
-            if yuv_addr is not None:
-                yuv_input = self.paper_seg.create_yuv_input_buffer_optimized(yuv_addr)
+            # 检查是否为原始MJPG数据
+            if len(frame_data.shape) == 2 and frame_data.shape[0] == 1:
+                # 转换为字节数据
+                jpeg_data = frame_data.flatten().tobytes()
                 
-                if yuv_input is not None:
-                    # 模型推理
-                    try:
-                        pred = self.paper_seg.model.execute([yuv_input])
-                        
-                        # 后处理获取中心点
-                        result = self.paper_seg.postprocess_paper_center(pred, orig_shape=(480, 640))
-                        
-                        if result is not None:
-                            self.latest_center = (result['center_x'], result['center_y'])
-                            self.latest_confidence = result['confidence']
-                            self.latest_mask = result['mask']
-                        else:
-                            self.latest_center = None
-                            self.latest_confidence = 0.0
-                            self.latest_mask = None
+                # 使用优化的DVPP处理
+                yuv_addr = self.paper_seg.process_jpeg_to_yuv_optimized(jpeg_data)
+                if yuv_addr is not None:
+                    yuv_input = self.paper_seg.create_yuv_input_buffer_optimized(yuv_addr)
+                    
+                    if yuv_input is not None:
+                        # 模型推理
+                        try:
+                            pred = self.paper_seg.model.execute([yuv_input])
                             
-                    except Exception as e:
-                        self.get_logger().error(f"模型推理失败: {e}")
-                        
+                            # 后处理获取中心点
+                            result = self.paper_seg.postprocess_paper_center(pred, orig_shape=(480, 640))
+                            
+                            if result is not None:
+                                self.latest_center = (result['center_x'], result['center_y'])
+                                self.latest_confidence = result['confidence']
+                                self.latest_mask = result['mask']
+                            else:
+                                self.latest_center = None
+                                self.latest_confidence = 0.0
+                                self.latest_mask = None
+                                
+                        except Exception as e:
+                            self.get_logger().error(f"模型推理失败: {e}")
+                            
         except Exception as e:
             self.get_logger().error(f"图像处理出错: {e}")
 
     def timer_callback(self):
-        """定时器回调，发布纸条中心点位置"""
+        """定时器回调，处理摄像头数据并发布纸条中心点位置"""
+        # 处理摄像头帧
+        self.process_camera_frame()
+        
         pose_msg = Pose()
         
         # 图像中心点
@@ -743,6 +800,8 @@ class PaperLocalizerNode(Node):
 
     def __del__(self):
         """析构函数"""
+        if hasattr(self, 'cap') and self.cap is not None:
+            self.cap.release()
         if hasattr(self, 'paper_seg'):
             self.paper_seg.cleanup()
 
