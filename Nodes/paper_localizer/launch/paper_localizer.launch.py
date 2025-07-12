@@ -18,15 +18,9 @@ def generate_launch_description():
         description='分割模型路径'
     )
     
-    camera_topic_arg = DeclareLaunchArgument(
-        'camera_topic',
-        default_value='/bottom_camera/image_rect',
-        description='摄像头图像话题'
-    )
-    
     publish_rate_arg = DeclareLaunchArgument(
         'publish_rate',
-        default_value='10.0',
+        default_value='30.0',
         description='发布频率 (Hz)'
     )
     
@@ -38,14 +32,12 @@ def generate_launch_description():
         output='screen',
         parameters=[{
             'model_path': LaunchConfiguration('model_path'),
-            'camera_topic': LaunchConfiguration('camera_topic'),
             'publish_rate': LaunchConfiguration('publish_rate'),
         }]
     )
     
     return LaunchDescription([
         model_path_arg,
-        camera_topic_arg,
         publish_rate_arg,
         paper_localizer_node
     ])
