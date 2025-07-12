@@ -12,6 +12,9 @@ import ctypes
 import pyudev
 from scipy import ndimage
 from skimage.morphology import skeletonize
+import threading
+import queue
+from collections import deque
 
 # 导入ACL相关模块
 try:
@@ -37,6 +40,45 @@ ACL_MEMCPY_DEVICE_TO_HOST = 2
 CAMERA_WIDTH = 640
 CAMERA_HEIGHT = 480
 CAMERA_FPS = 120
+
+class LatestDataQueue:
+    """始终保持最新数据的线程安全队列"""
+    def __init__(self, maxsize=2):
+        self._queue = deque(maxsize=maxsize)
+        self._lock = threading.Lock()
+        self._condition = threading.Condition(self._lock)
+        self._maxsize = maxsize
+    
+    def put(self, item):
+        """放入数据，如果队列满则丢弃最旧的数据"""
+        with self._condition:
+            if len(self._queue) >= self._maxsize:
+                # 丢弃最旧的数据
+                self._queue.popleft()
+            self._queue.append(item)
+            self._condition.notify()
+    
+    def get_latest(self, timeout=None):
+        """获取最新的数据，如果有多个数据则只返回最新的"""
+        with self._condition:
+            if not self._queue:
+                if timeout is None:
+                    self._condition.wait()
+                else:
+                    if not self._condition.wait(timeout):
+                        return None
+            
+            if self._queue:
+                # 清空队列并只返回最新的数据
+                latest_item = self._queue[-1]
+                self._queue.clear()
+                return latest_item
+            return None
+    
+    def empty(self):
+        """检查队列是否为空"""
+        with self._lock:
+            return len(self._queue) == 0
 
 class AclLiteResource:
     """ACL资源管理类"""
@@ -591,7 +633,7 @@ class PaperLocalizerNode(Node):
         
         # 声明参数
         self.declare_parameter('model_path', 'yolo11s-seg-self-aipp.om')
-        self.declare_parameter('publish_rate', 10.0)
+        self.declare_parameter('publish_rate', 30.0)  # 设置为30fps
         
         # 获取参数
         self.model_path = self.get_parameter('model_path').value
@@ -610,8 +652,12 @@ class PaperLocalizerNode(Node):
         # 创建发布器
         self.pose_publisher = self.create_publisher(Pose, 'paper_center_pose', 10)
         
-        # 创建定时器控制发布频率
-        self.timer = self.create_timer(1.0 / self.publish_rate, self.timer_callback)
+        # 创建线程间通信的队列
+        self.prediction_queue = LatestDataQueue(maxsize=2)
+        
+        # 线程控制
+        self.camera_thread = None
+        self.camera_thread_running = False
         
         # 存储最新的检测结果
         self.latest_center = None
@@ -622,7 +668,13 @@ class PaperLocalizerNode(Node):
         self.cap = None
         self.init_camera()
         
-        self.get_logger().info(f'纸条定位节点已启动')
+        # 启动相机处理线程
+        self.start_camera_thread()
+        
+        # 创建定时器控制发布频率 (30fps)
+        self.timer = self.create_timer(1.0 / self.publish_rate, self.timer_callback)
+        
+        self.get_logger().info(f'纸条定位节点已启动，发布频率: {self.publish_rate}fps')
 
     def find_target_camera(self):
         """使用pyudev查找目标摄像头设备"""
@@ -685,6 +737,70 @@ class PaperLocalizerNode(Node):
                 self.get_logger().info(f"摄像头预热 {i+1}/5")
             time.sleep(0.1)
 
+    def start_camera_thread(self):
+        """启动相机处理线程"""
+        self.camera_thread_running = True
+        self.camera_thread = threading.Thread(target=self.camera_worker, daemon=True)
+        self.camera_thread.start()
+        self.get_logger().info("相机处理线程已启动")
+
+    def stop_camera_thread(self):
+        """停止相机处理线程"""
+        self.camera_thread_running = False
+        if self.camera_thread and self.camera_thread.is_alive():
+            self.camera_thread.join(timeout=2.0)
+            self.get_logger().info("相机处理线程已停止")
+
+    def camera_worker(self):
+        """相机处理工作线程 - 负责读取摄像头、DVPP处理和模型推理"""
+        self.get_logger().info("相机工作线程开始运行")
+        
+        while self.camera_thread_running:
+            try:
+                if self.cap is None or not self.cap.isOpened():
+                    time.sleep(0.01)
+                    continue
+                
+                ret, frame_data = self.cap.read()
+                if not ret or frame_data is None:
+                    time.sleep(0.01)
+                    continue
+                
+                # 检查是否为原始MJPG数据
+                if len(frame_data.shape) == 2 and frame_data.shape[0] == 1:
+                    # 转换为字节数据
+                    jpeg_data = frame_data.flatten().tobytes()
+                    
+                    # 使用优化的DVPP处理
+                    yuv_addr = self.paper_seg.process_jpeg_to_yuv_optimized(jpeg_data)
+                    if yuv_addr is not None:
+                        yuv_input = self.paper_seg.create_yuv_input_buffer_optimized(yuv_addr)
+                        
+                        if yuv_input is not None:
+                            # 模型推理
+                            try:
+                                pred = self.paper_seg.model.execute([yuv_input])
+                                
+                                # 将推理结果放入队列
+                                if pred is not None:
+                                    timestamp = time.time()
+                                    self.prediction_queue.put({
+                                        'prediction': pred,
+                                        'timestamp': timestamp
+                                    })
+                                    
+                            except Exception as e:
+                                self.get_logger().error(f"模型推理失败: {e}")
+                
+                # 短暂休眠以避免过度占用CPU
+                time.sleep(0.005)  # 5ms延迟，允许高频率处理
+                
+            except Exception as e:
+                self.get_logger().error(f"相机工作线程出错: {e}")
+                time.sleep(0.1)
+        
+        self.get_logger().info("相机工作线程已退出")
+
     def process_camera_frame(self):
         """处理摄像头帧"""
         if self.cap is None or not self.cap.isOpened():
@@ -730,10 +846,39 @@ class PaperLocalizerNode(Node):
             self.get_logger().error(f"图像处理出错: {e}")
 
     def timer_callback(self):
-        """定时器回调，处理摄像头数据并发布纸条中心点位置"""
-        # 处理摄像头帧
-        self.process_camera_frame()
+        """定时器回调 - 处理最新的推理结果并发布ROS消息"""
+        # 获取最新的推理结果
+        latest_data = self.prediction_queue.get_latest(timeout=0.001)  # 1ms超时
         
+        if latest_data is not None:
+            pred = latest_data['prediction']
+            timestamp = latest_data['timestamp']
+            
+            # 后处理获取中心点
+            try:
+                result = self.paper_seg.postprocess_paper_center(pred, orig_shape=(480, 640))
+                
+                if result is not None:
+                    self.latest_center = (result['center_x'], result['center_y'])
+                    self.latest_confidence = result['confidence']
+                    self.latest_mask = result['mask']
+                    
+                    # 可选：记录处理延迟
+                    processing_delay = time.time() - timestamp
+                    if processing_delay > 0.1:  # 超过100ms记录警告
+                        self.get_logger().debug(f"处理延迟: {processing_delay*1000:.1f}ms")
+                else:
+                    self.latest_center = None
+                    self.latest_confidence = 0.0
+                    self.latest_mask = None
+                    
+            except Exception as e:
+                self.get_logger().error(f"后处理失败: {e}")
+                self.latest_center = None
+                self.latest_confidence = 0.0
+                self.latest_mask = None
+        
+        # 创建并发布ROS消息
         pose_msg = Pose()
         
         # 图像中心点
@@ -788,6 +933,9 @@ class PaperLocalizerNode(Node):
 
     def __del__(self):
         """析构函数"""
+        # 停止相机线程
+        self.stop_camera_thread()
+        
         if hasattr(self, 'cap') and self.cap is not None:
             self.cap.release()
         if hasattr(self, 'paper_seg'):
@@ -804,6 +952,9 @@ def main(args=None):
     except Exception as e:
         print(f"节点运行出错: {e}")
     finally:
+        # 确保线程正常停止
+        if 'node' in locals():
+            node.stop_camera_thread()
         rclpy.shutdown()
 
 if __name__ == '__main__':
