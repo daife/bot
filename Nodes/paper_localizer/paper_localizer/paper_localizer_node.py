@@ -390,187 +390,296 @@ class PaperSegmentationDVPP:
             return None
 
     def postprocess_paper_center(self, pred, orig_shape=(480, 640)):
-        """简化的后处理 - 直接从分割掩膜计算纸条中心点"""
-        if pred is None or len(pred) == 0:
+        """简化的后处理 - 计算纸条的真正中心点（中心骨架点） - 使用与main-seg-dvaipp2相同的逻辑"""
+        CONF_THRESH = 0.3
+        IOU_THRESH = 0.5
+        
+        if pred is None:
+            print("DEBUG: Model prediction is None")
             return None
         
-        # 获取分割结果
-        # pred通常是[output, proto]或者[output]的格式
-        if len(pred) >= 2:
-            output = pred[0]  # 检测输出 [N, 4+1+32] (bbox + conf + mask_coeffs)
-            proto = pred[1]   # 掩膜原型 [32, H, W]
+        output = pred[0]
+        
+        if len(pred) > 1:
+            proto = pred[1]
+            print(f"DEBUG: proto shape: {proto.shape}")
         else:
-            print("ERROR: 模型输出格式不正确，需要包含掩膜原型")
-            return None
+            proto = None
+            print("DEBUG: No proto output")
         
-        # 处理输出维度
         if output.ndim == 3 and output.shape[0] == 1:
             output = output.squeeze(0)
         
         if output.shape[0] < output.shape[1]:
             output = output.T
         
-        # 解析输出：前4列是bbox，第5列是置信度，后面是掩膜系数
-        if output.shape[1] < 6:  # 至少需要bbox(4) + conf(1) + mask_coeffs(1+)
-            print("ERROR: 输出维度不足，无法提取掩膜信息")
-            return None
+        print(f"DEBUG: Processing output shape: {output.shape}")
         
+        # 解析输出
         boxes = output[:, :4]
         scores = output[:, 4]
-        mask_coeffs = output[:, 5:]
         
-        # 置信度过滤
-        CONF_THRESH = 0.3
+        if output.shape[1] > 5:
+            mask_coeffs = output[:, 5:]
+            print(f"DEBUG: mask_coeffs shape: {mask_coeffs.shape}")
+        else:
+            mask_coeffs = None
+            print("DEBUG: No mask coefficients")
+        
+        # 过滤低置信度的检测
         valid_mask = scores > CONF_THRESH
+        valid_count = np.sum(valid_mask)
+        print(f"DEBUG: Found {valid_count} detections above threshold {CONF_THRESH}")
+        
         if not np.any(valid_mask):
+            print("DEBUG: No valid detections found")
             return None
         
-        # 选择最高置信度的检测
-        best_idx = np.argmax(scores[valid_mask])
-        best_score = scores[valid_mask][best_idx]
+        boxes = boxes[valid_mask]
+        scores = scores[valid_mask]
+        if mask_coeffs is not None:
+            mask_coeffs = mask_coeffs[valid_mask]
         
-        # 获取对应的掩膜系数和边界框
-        valid_indices = np.where(valid_mask)[0]
-        best_global_idx = valid_indices[best_idx]
-        best_mask_coeffs = mask_coeffs[best_global_idx]
-        best_box = boxes[best_global_idx]
+        # 转换边界框格式 - 与main-seg-dvaipp2相同
+        boxes_xyxy = np.zeros_like(boxes)
+        boxes_xyxy[:, 0] = boxes[:, 0] - boxes[:, 2] / 2  # x1
+        boxes_xyxy[:, 1] = boxes[:, 1] - boxes[:, 3] / 2  # y1
+        boxes_xyxy[:, 2] = boxes[:, 0] + boxes[:, 2] / 2  # x2
+        boxes_xyxy[:, 3] = boxes[:, 1] + boxes[:, 3] / 2  # y2
         
-        # 生成分割掩膜
-        mask = self.generate_segmentation_mask(best_mask_coeffs, proto, best_box, orig_shape)
+        # 应用NMS - 与main-seg-dvaipp2相同
+        indices = self.nms(boxes_xyxy, scores, IOU_THRESH)
+        print(f"DEBUG: NMS indices: {indices}")
+        
+        if len(indices) == 0:
+            print("DEBUG: No detections after NMS")
+            return None
+        
+        # 选择最佳检测 - 与main-seg-dvaipp2相同
+        best_idx = indices[0]
+        best_box = boxes_xyxy[best_idx]
+        best_score = scores[best_idx]
+        print(f"DEBUG: Best detection score: {best_score:.3f}, box: {best_box}")
+        
+        # 生成掩膜 - 与main-seg-dvaipp2相同
+        if mask_coeffs is not None and proto is not None:
+            best_mask_coeffs = mask_coeffs[best_idx]
+            mask = self.generate_mask(best_mask_coeffs, proto, best_box, orig_shape)
+            print("DEBUG: Generated mask from coefficients")
+        else:
+            # 使用边界框创建简单掩膜
+            mask = self.create_bbox_mask(best_box, orig_shape)
+            print("DEBUG: Generated bbox mask")
         
         if mask is None:
+            print("DEBUG: Failed to generate mask")
             return None
         
-        # 直接从掩膜计算纸条中心点
-        center_point = self.calculate_paper_center_from_mask(mask)
+        print(f"DEBUG: Mask shape: {mask.shape}, non-zero pixels: {np.sum(mask > 0)}")
+        
+        # 计算纸条的真正中心点（中心骨架点）
+        center_point = self.calculate_paper_center(mask)
         
         if center_point is not None:
+            print(f"DEBUG: Calculated center point: {center_point}")
             return {
                 'center_x': center_point[0],
                 'center_y': center_point[1],
                 'confidence': best_score,
                 'mask': mask
             }
+        else:
+            print("DEBUG: Failed to calculate center point")
         
         return None
     
-    def generate_segmentation_mask(self, mask_coeffs, proto, box, orig_shape):
-        """从掩膜系数和原型生成分割掩膜"""
+    def nms(self, boxes, scores, iou_thresh):
+        """非最大抑制 - 与main-seg-dvaipp2相同"""
+        if len(boxes) == 0:
+            return []
+        
+        areas = (boxes[:, 2] - boxes[:, 0]) * (boxes[:, 3] - boxes[:, 1])
+        order = scores.argsort()[::-1]
+        
+        keep = []
+        while order.size > 0:
+            i = order[0]
+            keep.append(i)
+            
+            if order.size == 1:
+                break
+                
+            xx1 = np.maximum(boxes[i, 0], boxes[order[1:], 0])
+            yy1 = np.maximum(boxes[i, 1], boxes[order[1:], 1])
+            xx2 = np.minimum(boxes[i, 2], boxes[order[1:], 2])
+            yy2 = np.minimum(boxes[i, 3], boxes[order[1:], 3])
+            
+            w = np.maximum(0, xx2 - xx1)
+            h = np.maximum(0, yy2 - yy1)
+            inter = w * h
+            
+            union = areas[i] + areas[order[1:]] - inter
+            iou = inter / union
+            
+            inds = np.where(iou <= iou_thresh)[0]
+            order = order[inds + 1]
+        
+        return keep
+    
+    def generate_mask(self, mask_coeffs, proto, box, orig_shape):
+        """从掩膜系数和原型生成最终掩膜 - 与main-seg-dvaipp2相同"""
         try:
-            # 处理原型维度
             if proto.ndim == 4 and proto.shape[0] == 1:
                 proto = proto.squeeze(0)
             
-            # 计算掩膜：mask_coeffs @ proto
+            # 生成掩膜
             mask = np.sum(mask_coeffs[:, None, None] * proto, axis=0)
+            mask = 1 / (1 + np.exp(-mask))  # sigmoid激活
             
-            # Sigmoid激活
-            mask = 1 / (1 + np.exp(-mask))
+            # 将掩膜缩放到640x640
+            mask = cv2.resize(mask, (640, 640))
             
-            # 调整掩膜尺寸到640x640
-            if mask.shape != (640, 640):
-                mask = cv2.resize(mask, (640, 640))
-            
-            # 应用边界框裁剪（可选，通常分割模型不需要严格的框约束）
+            # 应用边界框裁剪
             x1, y1, x2, y2 = box.astype(int)
             x1, y1 = max(0, x1), max(0, y1)
             x2, y2 = min(640, x2), min(640, y2)
             
-            # 创建边界框掩膜（但不强制裁剪，只是作为权重）
             bbox_mask = np.zeros((640, 640), dtype=np.float32)
             bbox_mask[y1:y2, x1:x2] = 1.0
+            mask = mask * bbox_mask
             
-            # 轻微的边界框约束（保留框外的部分但降低权重）
-            mask = mask * (0.1 + 0.9 * bbox_mask)
-            
-            # 移除填充并调整到原图尺寸
+            # 还原到原图尺寸 (480, 640)
             mask = self.remove_padding_and_scale_mask(mask, orig_shape)
             
             # 二值化
             mask = (mask > 0.5).astype(np.uint8)
             
             return mask
-            
         except Exception as e:
-            print(f"ERROR: 生成分割掩膜失败: {e}")
+            print(f"ERROR: generate_mask failed: {e}")
             return None
     
-    def remove_padding_and_scale_mask(self, mask, orig_shape):
-        """移除填充并缩放掩膜到原图尺寸"""
+    def create_bbox_mask(self, box, orig_shape):
+        """基于边界框创建简单掩膜 - 与main-seg-dvaipp2相同"""
         try:
-            # 从640x640移除填充，提取中间的640x480区域
-            y_offset = (640 - 480) // 2
-            mask_cropped = mask[y_offset:y_offset+480, :]
+            orig_h, orig_w = orig_shape
             
-            # 缩放到原图尺寸
-            if mask_cropped.shape != orig_shape:
-                mask_scaled = cv2.resize(mask_cropped, (orig_shape[1], orig_shape[0]))
-            else:
-                mask_scaled = mask_cropped
+            # 调整边界框坐标从640x640到原图坐标系
+            y_offset = (640 - orig_h) // 2
+            x_offset = (640 - orig_w) // 2
             
-            return mask_scaled
+            x1, y1, x2, y2 = box.astype(int)
+            x1 = max(0, min(orig_w, x1 - x_offset))
+            y1 = max(0, min(orig_h, y1 - y_offset))
+            x2 = max(0, min(orig_w, x2 - x_offset))
+            y2 = max(0, min(orig_h, y2 - y_offset))
             
+            mask = np.zeros((orig_h, orig_w), dtype=np.uint8)
+            mask[y1:y2, x1:x2] = 1
+            
+            return mask
+        except Exception as e:
+            print(f"ERROR: create_bbox_mask failed: {e}")
+            return None
+
+    def remove_padding_and_scale_mask(self, mask, orig_shape):
+        """移除填充并缩放掩膜到原图尺寸 - 与main-seg-dvaipp2相同"""
+        try:
+            orig_h, orig_w = orig_shape
+            
+            # 由于我们将480x640的图像填充到640x640，需要反向操作
+            y_offset = (640 - orig_h) // 2
+            x_offset = (640 - orig_w) // 2
+            
+            # 提取有效区域
+            mask_cropped = mask[y_offset:y_offset+orig_h, x_offset:x_offset+orig_w]
+            
+            return mask_cropped
         except Exception as e:
             print(f"ERROR: 移除填充和缩放失败: {e}")
             return mask
     
-    def calculate_paper_center_from_mask(self, mask):
-        """直接从掩膜计算纸条中心点"""
+    def calculate_paper_center(self, mask):
+        """计算纸条的真正中心点 - 使用骨架化找到中心线上的点 - 与main-seg-dvaipp2相同"""
         try:
             # 确保掩膜是二值的
             binary_mask = (mask > 0).astype(np.uint8)
+            print(f"DEBUG: Binary mask sum: {np.sum(binary_mask)}")
             
-            # 检查掩膜有效性
-            if np.sum(binary_mask) < 10:
-                return None
+            if np.sum(binary_mask) < 10:  # 如果掩膜太小，直接返回质心
+                print("DEBUG: Mask too small, using centroid")
+                return self.calculate_centroid(binary_mask)
             
             # 方法1：使用形态学骨架化找到中心线
             try:
                 skeleton = skeletonize(binary_mask)
                 skeleton_points = np.where(skeleton > 0)
+                print(f"DEBUG: Skeleton points count: {len(skeleton_points[0])}")
                 
                 if len(skeleton_points[0]) > 0:
-                    # 计算质心作为参考点
-                    y_coords, x_coords = np.where(binary_mask > 0)
-                    centroid_x = int(np.mean(x_coords))
-                    centroid_y = int(np.mean(y_coords))
+                    # 在骨架点中找到最接近质心的点
+                    centroid = self.calculate_centroid(binary_mask)
+                    if centroid is None:
+                        print("DEBUG: Failed to calculate centroid")
+                        return None
                     
-                    # 找到最接近质心的骨架点
-                    distances = ((skeleton_points[1] - centroid_x) ** 2 + 
-                               (skeleton_points[0] - centroid_y) ** 2)
+                    print(f"DEBUG: Centroid: {centroid}")
+                    
+                    # 计算每个骨架点到质心的距离
+                    distances = ((skeleton_points[1] - centroid[0]) ** 2 + 
+                               (skeleton_points[0] - centroid[1]) ** 2)
                     closest_idx = np.argmin(distances)
                     
-                    center_x = int(skeleton_points[1][closest_idx])
-                    center_y = int(skeleton_points[0][closest_idx])
+                    center_x = skeleton_points[1][closest_idx]
+                    center_y = skeleton_points[0][closest_idx]
                     
-                    return (center_x, center_y)
+                    print(f"DEBUG: Skeleton center: ({center_x}, {center_y})")
+                    return (int(center_x), int(center_y))
             except Exception as e:
-                print(f"DEBUG: 骨架化失败，使用备选方法: {e}")
+                print(f"DEBUG: Skeletonize failed: {e}")
             
-            # 方法2：使用距离变换找到中心
+            # 方法2：如果骨架化失败，使用距离变换找到中心
             try:
                 dist_transform = cv2.distanceTransform(binary_mask, cv2.DIST_L2, 5)
+                
+                # 找到距离变换的最大值点（最远离边缘的点）
                 max_val = np.max(dist_transform)
+                print(f"DEBUG: Distance transform max: {max_val}")
                 
                 if max_val > 0:
                     max_points = np.where(dist_transform == max_val)
                     if len(max_points[0]) > 0:
+                        # 如果有多个最大值点，取中间的那个
                         center_idx = len(max_points[0]) // 2
-                        center_x = int(max_points[1][center_idx])
-                        center_y = int(max_points[0][center_idx])
-                        return (center_x, center_y)
+                        center_x = max_points[1][center_idx]
+                        center_y = max_points[0][center_idx]
+                        print(f"DEBUG: Distance transform center: ({center_x}, {center_y})")
+                        return (int(center_x), int(center_y))
             except Exception as e:
-                print(f"DEBUG: 距离变换失败，使用质心: {e}")
+                print(f"DEBUG: Distance transform failed: {e}")
             
-            # 方法3：直接使用质心
-            y_coords, x_coords = np.where(binary_mask > 0)
+            # 方法3：如果以上都失败，返回质心
+            print("DEBUG: Falling back to centroid")
+            return self.calculate_centroid(binary_mask)
+            
+        except Exception as e:
+            print(f"DEBUG: Error calculating paper center: {e}")
+            # 出错时返回质心
+            return self.calculate_centroid(mask)
+    
+    def calculate_centroid(self, mask):
+        """计算掩膜的质心 - 与main-seg-dvaipp2相同"""
+        try:
+            y_coords, x_coords = np.where(mask > 0)
+            
+            if len(x_coords) == 0 or len(y_coords) == 0:
+                return None
+            
             center_x = int(np.mean(x_coords))
             center_y = int(np.mean(y_coords))
             
             return (center_x, center_y)
-            
-        except Exception as e:
-            print(f"ERROR: 计算纸条中心点失败: {e}")
+        except:
             return None
 
     def cleanup(self):
@@ -629,7 +738,7 @@ class PaperLocalizerNode(Node):
             return
         
         # 创建发布器
-        self.pose_publisher = self.create_publisher(Pose, 'paper_center_pose', 10)
+        self.pose_publisher = self.create_publisher(Pose, 'paper_center_pose', 30)
         
         # 创建队列用于线程间通信（只保留最新的一个结果）
         self.prediction_queue = queue.Queue(maxsize=1)
