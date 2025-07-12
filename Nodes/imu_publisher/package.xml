@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypedir="urn:oasis:names:tc:entity:xmlns:xml:catalog"?>
+<package format="3">
+  <name>imu_publisher</name>
+  <version>0.0.1</version>
+  <description>A ROS2 node that publishes IMU data from serial input</description>
+  <maintainer email="you@example.com">HwHiAiUser</maintainer>
+  <license>TODO: License declaration</license>
+
+  <depend>rclpy</depend>
+  <depend>sensor_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>std_msgs</depend>
+
+  <test_depend>ament_copyright</test_depend>
+  <test_depend>ament_flake8</test_depend>
+  <test_depend>ament_pep257</test_depend>
+  <test_depend>python3-pytest</test_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>
