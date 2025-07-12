@@ -150,19 +150,23 @@ class PaperSegmentationDVPP:
             return False
 
     def init_padding_area(self):
-        """初始化640x640填充区域为黑色背景"""
+        """初始化640x640填充区域为绿色背景"""
         try:
+            # 在主机内存中初始化填充模式
             temp_host_buffer, ret = acl.rt.malloc_host(self.padded_yuv_size)
             if ret != 0:
                 return False
             
-            # 设置Y平面为0 (黑色的亮度值)
+            # 设置Y平面为150 (绿色的亮度值)
             y_size = 640 * 640
-            ctypes.memset(temp_host_buffer, 0, y_size)
+            ctypes.memset(temp_host_buffer, 150, y_size)
             
-            # 设置UV平面为128 (黑色的色度值)
+            # 设置UV平面为绿色的色度值 (U=44, V=21, 交替存储)
             uv_size = 640 * 640 // 2
-            ctypes.memset(temp_host_buffer + y_size, 128, uv_size)
+            uv_ptr = temp_host_buffer + y_size
+            for i in range(0, uv_size, 2):
+                ctypes.c_ubyte.from_address(uv_ptr + i).value = 44      # U分量
+                ctypes.c_ubyte.from_address(uv_ptr + i + 1).value = 21  # V分量
             
             # 将初始化的数据复制到设备内存
             ret = acl.rt.memcpy(self.padded_yuv_buffer, self.padded_yuv_size,
@@ -174,6 +178,7 @@ class PaperSegmentationDVPP:
                 print(f"Failed to initialize padding area: {ret}")
                 return False
             
+            print("Padding area initialized with green background")
             return True
             
         except Exception as e:
