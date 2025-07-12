@@ -4,7 +4,6 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import Pose
-from cv_bridge import CvBridge
 import cv2
 import numpy as np
 import acl
@@ -743,7 +742,6 @@ class PaperLocalizerNode(Node):
                                 self.latest_center = (result['center_x'], result['center_y'])
                                 self.latest_confidence = result['confidence']
                                 self.latest_mask = result['mask']
-                                self.get_logger().debug(f"检测到纸条: 中心({result['center_x']}, {result['center_y']}), 置信度{result['confidence']:.3f}")
                             else:
                                 self.latest_center = None
                                 self.latest_confidence = 0.0
@@ -751,38 +749,7 @@ class PaperLocalizerNode(Node):
                                 
                         except Exception as e:
                             self.get_logger().error(f"模型推理失败: {e}")
-                            # 打印更详细的错误信息
-                            import traceback
-                            self.get_logger().error(f"详细错误: {traceback.format_exc()}")
-            else:
-                # 如果不是原始MJPG数据，尝试重新编码
-                if len(frame_data.shape) == 3:
-                    # BGR图像，重新编码为JPEG
-                    _, jpeg_encoded = cv2.imencode('.jpg', frame_data)
-                    jpeg_data = jpeg_encoded.tobytes()
-                    
-                    # 使用优化的DVPP处理
-                    yuv_addr = self.paper_seg.process_jpeg_to_yuv_optimized(jpeg_data)
-                    if yuv_addr is not None:
-                        yuv_input = self.paper_seg.create_yuv_input_buffer_optimized(yuv_addr)
-                        
-                        if yuv_input is not None:
-                            try:
-                                pred = self.paper_seg.model.execute([yuv_input])
-                                result = self.paper_seg.postprocess_paper_center(pred, orig_shape=(480, 640))
-                                
-                                if result is not None:
-                                    self.latest_center = (result['center_x'], result['center_y'])
-                                    self.latest_confidence = result['confidence']
-                                    self.latest_mask = result['mask']
-                                else:
-                                    self.latest_center = None
-                                    self.latest_confidence = 0.0
-                                    self.latest_mask = None
-                                    
-                            except Exception as e:
-                                self.get_logger().error(f"BGR->JPEG模型推理失败: {e}")
-                                
+                            
         except Exception as e:
             self.get_logger().error(f"图像处理出错: {e}")
 
