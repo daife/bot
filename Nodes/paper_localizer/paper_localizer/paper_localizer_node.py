@@ -611,7 +611,7 @@ class PaperSegmentationDVPP:
             binary_mask = (mask > 0).astype(np.uint8)
             print(f"DEBUG: Binary mask sum: {np.sum(binary_mask)}")
             
-            if np.sum(binary_mask) < 10:  # 如果掩膜太小，直接返回质心
+            if np.sum(binary_mask) < 10: # 如果掩膜太小，直接返回质心
                 print("DEBUG: Mask too small, using centroid")
                 return self.calculate_centroid(binary_mask)
             
@@ -939,31 +939,31 @@ class PaperLocalizerNode(Node):
         """发布回调 - 30fps频率发布消息"""
         pose_msg = Pose()
         
-        # 图像中心点
-        image_center_x = 320
-        image_center_y = 240
+        # 硬编码的参考点坐标
+        reference_x = 337
+        reference_y = 258
         
         if self.latest_center is not None:
-            # 计算相对于图像中心的坐标（有符号）
+            # 计算相对于参考点的坐标（有符号）
             center_x_pixel, center_y_pixel = self.latest_center
             
-            # 相对于图像中心的坐标
-            relative_x = float(center_x_pixel - image_center_x)
-            relative_y = float(center_y_pixel - image_center_y)
+            # 相对于参考点的坐标
+            relative_x = float(center_x_pixel - reference_x)
+            relative_y = float(center_y_pixel - reference_y)
             
             pose_msg.position.x = relative_x
             pose_msg.position.y = relative_y
             
-            # 检查图像中心点是否在掩膜范围内
+            # 检查参考点是否在掩膜范围内
             if (self.latest_mask is not None and 
-                0 <= image_center_y < self.latest_mask.shape[0] and 
-                0 <= image_center_x < self.latest_mask.shape[1]):
+                0 <= reference_y < self.latest_mask.shape[0] and 
+                0 <= reference_x < self.latest_mask.shape[1]):
                 
-                if self.latest_mask[image_center_y, image_center_x] > 0:
-                    # 图像中心在掩膜内
+                if self.latest_mask[reference_y, reference_x] > 0:
+                    # 参考点在掩膜内
                     pose_msg.position.z = 1.0
                 else:
-                    # 图像中心不在掩膜内
+                    # 参考点不在掩膜内
                     pose_msg.position.z = 0.0
             else:
                 # 掩膜无效或坐标越界
@@ -972,7 +972,8 @@ class PaperLocalizerNode(Node):
             self.get_logger().debug(
                 f"发布纸条中心位置: x={relative_x:.1f}, y={relative_y:.1f}, z={pose_msg.position.z}, "
                 f"置信度={self.latest_confidence:.3f}, "
-                f"像素坐标=({center_x_pixel}, {center_y_pixel})"
+                f"像素坐标=({center_x_pixel}, {center_y_pixel}), "
+                f"参考点=({reference_x}, {reference_y})"
             )
         else:
             # 没有检测到目标
