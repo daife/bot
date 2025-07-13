@@ -26,7 +26,7 @@ camera_tracking_node:
     # 舵机硬件参数
     servo:
       yaw_pin: 6              # Yaw舵机GPIO引脚 (软件PWM)
-      pitch_pin: 13           # Pitch舵机GPIO引脚 (硬件PWM)
+      pitch_pin: 19           # Pitch舵机GPIO引脚 (硬件PWM, 修改为19)
       pitch_center_angle: 90  # Pitch中心角度
       pitch_min_angle: 30     # Pitch最小角度
       pitch_max_angle: 150    # Pitch最大角度
@@ -39,19 +39,23 @@ camera_tracking_node:
       speed_limit: 0.8             # Yaw最大速度限制
       angle_change_limit: 2.0      # Pitch单次最大角度变化
 
+# 参数调节说明：
 # 卡尔曼滤波：
-
 # process_variance↑ → 更快响应，更多噪声
 # measurement_variance↑ → 更平滑，响应更慢
-# Yaw轴PID：
 
+# Yaw轴PID：
 # 先调位置环，再调速度环
 # 增加kp可提高响应速度
-# Pitch轴PID：
 
+# Pitch轴PID：
 # 从小的kp开始调节
 # 增加kd可减少超调
-# 死区：
 
+# 死区：
 # 根据实际精度要求调整
 # 过小会抖动，过大会降低精度
+
+# 硬件配置：
+# Yaw舵机: GPIO 6 (软件PWM) - 连续旋转舵机
+# Pitch舵机: GPIO 19 (硬件PWM) - 180度位置舵机

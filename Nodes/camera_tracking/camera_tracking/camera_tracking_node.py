@@ -35,6 +35,9 @@ class CameraTrackingNode(Node):
         self.debug_mode = self.get_parameter('debug_mode').value
         self.debug_config_path = self.get_parameter('debug_config_path').value
         
+        # 初始化debug_params为空字典
+        self.debug_params = {}
+        
         if self.debug_mode:
             self.get_logger().info(f'启用调参模式，监听配置文件: {self.debug_config_path}')
             self.get_logger().info('按 "r" 键重载参数，按 "q" 键退出')
@@ -43,24 +46,26 @@ class CameraTrackingNode(Node):
             if not os.path.exists(self.debug_config_path):
                 self.get_logger().warn(f'调参配置文件不存在: {self.debug_config_path}')
                 self.get_logger().warn('将使用编译时参数作为默认值')
+                # 声明编译时参数作为后备
+                self.declare_compile_time_parameters()
             
             self.load_debug_parameters()
         else:
             self.get_logger().info('使用编译时参数')
-            self.declare_parameters()
+            self.declare_compile_time_parameters()
         
         # 初始化组件
         self.init_components()
         
         # 跟踪状态
         self.target_lost_count = 0
-        self.max_lost_frames = self.debug_params.get('tracking', {}).get('max_lost_frames', 30) if self.debug_mode else self.get_parameter('tracking.max_lost_frames').value
+        self.max_lost_frames = self.get_param_value('tracking.max_lost_frames', 30)
         self.tracking_active = False
         self.last_detection_time = time.time()
         
         # 死区参数
-        self.deadzone_x = self.debug_params.get('tracking', {}).get('deadzone_x', 5.0) if self.debug_mode else self.get_parameter('tracking.deadzone_x').value
-        self.deadzone_y = self.debug_params.get('tracking', {}).get('deadzone_y', 5.0) if self.debug_mode else self.get_parameter('tracking.deadzone_y').value
+        self.deadzone_x = self.get_param_value('tracking.deadzone_x', 5.0)
+        self.deadzone_y = self.get_param_value('tracking.deadzone_y', 5.0)
         
         # 订阅纸条位置话题
         self.pose_subscription = self.create_subscription(
@@ -103,15 +108,15 @@ class CameraTrackingNode(Node):
                 self.get_logger().warn('调参配置文件不存在，使用空参数字典')
                 self.debug_params = {}
                 # 仍然声明编译时参数作为后备
-                self.declare_parameters()
+                self.declare_compile_time_parameters()
         except Exception as e:
             self.get_logger().error(f'加载调参配置文件失败: {e}')
             self.get_logger().warn('将使用编译时参数')
             self.debug_params = {}
-            self.declare_parameters()
+            self.declare_compile_time_parameters()
     
-    def declare_parameters(self):
-        """声明ROS参数（非调参模式）"""
+    def declare_compile_time_parameters(self):
+        """声明ROS参数（重命名原来的declare_parameters方法）"""
         # 卡尔曼滤波参数
         self.declare_parameter('kalman.process_variance', 1.0)
         self.declare_parameter('kalman.measurement_variance', 25.0)
@@ -131,7 +136,7 @@ class CameraTrackingNode(Node):
         
         # 舵机参数
         self.declare_parameter('servo.yaw_pin', 6)
-        self.declare_parameter('servo.pitch_pin', 13)
+        self.declare_parameter('servo.pitch_pin', 19)  # 修改为19
         self.declare_parameter('servo.pitch_center_angle', 90)
         self.declare_parameter('servo.pitch_min_angle', 30)
         self.declare_parameter('servo.pitch_max_angle', 150)
@@ -220,7 +225,7 @@ class CameraTrackingNode(Node):
     def init_servos(self):
         """初始化舵机"""
         yaw_pin = self.get_param_value('servo.yaw_pin', 6)
-        pitch_pin = self.get_param_value('servo.pitch_pin', 13)
+        pitch_pin = self.get_param_value('servo.pitch_pin', 19)
         
         self.yaw_servo = YawServoController(pin=yaw_pin)
         
@@ -391,12 +396,16 @@ class CameraTrackingNode(Node):
         self.tracking_active = False
         
         # 停止Yaw轴运动
-        self.yaw_servo.set_speed(0.0)
+        if hasattr(self, 'yaw_servo'):
+            self.yaw_servo.set_speed(0.0)
         
         # 重置滤波器和控制器
-        self.kalman_filter.reset()
-        self.yaw_controller.reset()
-        self.pitch_controller.reset()
+        if hasattr(self, 'kalman_filter'):
+            self.kalman_filter.reset()
+        if hasattr(self, 'yaw_controller'):
+            self.yaw_controller.reset()
+        if hasattr(self, 'pitch_controller'):
+            self.pitch_controller.reset()
         
         self.get_logger().info('跟踪已停止')
     
@@ -425,7 +434,10 @@ class CameraTrackingNode(Node):
     
     def __del__(self):
         """析构函数"""
-        self.cleanup()
+        try:
+            self.cleanup()
+        except:
+            pass  # 忽略析构时的错误
 
 
 def main(args=None):

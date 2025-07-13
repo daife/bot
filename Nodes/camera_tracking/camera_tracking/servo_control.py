@@ -69,19 +69,18 @@ class YawServoController:
 class PitchServoController:
     """Pitch轴舵机控制器 - 位置舵机 - 硬件PWM"""
     
-    def __init__(self, pin=13, min_angle=0, max_angle=180):
+    def __init__(self, pin=19, min_angle=0, max_angle=180):
         self.pin = pin
         self.min_angle = min_angle
         self.max_angle = max_angle
         self.current_angle = 90  # 初始角度为中位
         
-        # 初始化GPIO和硬件PWM
+        # 初始化GPIO和硬件PWM (参考arm.py的设置)
         wiringpi.wiringPiSetup()
         wiringpi.pinMode(self.pin, GPIO.PWM_OUTPUT)
         
-        # 设置PWM时钟和范围
-        wiringpi.pwmSetClock(400)    # 设置PWM时钟分频
-        wiringpi.pwmSetRange(1000)   # 设置PWM范围
+        # 设置PWM范围 (参考arm.py，但调整为适合180度舵机)
+        wiringpi.pwmSetRange(self.pin, 3000000)
         
         # 设置初始角度
         self.set_angle(90)
@@ -104,13 +103,12 @@ class PitchServoController:
         """
         self.current_angle = max(self.min_angle, min(self.max_angle, angle))
         
-        # 将角度转换为PWM值
+        # 将角度转换为PWM值 (适用于180度舵机)
         # 0度对应0.5ms脉宽，180度对应2.5ms脉宽
-        # PWM值范围: 0-1000 (对应0%-100%占空比)
-        # 0.5ms对应2.5%占空比，2.5ms对应12.5%占空比
-        pulse_width_ms = 0.5 + (self.current_angle / 180.0) * 2.0
+        # 使用类似arm.py的PWM计算方式，但调整为180度范围
+        pulse_width_ms = 0.5 + (self.current_angle / 180.0) * 2.0  # 0.5ms到2.5ms
         duty_cycle = pulse_width_ms / 20.0  # 20ms周期
-        pwm_value = int(duty_cycle * 1000)
+        pwm_value = int(duty_cycle * 3000000)  # 使用3000000作为范围
         
         wiringpi.pwmWrite(self.pin, pwm_value)
     

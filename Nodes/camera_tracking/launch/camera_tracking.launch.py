@@ -26,7 +26,7 @@ def generate_launch_description():
     
     debug_mode_arg = DeclareLaunchArgument(
         'debug_mode',
-        default_value='false',
+        default_value='true',
         description='是否启用调参模式 (true/false)'
     )
     
