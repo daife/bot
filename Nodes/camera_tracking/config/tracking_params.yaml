@@ -1,0 +1,57 @@
+camera_tracking_node:
+  ros__parameters:
+    # 卡尔曼滤波参数
+    kalman:
+      process_variance: 1.0        # 过程噪声方差
+      measurement_variance: 25.0   # 测量噪声方差
+    
+    # Yaw轴串级PID参数 (软件PWM连续旋转舵机)
+    yaw:
+      position_pid:
+        kp: 0.01    # 位置环比例增益
+        ki: 0.001   # 位置环积分增益  
+        kd: 0.005   # 位置环微分增益
+      velocity_pid:
+        kp: 0.8     # 速度环比例增益
+        ki: 0.1     # 速度环积分增益
+        kd: 0.05    # 速度环微分增益
+    
+    # Pitch轴PID参数 (硬件PWM位置舵机)
+    pitch:
+      pid:
+        kp: 0.15    # 比例增益
+        ki: 0.01    # 积分增益
+        kd: 0.08    # 微分增益
+    
+    # 舵机硬件参数
+    servo:
+      yaw_pin: 6              # Yaw舵机GPIO引脚 (软件PWM)
+      pitch_pin: 13           # Pitch舵机GPIO引脚 (硬件PWM)
+      pitch_center_angle: 90  # Pitch中心角度
+      pitch_min_angle: 30     # Pitch最小角度
+      pitch_max_angle: 150    # Pitch最大角度
+    
+    # 跟踪控制参数
+    tracking:
+      deadzone_x: 5.0              # X方向死区(像素)
+      deadzone_y: 5.0              # Y方向死区(像素)
+      max_lost_frames: 30          # 最大丢失帧数
+      speed_limit: 0.8             # Yaw最大速度限制
+      angle_change_limit: 2.0      # Pitch单次最大角度变化
+
+# 卡尔曼滤波：
+
+# process_variance↑ → 更快响应，更多噪声
+# measurement_variance↑ → 更平滑，响应更慢
+# Yaw轴PID：
+
+# 先调位置环，再调速度环
+# 增加kp可提高响应速度
+# Pitch轴PID：
+
+# 从小的kp开始调节
+# 增加kd可减少超调
+# 死区：
+
+# 根据实际精度要求调整
+# 过小会抖动，过大会降低精度
