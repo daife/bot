@@ -22,3 +22,21 @@ if(BUILD_TESTING)
 endif()
 
 ament_package()
+
+# Install launch files
+install(DIRECTORY
+  launch
+  DESTINATION share/${PROJECT_NAME}/
+)
+
+# Install config files
+install(DIRECTORY
+  config
+  DESTINATION share/${PROJECT_NAME}/
+)
+
+# Install maps
+install(DIRECTORY
+  maps
+  DESTINATION share/${PROJECT_NAME}/
+)
