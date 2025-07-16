@@ -13,8 +13,8 @@ class KalmanFilter2D:
         # 状态协方差矩阵
         self.P = np.eye(4) * 100.0
         
-        # 状态转移矩阵 (dt = 0.033s, 约30Hz)
-        dt = 0.033
+        # 状态转移矩阵 (dt = 0.02s, 50Hz)
+        dt = 0.02
         self.F = np.array([
             [1, 0, dt, 0],
             [0, 1, 0, dt],

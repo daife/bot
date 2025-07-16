@@ -50,18 +50,18 @@ class YawServoController:
         while self.running:
             try:
                 # 将速度转换为脉宽
-                # speed=-1.0 -> 1.0ms, speed=0.0 -> 1.5ms, speed=1.0 -> 2.0ms
-                pulse_width_ms = 1.5 + self.current_speed * 0.5
+                # speed=-1.0 -> 0.5ms, speed=0.0 -> 1.5ms, speed=1.0 -> 2.5ms
+                pulse_width_ms = 1.5 + self.current_speed * 1.0  # 修正为±1.0ms
                 pulse_width_sec = pulse_width_ms / 1000.0
-                
+
                 period = 0.02  # 20ms周期
-                
+
                 # 生成PWM信号
                 wiringpi.digitalWrite(self.pin, GPIO.HIGH)
                 time.sleep(pulse_width_sec)
                 wiringpi.digitalWrite(self.pin, GPIO.LOW)
                 time.sleep(period - pulse_width_sec)
-                
+
             except Exception as e:
                 print(f"[YawServo] PWM线程错误: {e}")
                 time.sleep(0.02)

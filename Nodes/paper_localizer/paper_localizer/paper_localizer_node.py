@@ -726,7 +726,7 @@ class PaperLocalizerNode(Node):
         
         # 声明参数
         self.declare_parameter('model_path', 'yolo11s-seg-self-aipp.om')
-        self.declare_parameter('publish_rate', 30.0)  # 修改为30fps
+        self.declare_parameter('publish_rate', 50.0)  # 修改为50fps
         
         # 获取参数
         self.model_path = self.get_parameter('model_path').value
@@ -765,10 +765,10 @@ class PaperLocalizerNode(Node):
         self.processing_thread = threading.Thread(target=self.processing_thread_worker, daemon=True)
         self.processing_thread.start()
         
-        # 创建定时器控制主线程的推理频率（稍高于30fps以确保数据流畅）
+        # 创建定时器控制主线程的推理频率（40fps）
         self.inference_timer = self.create_timer(1.0 / 40.0, self.inference_callback)
         
-        # 创建定时器控制发布频率（30fps）
+        # 创建定时器控制发布频率（50fps）
         self.publish_timer = self.create_timer(1.0 / self.publish_rate, self.publish_callback)
         
         self.get_logger().info(f'纸条定位节点已启动，推理频率: 40fps, 发布频率: {self.publish_rate}fps')
@@ -936,7 +936,7 @@ class PaperLocalizerNode(Node):
         self.get_logger().info("后处理线程已退出")
 
     def publish_callback(self):
-        """发布回调 - 30fps频率发布消息"""
+        """发布回调 - 50fps频率发布消息"""
         pose_msg = Pose()
         
         # 硬编码的参考点坐标

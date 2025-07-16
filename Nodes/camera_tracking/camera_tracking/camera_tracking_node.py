@@ -64,8 +64,8 @@ class CameraTrackingNode(Node):
         self.last_detection_time = time.time()
         
         # 死区参数
-        self.deadzone_x = self.get_param_value('tracking.deadzone_x', 5.0)
-        self.deadzone_y = self.get_param_value('tracking.deadzone_y', 5.0)
+        self.deadzone_x = self.get_param_value('tracking.deadzone_x', 3.0)
+        self.deadzone_y = self.get_param_value('tracking.deadzone_y', 3.0)
         
         # 订阅纸条位置话题
         self.pose_subscription = self.create_subscription(
@@ -142,9 +142,9 @@ class CameraTrackingNode(Node):
         self.declare_parameter('servo.pitch_max_angle', 150)
         
         # 跟踪参数
-        self.declare_parameter('tracking.deadzone_x', 5.0)
-        self.declare_parameter('tracking.deadzone_y', 5.0)
-        self.declare_parameter('tracking.max_lost_frames', 30)
+        self.declare_parameter('tracking.deadzone_x', 3.0)#死区像素值
+        self.declare_parameter('tracking.deadzone_y', 3.0)
+        self.declare_parameter('tracking.max_lost_frames', 50)  # 1秒判定丢失
         self.declare_parameter('tracking.speed_limit', 0.8)
         self.declare_parameter('tracking.angle_change_limit', 2.0)
     
@@ -285,8 +285,8 @@ class CameraTrackingNode(Node):
             self.init_components()
             
             # 更新死区参数
-            self.deadzone_x = self.get_param_value('tracking.deadzone_x', 5.0)
-            self.deadzone_y = self.get_param_value('tracking.deadzone_y', 5.0)
+            self.deadzone_x = self.get_param_value('tracking.deadzone_x', 3.0)
+            self.deadzone_y = self.get_param_value('tracking.deadzone_y', 3.0)
             self.max_lost_frames = self.get_param_value('tracking.max_lost_frames', 30)
             
             # 重新启动舵机

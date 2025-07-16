@@ -14,7 +14,7 @@ parameters=[
         {'range_min': 0.05},
         {'range_max': 20.0},
         {'clockwise': False},
-        {'motor_speed': 10}
+        {'motor_speed': 15}
       ]
 '''
 
@@ -36,7 +36,7 @@ def generate_launch_description():
         {'range_min': 0.05},
         {'range_max': 20.0},
         {'clockwise': False},
-        {'motor_speed': 10}
+        {'motor_speed': 15}
       ]
   )
 
