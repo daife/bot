@@ -28,7 +28,7 @@ class CameraTrackingNode(Node):
         super().__init__('camera_tracking_node')
         
         # 声明调参模式相关参数
-        self.declare_parameter('debug_mode', False)
+        self.declare_parameter('debug_mode', True)
         self.declare_parameter('debug_config_path', '/home/HwHiAiUser/ros/src/Nodes/camera_tracking/config/tracking_params.yaml')
         
         # 获取调参模式设置
@@ -135,7 +135,7 @@ class CameraTrackingNode(Node):
         self.declare_parameter('pitch.pid.kd', 0.08)
         
         # 舵机参数
-        self.declare_parameter('servo.yaw_pin', 6)
+        self.declare_parameter('servo.yaw_pin', 7)
         self.declare_parameter('servo.pitch_pin', 19)  # 修改为19
         self.declare_parameter('servo.pitch_center_angle', 90)
         self.declare_parameter('servo.pitch_min_angle', 30)
@@ -224,7 +224,7 @@ class CameraTrackingNode(Node):
     
     def init_servos(self):
         """初始化舵机"""
-        yaw_pin = self.get_param_value('servo.yaw_pin', 6)
+        yaw_pin = self.get_param_value('servo.yaw_pin', 7)
         pitch_pin = self.get_param_value('servo.pitch_pin', 19)
         
         self.yaw_servo = YawServoController(pin=yaw_pin)

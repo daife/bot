@@ -6,7 +6,7 @@ from wiringpi import GPIO
 class YawServoController:
     """Yaw轴舵机控制器 - 连续旋转舵机 - 软件PWM"""
     
-    def __init__(self, pin=6):
+    def __init__(self, pin=7):
         self.pin = pin
         self.current_speed = 0.0  # -1.0 到 1.0
         self.running = False
