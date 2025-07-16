@@ -6,8 +6,17 @@ import serial
 import struct
 import time
 from nav_msgs.msg import Odometry
-import tf_transformations
 import math
+
+def quaternion_from_euler(roll, pitch, yaw):
+    """
+    Convert Euler angles to quaternion.
+    """
+    qx = math.sin(roll/2) * math.cos(pitch/2) * math.cos(yaw/2) - math.cos(roll/2) * math.sin(pitch/2) * math.sin(yaw/2)
+    qy = math.cos(roll/2) * math.sin(pitch/2) * math.cos(yaw/2) + math.sin(roll/2) * math.cos(pitch/2) * math.sin(yaw/2)
+    qz = math.cos(roll/2) * math.cos(pitch/2) * math.sin(yaw/2) - math.sin(roll/2) * math.sin(pitch/2) * math.cos(yaw/2)
+    qw = math.cos(roll/2) * math.cos(pitch/2) * math.cos(yaw/2) + math.sin(roll/2) * math.sin(pitch/2) * math.sin(yaw/2)
+    return [qx, qy, qz, qw]
 
 class OdomPublisher(Node):
     def __init__(self):
@@ -107,7 +116,7 @@ class OdomPublisher(Node):
             current_time = self.get_clock().now()
             
             # 创建四元数
-            quat = tf_transformations.quaternion_from_euler(0, 0, theta)
+            quat = quaternion_from_euler(0, 0, theta)
             
             # 发布里程计消息
             odom_msg = Odometry()

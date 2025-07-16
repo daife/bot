@@ -1,2 +1,2 @@
 source /home/HwHiAiUser/ros/install/setup.sh
-echo "未完成"
+ros2 launch fishbot_navigation2 fishbot_navigation2.launch.py

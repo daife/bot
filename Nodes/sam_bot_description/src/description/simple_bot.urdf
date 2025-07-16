@@ -36,7 +36,7 @@
   <xacro:macro name="wheel" params="prefix x y">
     <link name="${prefix}_wheel_link">
       <visual>
-        <origin xyz="0 0 0" rpy="0 1.5708 0"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
           <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
         </geometry>
@@ -45,7 +45,7 @@
         </material>
       </visual>
       <collision>
-        <origin xyz="0 0 0" rpy="0 1.5708 0"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
           <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
         </geometry>
@@ -56,7 +56,7 @@
         <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
       </inertial>
     </link>
-    <joint name="${prefix}_wheel_joint" type="continuous">
+    <joint name="${prefix}_wheel_joint" type="fixed">
       <parent link="base_link"/>
       <child link="${prefix}_wheel_link"/>
       <origin xyz="${x} ${y} ${-base_height/2 + wheel_radius}" rpy="0 0 0"/>
@@ -94,7 +94,7 @@
   <joint name="lidar_joint" type="fixed">
     <parent link="base_link"/>
     <child link="lidar_link"/>
-    <origin xyz="0 -0.09 0.19" rpy="0 0 0"/>
+    <origin xyz="${-wheel_base/2} ${wheel_separation/2 - 0.09} ${-base_height/2 + wheel_radius + 0.19}" rpy="0 0 0"/>
   </joint>
 
 </robot>
