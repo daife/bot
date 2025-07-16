@@ -4,7 +4,7 @@ import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import Odometry
 from sensor_msgs.msg import Imu
-from geometry_msgs.msg import TransformStamped, Quaternion, Vector3, Point
+from geometry_msgs.msg import Quaternion, Vector3, Point
 # from tf2_ros import TransformBroadcaster
 import math
 import time
@@ -41,8 +41,6 @@ class OdomImuPublisherNode(Node):
         self.running = False  # 控制后台线程运行
         
         # 创建发布器
-        # self.odom_publisher = self.create_publisher(Odometry, 'wheel_odom', 10)
-        # self.imu_publisher = self.create_publisher(Imu, '/imu/data', 10)
         self.odom_publisher = self.create_publisher(Odometry, 'wheel_odom', 10)
         self.imu_publisher = self.create_publisher(Imu, '/imu', 10)
         
@@ -172,7 +170,7 @@ class OdomImuPublisherNode(Node):
             self.get_logger().error(f"数据处理出错: {e}")
     
     def publish_odometry(self, timestamp, x, y, z, qx, qy, qz, qw, vx, vy, vz, wx, wy, wz):
-        """发布里程计消息和tf变换"""
+        """发布里程计消息"""
         # 创建里程计消息
         odom_msg = Odometry()
         odom_msg.header.stamp = timestamp
@@ -202,23 +200,6 @@ class OdomImuPublisherNode(Node):
         
         # 发布里程计消息
         self.odom_publisher.publish(odom_msg)
-        
-        # # 不发布tf变换，应当融合后通过robot_localization发布
-        # t = TransformStamped()
-        # t.header.stamp = timestamp
-        # t.header.frame_id = self.frame_id
-        # t.child_frame_id = self.child_frame_id
-        
-        # t.transform.translation.x = x
-        # t.transform.translation.y = y
-        # t.transform.translation.z = z
-        
-        # t.transform.rotation.x = qx
-        # t.transform.rotation.y = qy
-        # t.transform.rotation.z = qz
-        # t.transform.rotation.w = qw
-        
-        # self.tf_broadcaster.sendTransform(t)
     
     def publish_imu(self, timestamp, qx, qy, qz, qw, wx, wy, wz, ax, ay, az):
         """发布IMU消息"""
@@ -278,6 +259,7 @@ def main(args=None):
         node.close()
         node.destroy_node()
         rclpy.shutdown()
+
 
 if __name__ == '__main__':
     main()

@@ -743,7 +743,7 @@ class PaperLocalizerNode(Node):
             return
         
         # 创建发布器
-        self.pose_publisher = self.create_publisher(Pose, 'paper_center_pose', 30)
+        self.pose_publisher = self.create_publisher(Pose, 'paper_center_pose', 10)
         
         # 创建队列用于线程间通信（只保留最新的一个结果）
         self.prediction_queue = queue.Queue(maxsize=1)

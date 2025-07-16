@@ -26,12 +26,12 @@ class ChassisControlNode(Node):
             Twist,
             'cmd_vel',
             self.cmd_vel_callback,
-            10)
+            50)
         
         self.get_logger().info(f'麦轮底盘控制节点已启动，使用串口: {serial_device}')
         
         # 参数,限速
-        self.declare_parameter('max_linear_speed', 0.6)
+        self.declare_parameter('max_linear_speed', 2.5)
         self.declare_parameter('max_angular_speed', 1.0)
         
         self.max_linear_speed = self.get_parameter('max_linear_speed').get_parameter_value().double_value
@@ -65,7 +65,7 @@ class ChassisControlNode(Node):
         
         # 发送速度命令到底盘控制器
         try:
-            self.chassis.set_velocity(0.15*linear_x,-0.25*linear_y, 0.5*angular_z)
+            self.chassis.set_velocity(linear_x,linear_y, angular_z)
         except Exception as e:
             self.get_logger().error(f'发送速度命令失败: {e}')
     
