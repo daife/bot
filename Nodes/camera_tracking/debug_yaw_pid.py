@@ -5,13 +5,14 @@ import threading
 import time
 import sys
 import wiringpi
+import os
 
 # 新增导入
 from PyQt5 import QtWidgets, QtCore
 import queue
 
 class PIDController:
-    def __init__(self, kp=0.01, ki=0.001, kd=0.005):
+    def __init__(self, kp=0.0015, ki=0.0005, kd=0.0003):
         self.kp = kp
         self.ki = ki
         self.kd = kd
@@ -28,48 +29,38 @@ class PIDController:
         if dt <= 0: dt = 0.001
         self.integral += error * dt
         derivative = (error - self.prev_error) / dt
-        output = self.kp * error + self.ki * self.integral + self.kd * derivative
+        # 修改输出方向
+        output = (self.kp * error + self.ki * self.integral + self.kd * derivative)
         self.prev_error = error
         self.prev_time = now
         return output
 
 class YawServoController:
-    def __init__(self, pin=7):
+    def __init__(self, pin=19):
         self.pin = pin
-        self.current_speed = 0.0
-        self.running = False
-        self.thread = None
         wiringpi.wiringPiSetup()
-        wiringpi.pinMode(self.pin, wiringpi.GPIO.OUTPUT)
-        wiringpi.digitalWrite(self.pin, wiringpi.GPIO.LOW)
+        wiringpi.pinMode(self.pin, wiringpi.GPIO.PWM_OUTPUT)
+        wiringpi.pwmSetRange(self.pin, 3000000)
+        self.set_pulse_ms(1.5)  # 初始化为中位1.5ms
 
     def start(self):
-        if self.running: return
-        self.running = True
-        self.thread = threading.Thread(target=self._worker, daemon=True)
-        self.thread.start()
+        pass  # 硬件PWM无需线程
 
     def stop(self):
-        self.running = False
-        if self.thread: self.thread.join(timeout=1.0)
-        wiringpi.digitalWrite(self.pin, wiringpi.GPIO.LOW)
+        wiringpi.pwmWrite(self.pin, 0)
 
     def set_speed(self, speed):
-        self.current_speed = max(-1.0, min(1.0, speed))
+        # speed范围[-1, 1]，映射到脉宽1ms~2ms
+        speed = max(-1.0, min(1.0, speed))
+        pulse_ms = 1.5 + speed  # -1->0.5ms, 0->1.5ms, 1->2.5ms
+        self.set_pulse_ms(pulse_ms)
 
-    def _worker(self):
-        while self.running:
-            try:
-                pulse_ms = 1.5 + self.current_speed * 1.0
-                pulse_s = pulse_ms / 1000.0
-                period = 0.02
-                wiringpi.digitalWrite(self.pin, wiringpi.GPIO.HIGH)
-                time.sleep(pulse_s)
-                wiringpi.digitalWrite(self.pin, wiringpi.GPIO.LOW)
-                time.sleep(max(0, period - pulse_s))
-            except Exception as e:
-                print(f"[YawServo] PWM线程错误: {e}")
-                time.sleep(0.02)
+    def set_pulse_ms(self, pulse_ms):
+        # pulse_ms范围1.0~2.0
+        pulse_ms = max(1.0, min(2.0, pulse_ms))
+        duty_cycle = pulse_ms / 20.0
+        pwm_value = int(duty_cycle * 3000000)
+        wiringpi.pwmWrite(self.pin, pwm_value)
 
 # 新增：GUI线程安全参数队列
 pid_update_queue = queue.Queue()
@@ -78,9 +69,10 @@ class DebugYawPIDNode(Node):
     def __init__(self):
         super().__init__('debug_yaw_pid')
         self.pid = PIDController()
-        self.servo = YawServoController(pin=7)
+        self.servo = YawServoController(pin=19)  # 修改为硬件PWM引脚19
         self.servo.start()
         self.last_error = 0.0
+        self.last_output = 0.0  # 新增：记录最后一次的输出值
         self.subscription = self.create_subscription(
             Pose, 'paper_center_pose', self.pose_callback, 10)
         self.timer = self.create_timer(0.02, self.control_callback)
@@ -112,8 +104,7 @@ class DebugYawPIDNode(Node):
         output = self.pid.update(error)
         output = max(-1.0, min(1.0, output))
         self.servo.set_speed(output)
-        # 打印调试信息（可选）
-        #print(f"\r误差: {error:.2f} PID输出: {output:.3f} [P:{self.pid.kp:.3f} I:{self.pid.ki:.3f} D:{self.pid.kd:.3f}]", end='')
+        self.last_output = output  # 新增：保存当前输出
 
     def destroy_node(self):
         self.running = False
@@ -161,8 +152,11 @@ class PIDGui(QtWidgets.QWidget):
         ki = self.node.pid.ki
         kd = self.node.pid.kd
         error = self.node.filtered_error
+        output = self.node.last_output  # 新增：获取当前输出
         self.label_info.setText(
-            f"当前参数: P={kp:.3f} I={ki:.3f} D={kd:.3f}\n当前误差: {error:.2f}"
+            f"当前参数: P={kp:.5f} I={ki:.5f} D={kd:.35}\n"
+            f"当前误差: {error:.2f}\n"
+            f"当前舵机输出值: {output:.3f}"
         )
 
     def update_pid(self):

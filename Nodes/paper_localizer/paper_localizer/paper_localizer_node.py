@@ -828,11 +828,39 @@ class PaperLocalizerNode(Node):
         self.get_logger().info(f"FOURCC: {int(fourcc)}, Convert RGB: {int(convert_rgb)}")
         
         # 预热摄像头
+        max_retries = 3
         for i in range(5):
             ret, _ = self.cap.read()
             if ret:
                 self.get_logger().info(f"摄像头预热 {i+1}/5")
+            else:
+                self.get_logger().warn(f"摄像头预热失败 {i+1}/5，尝试重新初始化摄像头")
+                # 连续失败则重新初始化摄像头
+                for retry in range(max_retries):
+                    self.get_logger().warn(f"重新初始化摄像头，重试 {retry+1}/{max_retries}")
+                    if self.cap is not None:
+                        self.cap.release()
+                    camera_device = self.find_target_camera()
+                    if camera_device is None:
+                        self.get_logger().warn("未找到目标摄像头，使用默认摄像头 /dev/video0")
+                        camera_device = "/dev/video0"
+                    device_index = int(camera_device.replace('/dev/video', ''))
+                    self.cap = cv2.VideoCapture(device_index, cv2.CAP_V4L2)
+                    self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, CAMERA_WIDTH)
+                    self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, CAMERA_HEIGHT)
+                    self.cap.set(cv2.CAP_PROP_FPS, CAMERA_FPS)
+                    self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
+                    self.cap.set(cv2.CAP_PROP_CONVERT_RGB, 0)
+                    ret, _ = self.cap.read()
+                    if ret:
+                        self.get_logger().info(f"摄像头重新初始化成功，预热 {i+1}/5")
+                        break
+                    time.sleep(0.2)
+                else:
+                    self.get_logger().error("摄像头多次重新初始化失败")
+                    return
             time.sleep(0.1)
+        # ...existing code...
 
     def inference_callback(self):
         """主线程推理回调 - 处理摄像头数据、DVPP和模型推理"""
