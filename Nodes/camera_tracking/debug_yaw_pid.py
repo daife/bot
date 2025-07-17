@@ -41,7 +41,8 @@ class YawServoController:
         wiringpi.wiringPiSetup()
         wiringpi.pinMode(self.pin, wiringpi.GPIO.PWM_OUTPUT)
         wiringpi.pwmSetRange(self.pin, 3000000)
-        self.set_pulse_ms(1.5)  # 初始化为中位1.5ms
+        # 初始化为7.5%占空比（1.5ms脉宽）
+        self.set_pulse_ms(1.5)
 
     def start(self):
         pass  # 硬件PWM无需线程
