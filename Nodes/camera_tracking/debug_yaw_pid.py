@@ -4,8 +4,11 @@ from geometry_msgs.msg import Pose
 import threading
 import time
 import sys
-import select
 import wiringpi
+
+# 新增导入
+from PyQt5 import QtWidgets, QtCore
+import queue
 
 class PIDController:
     def __init__(self, kp=0.01, ki=0.001, kd=0.005):
@@ -31,7 +34,7 @@ class PIDController:
         return output
 
 class YawServoController:
-    def __init__(self, pin=6):
+    def __init__(self, pin=7):
         self.pin = pin
         self.current_speed = 0.0
         self.running = False
@@ -68,11 +71,14 @@ class YawServoController:
                 print(f"[YawServo] PWM线程错误: {e}")
                 time.sleep(0.02)
 
+# 新增：GUI线程安全参数队列
+pid_update_queue = queue.Queue()
+
 class DebugYawPIDNode(Node):
     def __init__(self):
         super().__init__('debug_yaw_pid')
         self.pid = PIDController()
-        self.servo = YawServoController(pin=6)
+        self.servo = YawServoController(pin=7)
         self.servo.start()
         self.last_error = 0.0
         self.subscription = self.create_subscription(
@@ -81,8 +87,6 @@ class DebugYawPIDNode(Node):
         self.filtered_error = 0.0
         self.deadzone = 3.0
         self.running = True
-        print("输入新的PID参数（如: 0.1 0.2 0.3）并回车可动态调整，Ctrl+C退出。")
-        threading.Thread(target=self.keyboard_thread, daemon=True).start()
 
     def pose_callback(self, msg):
         if msg.position.z == -1.0:
@@ -91,41 +95,112 @@ class DebugYawPIDNode(Node):
             self.filtered_error = msg.position.x
 
     def control_callback(self):
+        # 检查是否有新的PID参数更新
+        try:
+            while not pid_update_queue.empty():
+                new_params = pid_update_queue.get_nowait()
+                if new_params is not None:
+                    kp, ki, kd = new_params
+                    self.pid.kp = kp
+                    self.pid.ki = ki
+                    self.pid.kd = kd
+                    self.pid.reset()
+        except Exception:
+            pass
+
         error = self.filtered_error if abs(self.filtered_error) > self.deadzone else 0.0
         output = self.pid.update(error)
-        # 限幅
         output = max(-1.0, min(1.0, output))
         self.servo.set_speed(output)
-        # 可选：打印调试信息
-        print(f"\r误差: {error:.2f} PID输出: {output:.3f} [P:{self.pid.kp:.3f} I:{self.pid.ki:.3f} D:{self.pid.kd:.3f}]", end='')
-
-    def keyboard_thread(self):
-        while self.running:
-            try:
-                if select.select([sys.stdin], [], [], 0.1)[0]:
-                    line = sys.stdin.readline()
-                    parts = line.strip().split()
-                    if len(parts) == 3:
-                        try:
-                            kp, ki, kd = map(float, parts)
-                            self.pid.kp = kp
-                            self.pid.ki = ki
-                            self.pid.kd = kd
-                            self.pid.reset()
-                            print(f"\nPID参数已更新: kp={kp}, ki={ki}, kd={kd}")
-                        except Exception as e:
-                            print(f"\n参数解析错误: {e}")
-            except Exception:
-                pass
+        # 打印调试信息（可选）
+        #print(f"\r误差: {error:.2f} PID输出: {output:.3f} [P:{self.pid.kp:.3f} I:{self.pid.ki:.3f} D:{self.pid.kd:.3f}]", end='')
 
     def destroy_node(self):
         self.running = False
         self.servo.stop()
         super().destroy_node()
 
+# 新增：Qt5界面
+class PIDGui(QtWidgets.QWidget):
+    def __init__(self, node: DebugYawPIDNode):
+        super().__init__()
+        self.node = node
+        self.setWindowTitle("PID参数调试")
+        self.setGeometry(100, 100, 350, 200)
+
+        layout = QtWidgets.QVBoxLayout()
+
+        # 当前参数和误差显示
+        self.label_info = QtWidgets.QLabel()
+        layout.addWidget(self.label_info)
+
+        # 输入框
+        form_layout = QtWidgets.QFormLayout()
+        self.input_kp = QtWidgets.QLineEdit()
+        self.input_ki = QtWidgets.QLineEdit()
+        self.input_kd = QtWidgets.QLineEdit()
+        form_layout.addRow("P:", self.input_kp)
+        form_layout.addRow("I:", self.input_ki)
+        form_layout.addRow("D:", self.input_kd)
+        layout.addLayout(form_layout)
+
+        # 更新按钮
+        self.btn_update = QtWidgets.QPushButton("更新参数")
+        layout.addWidget(self.btn_update)
+        self.btn_update.clicked.connect(self.update_pid)
+
+        self.setLayout(layout)
+
+        # 定时刷新显示
+        self.timer = QtCore.QTimer()
+        self.timer.timeout.connect(self.refresh_info)
+        self.timer.start(100)
+
+    def refresh_info(self):
+        kp = self.node.pid.kp
+        ki = self.node.pid.ki
+        kd = self.node.pid.kd
+        error = self.node.filtered_error
+        self.label_info.setText(
+            f"当前参数: P={kp:.3f} I={ki:.3f} D={kd:.3f}\n当前误差: {error:.2f}"
+        )
+
+    def update_pid(self):
+        kp = self.node.pid.kp
+        ki = self.node.pid.ki
+        kd = self.node.pid.kd
+        # 只更新填写的参数
+        try:
+            if self.input_kp.text().strip():
+                kp = float(self.input_kp.text())
+            if self.input_ki.text().strip():
+                ki = float(self.input_ki.text())
+            if self.input_kd.text().strip():
+                kd = float(self.input_kd.text())
+            pid_update_queue.put((kp, ki, kd))
+            # 清空输入框
+            self.input_kp.clear()
+            self.input_ki.clear()
+            self.input_kd.clear()
+        except Exception as e:
+            QtWidgets.QMessageBox.warning(self, "参数错误", f"参数解析错误: {e}")
+
 def main(args=None):
     rclpy.init(args=args)
     node = DebugYawPIDNode()
+
+    # 启动Qt界面（单独线程）
+    def qt_thread_func():
+        app = QtWidgets.QApplication(sys.argv)
+        gui = PIDGui(node)
+        gui.show()
+        app.exec_()
+        # 关闭ROS节点
+        node.destroy_node()
+
+    qt_thread = threading.Thread(target=qt_thread_func, daemon=True)
+    qt_thread.start()
+
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:
