@@ -3,7 +3,7 @@ camera_tracking_node:
     # 卡尔曼滤波参数
     kalman:
       process_variance: 1.0        # 过程噪声方差
-      measurement_variance: 25.0   # 测量噪声方差
+      measurement_variance: 2.0   # 测量噪声方差
     
     # Yaw轴串级PID参数 (软件PWM连续旋转舵机)
     yaw:
@@ -25,7 +25,7 @@ camera_tracking_node:
     
     # 舵机硬件参数
     servo:
-      yaw_pin: 6              # Yaw舵机GPIO引脚 (软件PWM)
+      yaw_pin: 7              # Yaw舵机GPIO引脚 (软件PWM)
       pitch_pin: 19           # Pitch舵机GPIO引脚 (硬件PWM, 修改为19)
       pitch_center_angle: 90  # Pitch中心角度
       pitch_min_angle: 30     # Pitch最小角度
@@ -37,7 +37,7 @@ camera_tracking_node:
       deadzone_y: 3.0              # Y方向死区(像素)
       max_lost_frames: 30          # 最大丢失帧数
       speed_limit: 0.8             # Yaw最大速度限制
-      angle_change_limit: 2.0      # Pitch单次最大角度变化
+      angle_change_limit: 10.0      # Pitch单次最大角度变化
 
 # 参数调节说明：
 # 卡尔曼滤波：
