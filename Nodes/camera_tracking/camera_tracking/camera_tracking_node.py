@@ -54,9 +54,11 @@ class YawServoController:
 
 class PitchSerialController:
     def __init__(self, port='/dev/ttyAMA0', baudrate=115200):
+        # 只在初始化时打开串口
         self.serial_port = serial.Serial(port, baudrate=baudrate, timeout=0.1)
 
     def send_y(self, y):
+        # 只发送y的偏差，不做PID调节
         data = bytearray(14)
         data[0] = 0xAA
         struct.pack_into('<f', data, 1, float(y))
@@ -72,14 +74,14 @@ class PitchSerialController:
 class CameraTrackingNode(Node):
     def __init__(self):
         super().__init__('camera_tracking')
-        # 固定PID参数
         self.yaw_pid = PIDController(kp=0.0015, ki=0.0005, kd=0.0003)
-        self.pitch_pid = PIDController(kp=0.0005, ki=0.0, kd=0.0)
+        # 不再需要本地pitch PID
+        # self.pitch_pid = PIDController(kp=0.0005, ki=0.0, kd=0.0)
         self.servo = YawServoController(pin=19)
         self.pitch_serial = PitchSerialController()
         self.last_yaw_error = 0.0
         self.last_pitch_error = 0.0
-        self.deadzone_yaw = 3.0
+        self.deadzone_yaw = 2.0
         self.subscription = self.create_subscription(
             Pose, 'paper_center_pose', self.pose_callback, 10)
         self.timer = self.create_timer(0.02, self.control_callback)
@@ -88,6 +90,9 @@ class CameraTrackingNode(Node):
         if msg.position.z == -1.0:
             self.last_yaw_error = 0.0
             self.last_pitch_error = 0.0
+            # 目标丢失时立即归中
+            self.servo.set_speed(0.0)
+            self.pitch_serial.send_y(0.0)
         else:
             self.last_yaw_error = msg.position.x
             self.last_pitch_error = msg.position.y
@@ -98,9 +103,8 @@ class CameraTrackingNode(Node):
         yaw_output = self.yaw_pid.update(yaw_error)
         yaw_output = max(-1.0, min(1.0, yaw_output))
         self.servo.set_speed(yaw_output)
-        # Pitch控制
-        pitch_output = self.pitch_pid.update(self.last_pitch_error)
-        self.pitch_serial.send_y(pitch_output)
+        # Pitch控制：直接发送y的偏差
+        self.pitch_serial.send_y(self.last_pitch_error)
 
     def destroy_node(self):
         self.servo.stop()
