@@ -53,8 +53,8 @@ class HandleControlNode(Node):
             10)
         
         # 控制参数
-        self.linear_speed = 1.0  # 线性速度 (m/s)
-        self.angular_speed = 1.0  # 角速度 (rad/s)
+        self.linear_speed = 0.2  # 线性速度 (m/s)
+        self.angular_speed = 0.2  # 角速度 (rad/s)
         
         # 爪子状态 (0: 抓取, 1: 释放)
         self.claw_state = 0
