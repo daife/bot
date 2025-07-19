@@ -29,11 +29,41 @@ class PIDController:
         if dt <= 0: dt = 0.001
         self.integral += error * dt
         derivative = (error - self.prev_error) / dt
-        # 修改输出方向
         output = (self.kp * error + self.ki * self.integral + self.kd * derivative)
         self.prev_error = error
         self.prev_time = now
         return output
+
+# 新增：双环PID
+class DoubleLoopYawPID:
+    def __init__(self):
+        # 外环：位置环，参数与原先一致
+        self.outer_pid = PIDController(kp=0.0015, ki=0.0005, kd=0.0003)
+        # 内环：速度环，参数更大，响应更快，建议如下
+        # 速度环kp建议为0.5~1.0，ki=0.05~0.1，kd=0.0（大幅提高响应）
+        self.inner_pid = PIDController(kp=0.7, ki=0.08, kd=0.0)
+        self.target_speed = 0.0
+        self.last_speed = 0.0
+        self.last_time = time.time()
+
+    def reset(self):
+        self.outer_pid.reset()
+        self.inner_pid.reset()
+        self.target_speed = 0.0
+        self.last_speed = 0.0
+        self.last_time = time.time()
+
+    def update(self, pos_error, measured_speed):
+        # 外环：由位置误差得到目标速度
+        self.target_speed = self.outer_pid.update(pos_error)
+        # 限制目标速度范围
+        self.target_speed = max(-1.0, min(1.0, self.target_speed))
+        # 内环：由目标速度和当前速度得到舵机控制量
+        speed_error = self.target_speed - measured_speed
+        output = self.inner_pid.update(speed_error)
+        # 限制输出
+        output = max(-1.0, min(1.0, output))
+        return output, self.target_speed
 
 class YawServoController:
     def __init__(self, pin=19):
@@ -65,15 +95,16 @@ class YawServoController:
 
 # 新增：GUI线程安全参数队列
 pid_update_queue = queue.Queue()
+inner_pid_update_queue = queue.Queue()  # 新增：内环参数队列
 
 class DebugYawPIDNode(Node):
     def __init__(self):
         super().__init__('debug_yaw_pid')
-        self.pid = PIDController()
-        self.servo = YawServoController(pin=19)  # 修改为硬件PWM引脚19
+        self.pid = DoubleLoopYawPID()  # 双环PID
+        self.servo = YawServoController(pin=19)
         self.servo.start()
         self.last_error = 0.0
-        self.last_output = 0.0  # 新增：记录最后一次的输出值
+        self.last_output = 0.0
         self.subscription = self.create_subscription(
             Pose, 'paper_center_pose', self.pose_callback, 10)
         self.timer = self.create_timer(0.02, self.control_callback)
@@ -85,6 +116,10 @@ class DebugYawPIDNode(Node):
         self.reverse_time = 0
         self.gear_delay = 0.035  # 35ms
         self.suppress_gear = False
+        # 新增：速度估算
+        self.last_pos = 0.0
+        self.last_speed = 0.0
+        self.last_speed_time = time.time()
 
     def pose_callback(self, msg):
         if msg.position.z == -1.0:
@@ -92,17 +127,40 @@ class DebugYawPIDNode(Node):
         else:
             self.filtered_error = msg.position.x
 
+    def estimate_speed(self, cur_pos):
+        now = time.time()
+        dt = now - self.last_speed_time
+        if dt <= 0: dt = 0.001
+        speed = (cur_pos - self.last_pos) / dt
+        self.last_pos = cur_pos
+        self.last_speed_time = now
+        # 限幅，避免异常跳变
+        speed = max(-2.0, min(2.0, speed))
+        return speed
+
     def control_callback(self):
-        # 检查是否有新的PID参数更新
+        # 检查是否有新的外环PID参数更新
         try:
             while not pid_update_queue.empty():
                 new_params = pid_update_queue.get_nowait()
                 if new_params is not None:
                     kp, ki, kd = new_params
-                    self.pid.kp = kp
-                    self.pid.ki = ki
-                    self.pid.kd = kd
-                    self.pid.reset()
+                    self.pid.outer_pid.kp = kp
+                    self.pid.outer_pid.ki = ki
+                    self.pid.outer_pid.kd = kd
+                    self.pid.outer_pid.reset()
+        except Exception:
+            pass
+        # 检查是否有新的内环PID参数更新
+        try:
+            while not inner_pid_update_queue.empty():
+                new_params = inner_pid_update_queue.get_nowait()
+                if new_params is not None:
+                    kp, ki, kd = new_params
+                    self.pid.inner_pid.kp = kp
+                    self.pid.inner_pid.ki = ki
+                    self.pid.inner_pid.kd = kd
+                    self.pid.inner_pid.reset()
         except Exception:
             pass
 
@@ -116,20 +174,21 @@ class DebugYawPIDNode(Node):
             cur_dir = -1
         now = time.time()
         if cur_dir != 0 and cur_dir != self.yaw_dir:
-            # 方向反转，抑制误差
             self.reverse_time = now
             self.suppress_gear = True
             self.yaw_dir = cur_dir
         if self.suppress_gear:
             if now - self.reverse_time < self.gear_delay:
-                error = 0.0  # 抑制误差输入
+                error = 0.0
             else:
                 self.suppress_gear = False
 
-        output = self.pid.update(error)
-        output = max(-1.0, min(1.0, output))
+        # 速度估算
+        measured_speed = self.estimate_speed(self.filtered_error)
+        # 双环PID
+        output, target_speed = self.pid.update(error, measured_speed)
         self.servo.set_speed(output)
-        self.last_output = output  # 新增：保存当前输出
+        self.last_output = output
 
     def destroy_node(self):
         self.running = False
@@ -142,7 +201,7 @@ class PIDGui(QtWidgets.QWidget):
         super().__init__()
         self.node = node
         self.setWindowTitle("PID参数调试")
-        self.setGeometry(100, 100, 350, 200)
+        self.setGeometry(100, 100, 350, 260)
 
         layout = QtWidgets.QVBoxLayout()
 
@@ -150,20 +209,35 @@ class PIDGui(QtWidgets.QWidget):
         self.label_info = QtWidgets.QLabel()
         layout.addWidget(self.label_info)
 
-        # 输入框
+        # 外环输入框
         form_layout = QtWidgets.QFormLayout()
         self.input_kp = QtWidgets.QLineEdit()
         self.input_ki = QtWidgets.QLineEdit()
         self.input_kd = QtWidgets.QLineEdit()
-        form_layout.addRow("P:", self.input_kp)
-        form_layout.addRow("I:", self.input_ki)
-        form_layout.addRow("D:", self.input_kd)
+        form_layout.addRow("外环P:", self.input_kp)
+        form_layout.addRow("外环I:", self.input_ki)
+        form_layout.addRow("外环D:", self.input_kd)
         layout.addLayout(form_layout)
 
-        # 更新按钮
-        self.btn_update = QtWidgets.QPushButton("更新参数")
+        # 外环更新按钮
+        self.btn_update = QtWidgets.QPushButton("更新外环参数")
         layout.addWidget(self.btn_update)
         self.btn_update.clicked.connect(self.update_pid)
+
+        # 内环输入框
+        inner_form_layout = QtWidgets.QFormLayout()
+        self.input_inner_kp = QtWidgets.QLineEdit()
+        self.input_inner_ki = QtWidgets.QLineEdit()
+        self.input_inner_kd = QtWidgets.QLineEdit()
+        inner_form_layout.addRow("内环P:", self.input_inner_kp)
+        inner_form_layout.addRow("内环I:", self.input_inner_ki)
+        inner_form_layout.addRow("内环D:", self.input_inner_kd)
+        layout.addLayout(inner_form_layout)
+
+        # 内环更新按钮
+        self.btn_update_inner = QtWidgets.QPushButton("更新内环参数")
+        layout.addWidget(self.btn_update_inner)
+        self.btn_update_inner.clicked.connect(self.update_inner_pid)
 
         self.setLayout(layout)
 
@@ -173,22 +247,27 @@ class PIDGui(QtWidgets.QWidget):
         self.timer.start(100)
 
     def refresh_info(self):
-        kp = self.node.pid.kp
-        ki = self.node.pid.ki
-        kd = self.node.pid.kd
+        kp = self.node.pid.outer_pid.kp
+        ki = self.node.pid.outer_pid.ki
+        kd = self.node.pid.outer_pid.kd
         error = self.node.filtered_error
-        output = self.node.last_output  # 新增：获取当前输出
+        output = self.node.last_output
+        inner_kp = self.node.pid.inner_pid.kp
+        inner_ki = self.node.pid.inner_pid.ki
+        inner_kd = self.node.pid.inner_pid.kd
+        target_speed = getattr(self.node.pid, "target_speed", 0.0)
         self.label_info.setText(
-            f"当前参数: P={kp:.5f} I={ki:.5f} D={kd:.35}\n"
+            f"外环: P={kp:.5f} I={ki:.5f} D={kd:.5f}\n"
+            f"内环: P={inner_kp:.3f} I={inner_ki:.3f} D={inner_kd:.3f}\n"
             f"当前误差: {error:.2f}\n"
+            f"目标速度: {target_speed:.3f}\n"
             f"当前舵机输出值: {output:.3f}"
         )
 
     def update_pid(self):
-        kp = self.node.pid.kp
-        ki = self.node.pid.ki
-        kd = self.node.pid.kd
-        # 只更新填写的参数
+        kp = self.node.pid.outer_pid.kp
+        ki = self.node.pid.outer_pid.ki
+        kd = self.node.pid.outer_pid.kd
         try:
             if self.input_kp.text().strip():
                 kp = float(self.input_kp.text())
@@ -197,12 +276,29 @@ class PIDGui(QtWidgets.QWidget):
             if self.input_kd.text().strip():
                 kd = float(self.input_kd.text())
             pid_update_queue.put((kp, ki, kd))
-            # 清空输入框
             self.input_kp.clear()
             self.input_ki.clear()
             self.input_kd.clear()
         except Exception as e:
             QtWidgets.QMessageBox.warning(self, "参数错误", f"参数解析错误: {e}")
+
+    def update_inner_pid(self):
+        kp = self.node.pid.inner_pid.kp
+        ki = self.node.pid.inner_pid.ki
+        kd = self.node.pid.inner_pid.kd
+        try:
+            if self.input_inner_kp.text().strip():
+                kp = float(self.input_inner_kp.text())
+            if self.input_inner_ki.text().strip():
+                ki = float(self.input_inner_ki.text())
+            if self.input_inner_kd.text().strip():
+                kd = float(self.input_inner_kd.text())
+            inner_pid_update_queue.put((kp, ki, kd))
+            self.input_inner_kp.clear()
+            self.input_inner_ki.clear()
+            self.input_inner_kd.clear()
+        except Exception as e:
+            QtWidgets.QMessageBox.warning(self, "参数错误", f"内环参数解析错误: {e}")
 
 def main(args=None):
     rclpy.init(args=args)
