@@ -14,6 +14,9 @@ setup(
         (f'share/{package_name}/config', ['config/nav2_params.yaml']),
         (f'share/{package_name}/maps', [
             'maps/static_map.yaml',
+            'maps/static_map.pgm',  # 添加地图图片文件
+            'maps/keepout_mask.yaml',
+            'maps/keepout_mask.pgm',  # 添加禁止区域图片文件
             # 你可以在这里添加更多地图文件
         ]),
     ],
