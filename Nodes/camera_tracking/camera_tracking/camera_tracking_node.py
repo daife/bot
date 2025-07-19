@@ -35,22 +35,22 @@ class YawServoController:
         wiringpi.wiringPiSetup()
         wiringpi.pinMode(self.pin, wiringpi.GPIO.PWM_OUTPUT)
         wiringpi.pwmSetRange(self.pin, 3000000)
-        # 初始化为7.5%占空比（1.5ms脉宽）
-        self.set_pulse_ms(1.5)
+        self.set_duty(7.5)
 
-    def set_speed(self, speed):
-        speed = max(-1.0, min(1.0, speed))
-        pulse_ms = 1.5 + speed
-        self.set_pulse_ms(pulse_ms)
-
-    def set_pulse_ms(self, pulse_ms):
-        pulse_ms = max(1.0, min(2.0, pulse_ms))
+    def set_duty(self, percent):
+        percent = max(5.0, min(10.0, percent))
+        pulse_ms = percent * 0.2  # 5%->1.0ms, 10%->2.0ms
         duty_cycle = pulse_ms / 20.0
         pwm_value = int(duty_cycle * 3000000)
         wiringpi.pwmWrite(self.pin, pwm_value)
 
+    def set_speed(self, speed):
+        # speed: -1~1, 0为停止
+        percent = 7.5 + speed * 2.5  # -1->5%, 0->7.5%, 1->10%
+        self.set_duty(percent)
+
     def stop(self):
-        wiringpi.pwmWrite(self.pin, 0)
+        self.set_duty(7.5)
 
 class PitchSerialController:
     def __init__(self, port='/dev/ttyAMA0', baudrate=115200):
@@ -75,8 +75,6 @@ class CameraTrackingNode(Node):
     def __init__(self):
         super().__init__('camera_tracking')
         self.yaw_pid = PIDController(kp=0.0015, ki=0.0005, kd=0.0003)
-        # 不再需要本地pitch PID
-        # self.pitch_pid = PIDController(kp=0.0005, ki=0.0, kd=0.0)
         self.servo = YawServoController(pin=19)
         self.pitch_serial = PitchSerialController()
         self.last_yaw_error = 0.0
@@ -85,12 +83,16 @@ class CameraTrackingNode(Node):
         self.subscription = self.create_subscription(
             Pose, 'paper_center_pose', self.pose_callback, 10)
         self.timer = self.create_timer(0.02, self.control_callback)
+        # 齿隙建模
+        self.yaw_dir = 0  # -1, 0, 1
+        self.reverse_time = 0
+        self.gear_delay = 0.035  # 35ms
+        self.suppress_gear = False
 
     def pose_callback(self, msg):
         if msg.position.z == -1.0:
             self.last_yaw_error = 0.0
             self.last_pitch_error = 0.0
-            # 目标丢失时立即归中
             self.servo.set_speed(0.0)
             self.pitch_serial.send_y(0.0)
         else:
@@ -98,9 +100,28 @@ class CameraTrackingNode(Node):
             self.last_pitch_error = msg.position.y
 
     def control_callback(self):
-        # Yaw控制
-        yaw_error = self.last_yaw_error if abs(self.last_yaw_error) > self.deadzone_yaw else 0.0
-        yaw_output = self.yaw_pid.update(yaw_error)
+        # 齿隙建模：检测方向反转，反转后0.035s内抑制yaw误差
+        raw_error = self.last_yaw_error
+        # 死区
+        error = raw_error if abs(raw_error) > self.deadzone_yaw else 0.0
+        # 当前方向
+        cur_dir = 0
+        if error > 0:
+            cur_dir = 1
+        elif error < 0:
+            cur_dir = -1
+        now = time.time()
+        if cur_dir != 0 and cur_dir != self.yaw_dir:
+            # 方向反转，抑制误差
+            self.reverse_time = now
+            self.suppress_gear = True
+            self.yaw_dir = cur_dir
+        if self.suppress_gear:
+            if now - self.reverse_time < self.gear_delay:
+                error = 0.0  # 抑制误差输入
+            else:
+                self.suppress_gear = False
+        yaw_output = self.yaw_pid.update(error)
         yaw_output = max(-1.0, min(1.0, yaw_output))
         self.servo.set_speed(yaw_output)
         # Pitch控制：直接发送y的偏差

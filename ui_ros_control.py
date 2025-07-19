@@ -52,13 +52,12 @@ class MotorController:
         wiringpi.pwmWrite(self.yaw_pin, pwm_value)
 
     def yaw_left(self):
-        self.set_yaw_duty(6.0)
-        time.sleep(0.5)
-        self.set_yaw_duty(7.5)
+        self.set_yaw_duty(5.0)
 
     def yaw_right(self):
-        self.set_yaw_duty(9.0)
-        time.sleep(0.5)
+        self.set_yaw_duty(10.0)
+
+    def yaw_stop(self):
         self.set_yaw_duty(7.5)
 
     def pitch_reset(self):
@@ -127,11 +126,24 @@ class UiMain(QtWidgets.QWidget):
         self.btn_yaw_left = QtWidgets.QPushButton("Yaw 左")
         self.btn_yaw_right = QtWidgets.QPushButton("Yaw 右")
         self.btn_pitch_reset.clicked.connect(self.pitch_reset)
-        self.btn_yaw_left.clicked.connect(self.yaw_left)
-        self.btn_yaw_right.clicked.connect(self.yaw_right)
+        self.btn_yaw_left.pressed.connect(self.yaw_left)
+        self.btn_yaw_left.released.connect(self.yaw_stop)
+        self.btn_yaw_right.pressed.connect(self.yaw_right)
+        self.btn_yaw_right.released.connect(self.yaw_stop)
         layout.addWidget(self.btn_pitch_reset)
         layout.addWidget(self.btn_yaw_left)
         layout.addWidget(self.btn_yaw_right)
+
+        # 新增：Yaw死区测试输入框和按钮
+        hbox_deadzone = QtWidgets.QHBoxLayout()
+        self.input_deadzone_time = QtWidgets.QLineEdit()
+        self.input_deadzone_time.setPlaceholderText("持续时间(s)")
+        self.input_deadzone_time.setFixedWidth(80)
+        self.btn_test_yaw_deadzone = QtWidgets.QPushButton("测试Yaw死区")
+        self.btn_test_yaw_deadzone.clicked.connect(self.test_yaw_deadzone)
+        hbox_deadzone.addWidget(self.input_deadzone_time)
+        hbox_deadzone.addWidget(self.btn_test_yaw_deadzone)
+        layout.addLayout(hbox_deadzone)
 
         self.setLayout(layout)
         self.update_manual_buttons()
@@ -190,6 +202,27 @@ class UiMain(QtWidgets.QWidget):
 
     def yaw_right(self):
         threading.Thread(target=self.motor.yaw_right, daemon=True).start()
+
+    def yaw_stop(self):
+        threading.Thread(target=self.motor.yaw_stop, daemon=True).start()
+
+    def test_yaw_deadzone(self):
+        try:
+            duration = float(self.input_deadzone_time.text())
+            if duration <= 0:
+                raise ValueError
+        except Exception:
+            QtWidgets.QMessageBox.warning(self, "输入错误", "请输入有效的持续时间（秒）")
+            return
+
+        def run_test():
+            self.btn_test_yaw_deadzone.setEnabled(False)
+            self.yaw_left()
+            time.sleep(duration)
+            self.yaw_stop()
+            self.btn_test_yaw_deadzone.setEnabled(True)
+
+        threading.Thread(target=run_test, daemon=True).start()
 
     def start_ros_subscriber(self):
         def ros_spin():

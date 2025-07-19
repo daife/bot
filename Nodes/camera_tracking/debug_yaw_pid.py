@@ -42,7 +42,7 @@ class YawServoController:
         wiringpi.pinMode(self.pin, wiringpi.GPIO.PWM_OUTPUT)
         wiringpi.pwmSetRange(self.pin, 3000000)
         # 初始化为7.5%占空比（1.5ms脉宽）
-        self.set_pulse_ms(1.5)
+        self.set_duty(7.5)
 
     def start(self):
         pass  # 硬件PWM无需线程
@@ -51,14 +51,14 @@ class YawServoController:
         wiringpi.pwmWrite(self.pin, 0)
 
     def set_speed(self, speed):
-        # speed范围[-1, 1]，映射到脉宽1ms~2ms
+        # speed范围[-1, 1]，线性映射到5%~10%，0为7.5%
         speed = max(-1.0, min(1.0, speed))
-        pulse_ms = 1.5 + speed  # -1->0.5ms, 0->1.5ms, 1->2.5ms
-        self.set_pulse_ms(pulse_ms)
+        percent = 7.5 + speed * 2.5  # -1->5%, 0->7.5%, 1->10%
+        self.set_duty(percent)
 
-    def set_pulse_ms(self, pulse_ms):
-        # pulse_ms范围1.0~2.0
-        pulse_ms = max(1.0, min(2.0, pulse_ms))
+    def set_duty(self, percent):
+        percent = max(5.0, min(10.0, percent))
+        pulse_ms = percent * 0.2  # 5%->1.0ms, 10%->2.0ms
         duty_cycle = pulse_ms / 20.0
         pwm_value = int(duty_cycle * 3000000)
         wiringpi.pwmWrite(self.pin, pwm_value)
@@ -80,6 +80,11 @@ class DebugYawPIDNode(Node):
         self.filtered_error = 0.0
         self.deadzone = 3.0
         self.running = True
+        # 齿隙建模
+        self.yaw_dir = 0  # -1, 0, 1
+        self.reverse_time = 0
+        self.gear_delay = 0.035  # 35ms
+        self.suppress_gear = False
 
     def pose_callback(self, msg):
         if msg.position.z == -1.0:
@@ -101,7 +106,26 @@ class DebugYawPIDNode(Node):
         except Exception:
             pass
 
-        error = self.filtered_error if abs(self.filtered_error) > self.deadzone else 0.0
+        raw_error = self.filtered_error
+        error = raw_error if abs(raw_error) > self.deadzone else 0.0
+        # 齿隙建模：检测方向反转，反转后0.035s内抑制yaw误差
+        cur_dir = 0
+        if error > 0:
+            cur_dir = 1
+        elif error < 0:
+            cur_dir = -1
+        now = time.time()
+        if cur_dir != 0 and cur_dir != self.yaw_dir:
+            # 方向反转，抑制误差
+            self.reverse_time = now
+            self.suppress_gear = True
+            self.yaw_dir = cur_dir
+        if self.suppress_gear:
+            if now - self.reverse_time < self.gear_delay:
+                error = 0.0  # 抑制误差输入
+            else:
+                self.suppress_gear = False
+
         output = self.pid.update(error)
         output = max(-1.0, min(1.0, output))
         self.servo.set_speed(output)
