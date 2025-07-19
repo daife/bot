@@ -36,17 +36,14 @@ class MotorController:
         wiringpi.pinMode(self.yaw_pin, wiringpi.GPIO.PWM_OUTPUT)
         wiringpi.pwmSetRange(self.yaw_pin, 3000000)
         # 初始化为7.5%占空比（1.5ms脉宽）
-        pulse_ms = 1.5
-        duty_cycle = pulse_ms / 20.0
-        pwm_value = int(duty_cycle * 3000000)
-        wiringpi.pwmWrite(self.yaw_pin, pwm_value)
+        self.set_yaw_duty(7.5)
         self.pitch_val = 0.0  # pitch值，模拟
         self.pitch_step = 0.1
 
     def set_yaw_duty(self, percent):
-        # percent: 0~100
-        pulse_ms = 1.5 + (percent - 7.5) / 2.5  # 7.5%为中位
-        pulse_ms = max(1.0, min(2.0, pulse_ms))
+        # percent: 5.0~10.0
+        percent = max(5.0, min(10.0, percent))
+        pulse_ms = percent * 0.2  # 5%->1.0ms, 10%->2.0ms
         duty_cycle = pulse_ms / 20.0
         pwm_value = int(duty_cycle * 3000000)
         wiringpi.pwmWrite(self.yaw_pin, pwm_value)
@@ -139,9 +136,13 @@ class UiMain(QtWidgets.QWidget):
         self.input_deadzone_time = QtWidgets.QLineEdit()
         self.input_deadzone_time.setPlaceholderText("持续时间(s)")
         self.input_deadzone_time.setFixedWidth(80)
+        self.input_deadzone_percent = QtWidgets.QLineEdit()
+        self.input_deadzone_percent.setPlaceholderText("占空比(5~10)")
+        self.input_deadzone_percent.setFixedWidth(80)
         self.btn_test_yaw_deadzone = QtWidgets.QPushButton("测试Yaw死区")
         self.btn_test_yaw_deadzone.clicked.connect(self.test_yaw_deadzone)
         hbox_deadzone.addWidget(self.input_deadzone_time)
+        hbox_deadzone.addWidget(self.input_deadzone_percent)
         hbox_deadzone.addWidget(self.btn_test_yaw_deadzone)
         layout.addLayout(hbox_deadzone)
 
@@ -209,17 +210,20 @@ class UiMain(QtWidgets.QWidget):
     def test_yaw_deadzone(self):
         try:
             duration = float(self.input_deadzone_time.text())
+            percent = float(self.input_deadzone_percent.text())
             if duration <= 0:
                 raise ValueError
+            # 限制占空比在5~10
+            percent = max(5.0, min(10.0, percent))
         except Exception:
-            QtWidgets.QMessageBox.warning(self, "输入错误", "请输入有效的持续时间（秒）")
+            QtWidgets.QMessageBox.warning(self, "输入错误", "请输入有效的持续时间（秒）和占空比（5~10）")
             return
 
         def run_test():
             self.btn_test_yaw_deadzone.setEnabled(False)
-            self.yaw_left()
+            self.motor.set_yaw_duty(percent)
             time.sleep(duration)
-            self.yaw_stop()
+            self.motor.yaw_stop()
             self.btn_test_yaw_deadzone.setEnabled(True)
 
         threading.Thread(target=run_test, daemon=True).start()
