@@ -149,8 +149,8 @@ controller_server:
 local_costmap:
   local_costmap:
     ros__parameters:
-      update_frequency: 5.0
-      publish_frequency: 2.0
+      update_frequency: 10.0   # <= 15.0，建议5~10Hz
+      publish_frequency: 5.0   # 可适当降低
       global_frame: odom
       robot_base_frame: base_link
       use_sim_time: False
@@ -192,7 +192,7 @@ local_costmap:
 global_costmap:
   global_costmap:
     ros__parameters:
-      update_frequency: 1.0
+      update_frequency: 2.0    # 全局地图可更低
       publish_frequency: 1.0
       global_frame: map
       robot_base_frame: base_link
