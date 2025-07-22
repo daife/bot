@@ -14,7 +14,7 @@ def generate_launch_description():
     # 声明启动参数
     model_path_arg = DeclareLaunchArgument(
         'model_path',
-        default_value=os.path.join(pkg_dir, 'models', 'yolo11s-seg-self-aipp.om'),
+        default_value=os.path.join(pkg_dir, 'models', '/home/HwHiAiUser/yolo_test/yolo11n-seg-self-12-nodrop-125epo-sourceinput.om'),
         description='分割模型路径'
     )
     
