@@ -23,7 +23,7 @@ INITIAL_COVARIANCE = 100.0
 # INITIAL_COVARIANCE: 初始协方差，表示初始状态的不确定性
 #   - 一般设置较大，表示刚开始时对目标位置不确定
 
-MAX_LOST_FRAMES = 10
+MAX_LOST_FRAMES = 5
 # MAX_LOST_FRAMES: 最大允许丢帧数，超过后强制观测为0，避免滤波器漂移
 
 DT = 1.0  # 时间间隔，单位: 帧
@@ -101,7 +101,11 @@ class PaperCenterKalmanNode(Node):
         smooth_pose = Pose()
         smooth_pose.position.x = float(self.x[0, 0])
         smooth_pose.position.y = float(self.x[1, 0])
-        smooth_pose.position.z = 1.0 if detected else 0.0
+        # 修改z值发布逻辑
+        if not detected and self.lost_count > MAX_LOST_FRAMES:
+            smooth_pose.position.z = -1.0  # 丢帧超过阈值，发布-1
+        else:
+            smooth_pose.position.z = msg.position.z  # 维持原始值（0或1或其他）
         smooth_pose.orientation.x = 0.0
         smooth_pose.orientation.y = 0.0
         smooth_pose.orientation.z = 0.0
