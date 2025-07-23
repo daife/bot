@@ -14,7 +14,7 @@ def generate_launch_description():
     # 声明启动参数
     model_path_arg = DeclareLaunchArgument(
         'model_path',
-        default_value=os.path.join(pkg_dir, 'models', '/home/HwHiAiUser/yolo_test/yolo11n-seg-self-12-nodrop-125epo-sourceinput.om'),
+        default_value=os.path.join(pkg_dir, 'models', '/home/HwHiAiUser/yolo_test/yolo11s-seg-self-12-nodrop-125epo-sourceinput.om'),
         description='分割模型路径'
     )
     
@@ -35,9 +35,17 @@ def generate_launch_description():
             'publish_rate': LaunchConfiguration('publish_rate'),
         }]
     )
+
+    paper_center_kalman_node = Node(
+        package='paper_localizer',
+        executable='paper_center_kalman_node',
+        name='paper_center_kalman',
+        output='screen'
+    )
     
     return LaunchDescription([
         model_path_arg,
         publish_rate_arg,
-        paper_localizer_node
+        paper_localizer_node,
+        paper_center_kalman_node
     ])

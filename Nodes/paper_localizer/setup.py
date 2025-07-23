@@ -25,6 +25,7 @@ setup(
     entry_points={
         'console_scripts': [
             'paper_localizer_node = paper_localizer.paper_localizer_node:main',
+            'paper_center_kalman_node = paper_localizer.paper_center_kalman_node:main',
         ],
     },
 )
