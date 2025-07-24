@@ -271,20 +271,45 @@ class UiMain(QtWidgets.QWidget):
         # 不再调用 rclpy.init()/shutdown，只用主线程的 node
         pub = self.hard_test_pub
         opened_debug_nodes = False
+        paper_z = -1  # 用于检测paper_center_pose_smooth的z
+        # 临时订阅paper_center_pose_smooth
+        class SmoothPoseSub(Node):
+            def __init__(self):
+                super().__init__('ui_smooth_pose_sub')
+                self.z = -1
+                self.sub = self.create_subscription(
+                    Pose, 'paper_center_pose_smooth', self.cb, 10)
+            def cb(self, msg):
+                self.z = msg.position.z
+        smooth_pose_node = SmoothPoseSub()
         try:
-            # 第一阶段：x前进到2.2
-            while self.odom_x < 2.2 and self.hard_test_running:
+            # 第一阶段：线性插值加速到x=1.5m
+            max_v = 2.5
+            min_v = 0.0
+            accel_dist = 1.5
+            decel_dist = 2.5
+            # 加速段
+            while self.odom_x < accel_dist and self.hard_test_running:
+                # 速度线性插值从0到max_v
+                v = min_v + (max_v - min_v) * (self.odom_x / accel_dist)
                 twist = Twist()
-                twist.linear.x = 2.5
+                twist.linear.x = v
                 pub.publish(twist)
                 time.sleep(0.05)
-            # 第二阶段：x后退到1.8
-            while self.odom_x > 1.8 and self.hard_test_running:
+            # 减速段
+            while self.odom_x < decel_dist and self.hard_test_running:
+                # 速度线性插值从max_v到0
+                v = max_v * (1 - (self.odom_x - accel_dist) / (decel_dist - accel_dist))
+                v = max(v, 0.0)
                 twist = Twist()
-                twist.linear.x = -2.5
+                twist.linear.x = v
                 pub.publish(twist)
                 time.sleep(0.05)
-            # 打开 debug_pitch_pid.py 和 debug_yaw_pid.py（新终端，提前source环境）
+            # 停止
+            twist = Twist()
+            pub.publish(twist)
+            time.sleep(1)
+            # 打开 debug_pitch_pid.py 和 debug_yaw_pid_3.py（新终端，提前source环境）
             if not opened_debug_nodes:
                 term_cmds = [
                     [
@@ -298,27 +323,32 @@ class UiMain(QtWidgets.QWidget):
                         'xfce4-terminal',
                         '--hold',
                         '--title', 'debug_yaw_pid',
-                        '-e', "sudo bash -c \"source /home/HwHiAiUser/ros/install/setup.sh && python3 '/home/HwHiAiUser/ros/src/Nodes/camera_tracking/debug_yaw_pid.py'\""
+                        '-e', "sudo bash -c \"source /home/HwHiAiUser/ros/install/setup.sh && python3 '/home/HwHiAiUser/ros/src/Nodes/camera_tracking/debug_yaw_pid_3.py'\""
                     ]
                 ]
                 for term_cmd in term_cmds:
                     subprocess.Popen(term_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 opened_debug_nodes = True
-            # 第三阶段：斜向移动到y=0.9
-            while self.odom_y < 0.9 and self.hard_test_running:
+            # 订阅paper_center_pose_smooth并循环左右缓慢旋转直到z!=-1
+            while self.hard_test_running:
+                rclpy.spin_once(smooth_pose_node, timeout_sec=0.1)
+                paper_z = smooth_pose_node.z
+                if paper_z != -1:
+                    break
+                # 左转
                 twist = Twist()
-                twist.linear.x = -0.2
-                twist.linear.y = 1.5
+                twist.angular.z = 0.3
                 pub.publish(twist)
-                time.sleep(0.05)
-            # 停止3秒
+                time.sleep(1)
+                # 右转
+                twist = Twist()
+                twist.angular.z = -0.3
+                pub.publish(twist)
+                time.sleep(1)
+            # 停止
             twist = Twist()
             pub.publish(twist)
-            time.sleep(4)
-            # 循环左右移动
-            while self.hard_test_running:
-
-                time.sleep(4)
+            time.sleep(1)
         except Exception as e:
             print(f"硬编码测试异常: {e}")
         finally:
