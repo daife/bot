@@ -94,7 +94,7 @@
   <joint name="lidar_joint" type="fixed">
     <parent link="base_link"/>
     <child link="lidar_link"/>
-    <origin xyz="${-wheel_base/2} ${wheel_separation/2 - 0.09} ${-base_height/2 + wheel_radius + 0.19}" rpy="0 0 0"/>
+    <origin xyz="-2.25 0 ${-base_height/2 + wheel_radius + 0.19}" rpy="0 0 0"/>
   </joint>
 
 </robot>
