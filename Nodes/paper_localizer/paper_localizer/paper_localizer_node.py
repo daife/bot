@@ -194,6 +194,24 @@ class PaperLocalizerNode(Node):
             while rclpy.ok() and self.running:
                 ret, frame_data = self.cap.read()
                 if not ret or frame_data is None:
+                    # 摄像头断开，尝试重新查找并初始化
+                    self.get_logger().warn("摄像头读取失败，尝试重新连接摄像头...")
+                    camera_device = find_target_camera()
+                    if camera_device is None:
+                        self.get_logger().warn("未找到目标摄像头，使用默认摄像头 /dev/video0")
+                        camera_device = "/dev/video0"
+                    self.get_logger().info(f"重新初始化摄像头设备: {camera_device}")
+                    try:
+                        self.cap.release()
+                    except Exception:
+                        pass
+                    self.cap = cv2.VideoCapture(camera_device, cv2.CAP_V4L2)
+                    self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, WIDTH)
+                    self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, HEIGHT)
+                    self.cap.set(cv2.CAP_PROP_FPS, 30)
+                    self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))
+                    self.cap.set(cv2.CAP_PROP_CONVERT_RGB, 0)
+                    time.sleep(0.5)  # 等待设备稳定
                     continue
                 if len(frame_data.shape) == 2 and frame_data.shape[0] == 1:
                     jpeg_data = frame_data.flatten().tobytes()
