@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>collision_preventor</name>
+  <version>0.1.0</version>
+  <description>Collision preventor node for safety zone feedback</description>
+  <maintainer email="user@todo.todo">TODO: Maintainer</maintainer>
+  <license>Apache-2.0</license>
+  <buildtool_depend>ament_python</buildtool_depend>
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <member_of_group>rosidl_interface_packages</member_of_group>
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>
