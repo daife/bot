@@ -1,6 +1,7 @@
 import rclpy
 from rclpy.node import Node
-from geometry_msgs.msg import PoseWithCovarianceStamped, Pose
+from geometry_msgs.msg import PoseWithCovarianceStamped
+from geometry_msgs.msg import Twist
 import numpy as np
 
 class CollisionPreventorNode(Node):
@@ -28,7 +29,7 @@ class CollisionPreventorNode(Node):
 
         self.pose_sub = self.create_subscription(
             PoseWithCovarianceStamped, 'amcl_pose', self.pose_callback, 10)
-        self.cmd_pub = self.create_publisher(Pose, 'collision_preventor_msg', 10)
+        self.cmd_pub = self.create_publisher(Twist, 'collision_preventor_twist', 10)
 
     def pose_callback(self, msg):
         x = msg.pose.pose.position.x
@@ -53,14 +54,13 @@ class CollisionPreventorNode(Node):
         # 如果都不在警戒区，vx,vy都为0
 
         # 发布
-        out = Pose()
-        out.position.x = vx
-        out.position.y = vy
-        out.position.z = 0.0
-        out.orientation.x = 0.0
-        out.orientation.y = 0.0
-        out.orientation.z = 0.0
-        out.orientation.w = 1.0
+        out = Twist()
+        out.linear.x = vx
+        out.linear.y = vy
+        out.linear.z = 0.0
+        out.angular.x = 0.0
+        out.angular.y = 0.0
+        out.angular.z = 0.0
         self.cmd_pub.publish(out)
 
     def check_wall(self, x, y):
