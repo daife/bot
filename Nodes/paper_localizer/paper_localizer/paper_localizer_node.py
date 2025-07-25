@@ -12,6 +12,7 @@ import time
 from skimage.morphology import skeletonize
 import queue
 import pyudev
+from std_msgs.msg import Bool
 
 MODEL_INPUT_SIZE = 1056  # 与测试脚本一致
 WIDTH, HEIGHT = 1920, 1080
@@ -177,6 +178,12 @@ class PaperLocalizerNode(Node):
         # ROS发布器
         self.pose_publisher = self.create_publisher(Pose, 'paper_center_pose', 10)
 
+        # 启用标志与订阅
+        self.enable_localizer = False
+        self.enable_sub = self.create_subscription(
+            Bool, '/paper_localizer_enable', self.enable_callback, 10
+        )
+
         # 后处理队列和线程
         self.postproc_queue = queue.Queue(maxsize=2)
         import threading
@@ -186,8 +193,17 @@ class PaperLocalizerNode(Node):
 
         self.get_logger().info("PaperLocalizerNode started.")
 
+        # 等待收到True
+        self.get_logger().info("等待/paper_localizer_enable为True...")
+        while rclpy.ok() and not self.enable_localizer:
+            rclpy.spin_once(self, timeout_sec=0.1)
+        self.get_logger().info("/paper_localizer_enable为True，开始主循环。")
+
         # 主循环
         self.main_loop()
+
+    def enable_callback(self, msg):
+        self.enable_localizer = bool(msg.data)
 
     def main_loop(self):
         try:
