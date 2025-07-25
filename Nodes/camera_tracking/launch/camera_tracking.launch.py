@@ -5,8 +5,8 @@ def generate_launch_description():
     return LaunchDescription([
         Node(
             package='camera_tracking',
-            executable='camera_tracking_node',
-            name='camera_tracking_node',
+            executable='camera_tracking_node2',
+            name='camera_tracking_node2',
             output='screen'
         )
     ])

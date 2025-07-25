@@ -25,6 +25,7 @@ setup(
     entry_points={
         'console_scripts': [
             'camera_tracking_node = camera_tracking.camera_tracking_node:main',
+            'camera_tracking_node2 = camera_tracking.camera_tracking_node2:main',
         ],
     },
 )

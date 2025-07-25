@@ -6,7 +6,7 @@ import numpy as np
 import time
 
 # ----------- 配置区 -----------
-KALMAN_MODEL = 'constant_velocity'  # 可选: 'constant_velocity', 'constant_acceleration'
+KALMAN_MODEL = 'constant_acceleration'  # 可选: 'constant_velocity', 'constant_acceleration'
 # KALMAN_MODEL: 选择卡尔曼滤波模型
 #   - 'constant_velocity'：假设目标速度恒定，适合运动平稳的场景
 #   - 'constant_acceleration'：假设目标加速度恒定，适合加减速明显的场景
