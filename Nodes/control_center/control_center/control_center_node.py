@@ -10,6 +10,8 @@ import asyncio
 import wiringpi
 from wiringpi import GPIO
 from nav_msgs.msg import Odometry
+# 新增导入
+from geometry_msgs.msg import PoseWithCovarianceStamped
 
 # === 宏定义 ===
 INIT_X = 0.0
@@ -49,13 +51,15 @@ class ControlCenterNode(Node):
         self.create_subscription(Twist, '/camera_tracking_twist', self.camera_cb, 10)
         self.create_subscription(Bool, '/hit_success', self.hit_success_cb, 10)
         self.create_subscription(PoseWithCovarianceStamped, '/amcl_pose', self.amcl_pose_cb, 10)
-        self.create_subscription(Odometry, '/odom', self.odom_cb, 10)
+        # 新增/wheel_odom_poweron订阅
+        self.create_subscription(Bool, '/wheel_odom_poweron', self.wheel_odom_poweron_cb, 10)
 
         # 发布
         self.cmd_vel_pub = self.create_publisher(Twist, '/cmd_vel', 10)
         self.paper_enable_pub = self.create_publisher(Bool, '/paper_localizer_enable', 1)
-        # 发布amcl初始位姿
         self.initial_pose_pub = self.create_publisher(PoseWithCovarianceStamped, '/initialpose', 1)
+        # 新增/set_pose发布器
+        self.set_pose_pub = self.create_publisher(PoseWithCovarianceStamped, '/set_pose', 1)
 
         # 线程
         self._lock = threading.Lock()
@@ -94,11 +98,11 @@ class ControlCenterNode(Node):
         with self._lock:
             self.amcl_pose = msg.pose.pose
 
-    def odom_cb(self, msg):
-        with self._lock:
-            self.odom_pose = msg.pose.pose
-            if not self.start_main_thread:
-                self.start_main_thread = True
+
+    # 新增wheel_odom_poweron回调
+    def wheel_odom_poweron_cb(self, msg):
+        if msg.data and not self.start_main_thread:
+            self.start_main_thread = True
 
     # --- cmd_vel 发布线程 ---
     def cmd_vel_loop(self):
@@ -118,10 +122,10 @@ class ControlCenterNode(Node):
 
     # --- 主流程 ---
     def main_logic(self):
-        # 等待/odom
+        # 等待/wheel_odom_poweron为True
         while rclpy.ok() and not self.start_main_thread:
             time.sleep(0.05)
-        self.get_logger().info("收到/odom, 开始主流程")
+        self.get_logger().info("收到/wheel_odom_poweron, 开始主流程")
 
         # 设置amcl初始位姿（此处仅发布一次，实际应调用amcl的服务或topic）
         pose_msg = PoseWithCovarianceStamped()
@@ -141,6 +145,9 @@ class ControlCenterNode(Node):
         pose_msg.pose.covariance[35] = 0.06853891945200942  # yaw (deg^2)
         self.initial_pose_pub.publish(pose_msg)
         self.get_logger().info("已发布amcl初始位姿")
+        # 新增：同步设置robot_localization初始位置
+        self.set_pose_pub.publish(pose_msg)
+        self.get_logger().info("已发布/set_pose初始位姿")
 
         # 发布/paper_localizer_enable为True
         self.paper_enable_pub.publish(Bool(data=True))

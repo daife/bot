@@ -19,7 +19,7 @@ class IMUPublisherNode(Node):
         self.declare_parameter('device_serial_id', '1a86_USB_Serial')
         self.declare_parameter('baud_rate', 921600)
         self.declare_parameter('imu_frame_id', 'imu_link')
-        self.declare_parameter('publish_rate', 50.0)  # Hz
+        self.declare_parameter('publish_rate', 30.0)  # Hz
         
         # 获取参数
         self.device_serial_id = self.get_parameter('device_serial_id').value

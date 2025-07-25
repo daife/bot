@@ -11,7 +11,7 @@ def generate_launch_description():
             {'device_serial_id': '1a86_USB_Serial'},
             {'baud_rate': 921600},
             {'imu_frame_id': 'imu_link'},
-            {'publish_rate': 50.0}
+            {'publish_rate': 30.0}
         ]
     )
 

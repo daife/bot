@@ -13,7 +13,7 @@ def generate_launch_description():
     executable='robot_state_publisher',
     parameters=[
         {'robot_description': Command(['xacro ', LaunchConfiguration('model')])},
-        {'publish_frequency': 50.0}  # 例如设置为50Hz
+        {'publish_frequency': 30.0}  # 例如设置为50Hz
     ])
     
     # rviz_node = launch_ros.actions.Node(

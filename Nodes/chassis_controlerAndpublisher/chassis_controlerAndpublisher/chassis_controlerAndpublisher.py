@@ -2,6 +2,7 @@ import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
+from std_msgs.msg import Bool
 import serial
 import struct
 import math
@@ -23,7 +24,7 @@ class ChassisControlerAndPublisher(Node):
         self.declare_parameter('baud_rate', 115200)
         self.declare_parameter('frame_id', 'odom')
         self.declare_parameter('child_frame_id', 'base_link')
-        self.declare_parameter('publish_rate', 50.0)
+        self.declare_parameter('publish_rate', 30.0)
         self.declare_parameter('max_linear_speed', 2.5)
         self.declare_parameter('max_angular_speed', 1.0)
 
@@ -57,9 +58,11 @@ class ChassisControlerAndPublisher(Node):
 
         # 里程计发布
         self.odom_pub = self.create_publisher(Odometry, '/wheel_odom', 10)
+        self.poweron_pub = self.create_publisher(Bool, '/wheel_odom_poweron', 10)
         self.buffer = bytearray()
         timer_period = 1.0 / self.publish_rate
         self.timer = self.create_timer(timer_period, self.read_serial_data)
+        self.last_data_valid = False
 
         # 看门狗
         self.last_cmd_time = self.get_clock().now()
@@ -94,6 +97,7 @@ class ChassisControlerAndPublisher(Node):
                 self.get_logger().error(f'Failed to send stop command: {e}')
 
     def read_serial_data(self):
+        valid_data = False
         try:
             if self.serial_conn.in_waiting > 0:
                 data = self.serial_conn.read(self.serial_conn.in_waiting)
@@ -109,11 +113,50 @@ class ChassisControlerAndPublisher(Node):
                     break
                 if self.buffer[25] == 0x0A:
                     self.parse_odom_data(self.buffer[1:25])
+                    valid_data = True
                     self.buffer = self.buffer[26:]
                 else:
                     self.buffer = self.buffer[1:]
         except Exception as e:
             self.get_logger().error(f'Error reading serial data: {e}')
+        # Publish poweron status and default odometry if no valid data
+        if valid_data:
+            self.last_data_valid = True
+            poweron_msg = Bool()
+            poweron_msg.data = True
+            self.poweron_pub.publish(poweron_msg)
+        else:
+            self.last_data_valid = False
+            poweron_msg = Bool()
+            poweron_msg.data = False
+            self.poweron_pub.publish(poweron_msg)
+            # Publish default odometry
+            current_time = self.get_clock().now()
+            quat = quaternion_from_euler(0, 0, 0)
+            odom_msg = Odometry()
+            odom_msg.header.stamp = current_time.to_msg()
+            odom_msg.header.frame_id = self.frame_id
+            odom_msg.child_frame_id = self.child_frame_id
+            odom_msg.pose.pose.position.x = 0.18
+            odom_msg.pose.pose.position.y = 0.18
+            odom_msg.pose.pose.position.z = 0.0
+            odom_msg.pose.pose.orientation.x = quat[0]
+            odom_msg.pose.pose.orientation.y = quat[1]
+            odom_msg.pose.pose.orientation.z = quat[2]
+            odom_msg.pose.pose.orientation.w = quat[3]
+            odom_msg.twist.twist.linear.x = 0.0
+            odom_msg.twist.twist.linear.y = 0.0
+            odom_msg.twist.twist.linear.z = 0.0
+            odom_msg.twist.twist.angular.x = 0.0
+            odom_msg.twist.twist.angular.y = 0.0
+            odom_msg.twist.twist.angular.z = 0.0
+            odom_msg.pose.covariance[0] = 0.1
+            odom_msg.pose.covariance[7] = 0.1
+            odom_msg.pose.covariance[35] = 0.1
+            odom_msg.twist.covariance[0] = 0.1
+            odom_msg.twist.covariance[7] = 0.1
+            odom_msg.twist.covariance[35] = 0.1
+            self.odom_pub.publish(odom_msg)
 
     def parse_odom_data(self, data_bytes):
         try:
