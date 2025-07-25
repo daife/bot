@@ -7,6 +7,8 @@ import threading
 import math
 import time
 import asyncio
+import wiringpi
+from wiringpi import GPIO
 
 # === 宏定义 ===
 INIT_X = 0.0
@@ -15,6 +17,10 @@ INIT_YAW = 0.0
 TARGET_X = 0.5
 TARGET_Y = 2.8
 TARGET_RADIUS = 0.15
+# === 初始化WiringPi ===
+wiringpi.wiringPiSetup()
+wiringpi.pinMode(7, GPIO.OUTPUT)
+wiringpi.digitalWrite(7, GPIO.LOW)
 
 class ControlCenterNode(Node):
     def __init__(self):
@@ -211,12 +217,28 @@ class ControlCenterNode(Node):
             self.vel_yaw = 0.0
 
     async def search_task_func(self):
-        # 留白：找寻任务逻辑
+        # 每0.05s更新一次角速度，采用正弦函数
+        dt = 0.05
+        t = 0.0
         while True:
-            await asyncio.sleep(0.1)
+            yaw = 0.5 + 0.5 * math.sin(0.2 * t)
+            with self._lock:
+                self.vel_yaw = yaw
+            await asyncio.sleep(dt)
+            t += dt
+        # 任务结束时归零（实际cancel时会跳出循环，已经在cancel后归零）
+        # with self._lock:
+        #     self.vel_yaw = 0.0
 
     async def hit_success_task(self):
         # 留白：击中提示任务逻辑
+        subprocess.run([
+            '/opt/opi_test/audio/sample_audio',
+            'play',
+            '2',
+            '/home/HwHiAiUser/Downloads/1.pcm'
+        ])
+        wiringpi.digitalWrite(7, GPIO.HIGH)
         await asyncio.sleep(1.0)
 
     def destroy_node(self):
