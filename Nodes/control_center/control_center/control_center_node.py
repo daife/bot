@@ -35,7 +35,7 @@ class ControlCenterNode(Node):
         self.collision_x = 0.0
         self.collision_y = 0.0
         self.camera_yaw = 0.0
-        self.enemy_lock = False
+        self.enemy_lock = True
         self.hit_success = False
         self.amcl_pose = None
         self.odom_pose = None

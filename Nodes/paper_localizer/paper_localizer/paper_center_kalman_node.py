@@ -1,7 +1,9 @@
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Pose
+from std_msgs.msg import Bool
 import numpy as np
+import time
 
 # ----------- 配置区 -----------
 KALMAN_MODEL = 'constant_velocity'  # 可选: 'constant_velocity', 'constant_acceleration'
@@ -23,7 +25,7 @@ INITIAL_COVARIANCE = 100.0
 # INITIAL_COVARIANCE: 初始协方差，表示初始状态的不确定性
 #   - 一般设置较大，表示刚开始时对目标位置不确定
 
-MAX_LOST_FRAMES = 5
+MAX_LOST_FRAMES = 10
 # MAX_LOST_FRAMES: 最大允许丢帧数，超过后强制观测为0，避免滤波器漂移
 
 DT = 1.0  # 时间间隔，单位: 帧
@@ -38,7 +40,14 @@ class PaperCenterKalmanNode(Node):
             self.pose_callback,
             10)
         self.publisher = self.create_publisher(Pose, 'paper_center_pose_smooth', 10)
+        # 新增发布器
+        self.enemy_lock_pub = self.create_publisher(Bool, '/enemy_lock', 10)
+        self.hit_success_pub = self.create_publisher(Bool, '/hit_success', 10)
         self.lost_count = 0
+        # 计时相关变量
+        self.last_z1_time = None
+        self.timer_started = False
+        self.hit_success_sent = False
         self.init_kalman()
 
     def init_kalman(self):
@@ -87,7 +96,6 @@ class PaperCenterKalmanNode(Node):
         self.P = self.A @ self.P @ self.A.T + self.Q
 
         # 更新
-        # 只有连续丢帧超过阈值时才强制观测为0，重新观测到目标会恢复正常观测
         if detected or self.lost_count > MAX_LOST_FRAMES:
             if not detected and self.lost_count > MAX_LOST_FRAMES:
                 z = np.array([[0.0], [0.0]])
@@ -104,13 +112,31 @@ class PaperCenterKalmanNode(Node):
         # 修改z值发布逻辑
         if not detected and self.lost_count > MAX_LOST_FRAMES:
             smooth_pose.position.z = -1.0  # 丢帧超过阈值，发布-1
+            self.enemy_lock_pub.publish(Bool(data=False))
         else:
             smooth_pose.position.z = msg.position.z  # 维持原始值（0或1或其他）
-        smooth_pose.orientation.x = 0.0
-        smooth_pose.orientation.y = 0.0
-        smooth_pose.orientation.z = 0.0
-        smooth_pose.orientation.w = 1.0
+            self.enemy_lock_pub.publish(Bool(data=True))
         self.publisher.publish(smooth_pose)
+
+        # --- 击中计时逻辑 ---
+        now = time.time()
+        if msg.position.z == 1.0:
+            if not self.timer_started:
+                self.last_z1_time = now
+                self.timer_started = True
+                self.hit_success_sent = False
+            else:
+                # 已经计时，检查时间间隔
+                if self.last_z1_time is not None and (now - self.last_z1_time) >= 2.0 and not self.hit_success_sent:
+                    self.hit_success_pub.publish(Bool(data=True))
+                    self.hit_success_sent = True
+                self.last_z1_time = now  # 更新为最新的z=1时间
+        elif msg.position.z == 0.0:
+            # 重新开始计时
+            self.timer_started = False
+            self.last_z1_time = None
+            self.hit_success_sent = False
+        # z=-1不影响计时逻辑
 
 def main(args=None):
     rclpy.init(args=args)
