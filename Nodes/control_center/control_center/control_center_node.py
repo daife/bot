@@ -1,7 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile
-from geometry_msgs.msg import Twist, Pose
+from geometry_msgs.msg import Twist, Pose, PoseWithCovarianceStamped
 from std_msgs.msg import Bool
 import threading
 import math
@@ -9,6 +9,7 @@ import time
 import asyncio
 import wiringpi
 from wiringpi import GPIO
+from nav_msgs.msg import Odometry
 
 # === 宏定义 ===
 INIT_X = 0.0
@@ -47,12 +48,14 @@ class ControlCenterNode(Node):
         self.create_subscription(Bool, '/enemy_lock', self.enemy_lock_cb, 10)
         self.create_subscription(Twist, '/camera_tracking_twist', self.camera_cb, 10)
         self.create_subscription(Bool, '/hit_success', self.hit_success_cb, 10)
-        self.create_subscription(Pose, '/amcl_pose', self.amcl_pose_cb, 10)
-        self.create_subscription(Pose, '/odom', self.odom_cb, 10)
+        self.create_subscription(PoseWithCovarianceStamped, '/amcl_pose', self.amcl_pose_cb, 10)
+        self.create_subscription(Odometry, '/odom', self.odom_cb, 10)
 
         # 发布
         self.cmd_vel_pub = self.create_publisher(Twist, '/cmd_vel', 10)
         self.paper_enable_pub = self.create_publisher(Bool, '/paper_localizer_enable', 1)
+        # 发布amcl初始位姿
+        self.initial_pose_pub = self.create_publisher(PoseWithCovarianceStamped, '/initialpose', 1)
 
         # 线程
         self._lock = threading.Lock()
@@ -89,11 +92,11 @@ class ControlCenterNode(Node):
 
     def amcl_pose_cb(self, msg):
         with self._lock:
-            self.amcl_pose = msg
+            self.amcl_pose = msg.pose.pose
 
     def odom_cb(self, msg):
         with self._lock:
-            self.odom_pose = msg
+            self.odom_pose = msg.pose.pose
             if not self.start_main_thread:
                 self.start_main_thread = True
 
@@ -120,8 +123,24 @@ class ControlCenterNode(Node):
             time.sleep(0.05)
         self.get_logger().info("收到/odom, 开始主流程")
 
-        # 设置amcl初始位姿（此处仅发布一次，实际应调用amcl的服务或topic，留空）
-        # TODO: 发布amcl初始位姿（如有必要）
+        # 设置amcl初始位姿（此处仅发布一次，实际应调用amcl的服务或topic）
+        pose_msg = PoseWithCovarianceStamped()
+        pose_msg.header.stamp = self.get_clock().now().to_msg()
+        pose_msg.header.frame_id = "map"
+        pose_msg.pose.pose.position.x = 0.18
+        pose_msg.pose.pose.position.y = 0.18
+        pose_msg.pose.pose.position.z = 0.0
+        # yaw=0, quaternion: (x=0, y=0, z=0, w=1)
+        pose_msg.pose.pose.orientation.x = 0.0
+        pose_msg.pose.pose.orientation.y = 0.0
+        pose_msg.pose.pose.orientation.z = 0.0
+        pose_msg.pose.pose.orientation.w = 1.0
+        # covariance: set small values for x, y, yaw
+        pose_msg.pose.covariance[0] = 0.25  # x
+        pose_msg.pose.covariance[7] = 0.25  # y
+        pose_msg.pose.covariance[35] = 0.06853891945200942  # yaw (deg^2)
+        self.initial_pose_pub.publish(pose_msg)
+        self.get_logger().info("已发布amcl初始位姿")
 
         # 发布/paper_localizer_enable为True
         self.paper_enable_pub.publish(Bool(data=True))
