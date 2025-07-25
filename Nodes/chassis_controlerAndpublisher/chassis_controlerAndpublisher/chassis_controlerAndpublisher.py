@@ -23,7 +23,7 @@ class ChassisControlerAndPublisher(Node):
         self.declare_parameter('baud_rate', 115200)
         self.declare_parameter('frame_id', 'odom')
         self.declare_parameter('child_frame_id', 'base_link')
-        self.declare_parameter('publish_rate', 100.0)
+        self.declare_parameter('publish_rate', 50.0)
         self.declare_parameter('max_linear_speed', 2.5)
         self.declare_parameter('max_angular_speed', 1.0)
 
