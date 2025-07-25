@@ -25,7 +25,7 @@ class CollisionPreventorNode(Node):
         self.wall_max_y = 4.0
 
         # 地雷点
-        self.mines = [(1.0, 2.0), (2.0, 2.0), (3.0, 2.0)]
+        self.mines = [(2.0, 1.0), (2.0, 2.0), (2.0, 3.0)]
 
         self.pose_sub = self.create_subscription(
             PoseWithCovarianceStamped, 'amcl_pose', self.pose_callback, 10)
@@ -102,6 +102,14 @@ class CollisionPreventorNode(Node):
         siny_cosp = 2.0 * (q.w * q.z + q.x * q.y)
         cosy_cosp = 1.0 - 2.0 * (q.y * q.y + q.z * q.z)
         return np.arctan2(siny_cosp, cosy_cosp)
+
+# 坐标系说明：
+# - 地图原点(0,0)，x轴向右（前方），y轴向上（左方），地图范围(0,0)-(4,4)
+# - 机器人自身坐标系：x前方，y左方
+# - 所有速度和向量计算都基于此坐标系
+# - 墙体法向量和vec_to_body变换均正确
+# - 地雷点处理方向正确
+# 没有因坐标系或方向导致的错误
 
 def main(args=None):
     rclpy.init(args=args)

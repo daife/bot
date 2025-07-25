@@ -15,8 +15,8 @@ from nav_msgs.msg import Odometry
 INIT_X = 0.0
 INIT_Y = 0.0
 INIT_YAW = 0.0
-TARGET_X = 0.5
-TARGET_Y = 2.8
+TARGET_X = 2.8
+TARGET_Y = 0.5
 TARGET_RADIUS = 0.15
 # === 初始化WiringPi ===
 wiringpi.wiringPiSetup()

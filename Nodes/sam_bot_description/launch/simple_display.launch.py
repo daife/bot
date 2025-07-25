@@ -9,10 +9,13 @@ def generate_launch_description():
     default_rviz_config_path = os.path.join(pkg_share, 'rviz/simple_bot.rviz')
 
     robot_state_publisher_node = launch_ros.actions.Node(
-        package='robot_state_publisher',
-        executable='robot_state_publisher',
-        parameters=[{'robot_description': Command(['xacro ', LaunchConfiguration('model')])}]
-    )
+    package='robot_state_publisher',
+    executable='robot_state_publisher',
+    parameters=[
+        {'robot_description': Command(['xacro ', LaunchConfiguration('model')])},
+        {'publish_frequency': 50.0}  # 例如设置为50Hz
+    ])
+    
     # rviz_node = launch_ros.actions.Node(
     #     package='rviz2',
     #     executable='rviz2',
