@@ -31,6 +31,23 @@ def Emm_V5_Vel_Control(addr, dir, vel, acc, snF):
     cmd[6] = 0x01 if snF else 0x00
     cmd[7] = 0x6B
     uart1.write(cmd[:8])
+    
+def Emm_V5_Pos_Control(addr, dir, vel, acc, clk, raF, snF): # 地址电机，设置方向为CW，速度为1000RPM，加速度为50，脉冲数为2000，相对运动，无多机同步
+    cmd = bytearray(16)
+    cmd[0] = addr                      # 地址
+    cmd[1] = 0xFD                      # 功能码
+    cmd[2] = dir                       # 方向
+    cmd[3] = (vel >> 8) & 0xFF         # 速度(RPM)高8位字节
+    cmd[4] = vel & 0xFF                # 速度(RPM)低8位字节 
+    cmd[5] = acc                       # 加速度，注意：0是直接启动
+    cmd[6] = (clk >> 24) & 0xFF        # 脉冲数高8位字节(bit24 - bit31)
+    cmd[7] = (clk >> 16) & 0xFF        # 脉冲数(bit16 - bit23)
+    cmd[8] = (clk >> 8) & 0xFF         # 脉冲数(bit8  - bit15)
+    cmd[9] = clk & 0xFF                # 脉冲数低8位字节(bit0  - bit7)
+    cmd[10] = 0x01 if raF else 0x00    # 相位/绝对标志，true为0x01绝对，false为0x00相对
+    cmd[11] = 0x01 if snF else 0x00    # 多机同步运动标志，true为0x01，false为0x00
+    cmd[12] = 0x6B                     # 校验字节
+    uart1.write(cmd[:13])
 
 def Emm_V5_Read_Sys_Params(addr, s):
     i = 0
@@ -147,7 +164,7 @@ class CameraTrackingNode2(Node):
         self.vel_max = 2000
         self.vel_min = 0
         self.current_vel = 0
-        self.current_angle = 0.0  # 软件累加角度，初始为0度
+        self.current_angle = -60.0  # 软件累加角度，初始为0度
         self._stop_flag = False
         self.last_update_time = time.time()
         self.motor_vel_last = 0  # 上一次实际发送给电机的速度
@@ -157,6 +174,16 @@ class CameraTrackingNode2(Node):
 
         Emm_V5_En_Control(self.addr, True, False)
         time.sleep(0.1)
+        Emm_V5_Pos_Control(
+            addr=1,         # 地址1
+            dir=1,           # 方向：0（CW）或1（CCW），根据实际需求调整
+            vel=1000,        # 速度：1000 RPM
+            acc=50,          # 加速度档位（50，根据实际调整）
+            clk=533,      # 脉冲数
+            raF=True,       # 相对位置模式（False表示相对当前位置移动）
+            snF=False        # 不使用多机同步 
+        )
+        time.sleep(2)
         Emm_V5_Vel_Control(
             addr=self.addr,
             dir=self.dir,
@@ -288,6 +315,14 @@ class CameraTrackingNode2(Node):
 
     def destroy_node(self):
         self._stop_flag = True
+        # 停止电机
+        Emm_V5_Vel_Control(
+            addr=self.addr,
+            dir=self.dir,
+            vel=0,
+            acc=self.acc,
+            snF=self.snF
+        )
         self.pitch_serial.close()
         super().destroy_node()
 
