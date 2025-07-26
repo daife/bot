@@ -47,7 +47,7 @@ class PaperCenterKalmanNode(Node):
         # 计时相关变量
         self.last_z1_time = None
         self.timer_started = False
-        self.hit_success_sent = False
+        # self.hit_success_sent = False
         self.init_kalman()
 
     def init_kalman(self):
@@ -124,18 +124,18 @@ class PaperCenterKalmanNode(Node):
             if not self.timer_started:
                 self.last_z1_time = now
                 self.timer_started = True
-                self.hit_success_sent = False
+                # self.hit_success_sent = False
             else:
                 # 已经计时，检查时间间隔
-                if self.last_z1_time is not None and (now - self.last_z1_time) >= 2.0 and not self.hit_success_sent:
+                if self.last_z1_time is not None and (now - self.last_z1_time) >= 2.0:
                     self.hit_success_pub.publish(Bool(data=True))
-                    self.hit_success_sent = True
+                    # self.hit_success_sent = True
                 self.last_z1_time = now  # 更新为最新的z=1时间
         elif msg.position.z == 0.0:
             # 重新开始计时
             self.timer_started = False
             self.last_z1_time = None
-            self.hit_success_sent = False
+            # self.hit_success_sent = False
         # z=-1不影响计时逻辑
 
 def main(args=None):

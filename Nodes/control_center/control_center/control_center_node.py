@@ -35,7 +35,7 @@ class ControlCenterNode(Node):
         self.collision_x = 0.0
         self.collision_y = 0.0
         self.camera_yaw = 0.0
-        self.enemy_lock = True
+        self.enemy_lock = False
         self.hit_success = False
         self.amcl_pose = None
         self.odom_pose = None
@@ -75,6 +75,8 @@ class ControlCenterNode(Node):
         self.async_loop = asyncio.new_event_loop()
         self.async_thread = threading.Thread(target=self.async_loop.run_forever, daemon=True)
         self.async_thread.start()
+
+        self.hit_task_triggered = False  # 新增标志位
 
     # --- 回调 ---
     def collision_cb(self, msg):
@@ -156,10 +158,18 @@ class ControlCenterNode(Node):
         # 启动移动到目标点的任务
         self.move_task = asyncio.run_coroutine_threadsafe(self.move_to_target_task(), self.async_loop)
 
-        # 等待到达目标点
+        # 等待到达目标点或任务结束
         while rclpy.ok():
             with self._lock:
                 pose = self.amcl_pose
+            # 检查任务是否被取消
+            if self.move_task and self.move_task.done():
+                self.get_logger().info("移动任务已结束")
+                with self._lock:
+                    self.vel_x = 0.0
+                    self.vel_y = 0.0
+                    self.vel_yaw = 0.0
+                break
             if pose is not None:
                 x = pose.position.x
                 y = pose.position.y
@@ -192,9 +202,10 @@ class ControlCenterNode(Node):
                     self.vel_y = 0.0
                     self.vel_yaw = 0.0
             # 击中提示任务
-            if hit_success and (self.hit_task is None or self.hit_task.done()):
+            if hit_success and not self.hit_task_triggered:
                 self.get_logger().info("触发击中提示任务")
                 self.hit_task = asyncio.run_coroutine_threadsafe(self.hit_success_task(), self.async_loop)
+                self.hit_task_triggered = True
             time.sleep(0.05)
 
     # --- 协程任务 ---
@@ -258,6 +269,7 @@ class ControlCenterNode(Node):
 
     async def hit_success_task(self):
         # 留白：击中提示任务逻辑
+        import subprocess
         subprocess.run([
             '/opt/opi_test/audio/sample_audio',
             'play',

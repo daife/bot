@@ -21,7 +21,7 @@ def generate_launch_description():
         include_launch('nav2_localizer', 'nav2_localizer.launch.py'),
         include_launch('collision_preventor', 'collision_preventor.launch.py'),
         include_launch('paper_localizer', 'paper_localizer.launch.py'),
-        # include_launch('camera_tracking', 'camera_tracking.launch.py'),
+        include_launch('camera_tracking', 'camera_tracking.launch.py'),
         TimerAction(
             period=5.0,
             actions=[

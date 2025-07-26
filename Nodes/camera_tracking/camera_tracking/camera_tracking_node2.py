@@ -300,7 +300,7 @@ class CameraTrackingNode2(Node):
         # 更新 motor_vel_last 为本次实际发送给电机的速度
         self.motor_vel_last = motor_vel
 
-        print(f"[Angle] 当前软件累加角度: {self.current_angle:.2f}°")
+        # print(f"[Angle] 当前软件累加角度: {self.current_angle:.2f}°")
 
         self.twist_pub.publish(twist_msg)
         self.pitch_serial.send_y(self.last_pitch_error)
@@ -310,7 +310,7 @@ class CameraTrackingNode2(Node):
             hw_angle = get_motor_position(self.addr)
             if hw_angle is not None:
                 self.current_angle = hw_angle
-                print(f"[Angle] 硬件矫正角度: {self.current_angle:.2f}°")
+                # print(f"[Angle] 硬件矫正角度: {self.current_angle:.2f}°")
             time.sleep(0.05)  # 20Hz硬件矫正
 
     def destroy_node(self):
