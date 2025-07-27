@@ -6,7 +6,7 @@ import time
 import serial
 import struct
 
-K_TRANSFER = 0.1  # 转嫁到底盘的比例系数
+K_TRANSFER = 0.6  # 转嫁到底盘的比例系数
 # 串口初始化（请根据实际设备号修改）
 uart1 = serial.Serial('/dev/ttyAMA2', baudrate=115200, bytesize=8, parity='N', stopbits=1, timeout=0.1)
 
@@ -179,7 +179,7 @@ class CameraTrackingNode2(Node):
             dir=1,           # 方向：0（CW）或1（CCW），根据实际需求调整
             vel=1000,        # 速度：1000 RPM
             acc=50,          # 加速度档位（50，根据实际调整）
-            clk=533,      # 脉冲数
+            clk=0,      # 脉冲数
             raF=True,       # 相对位置模式（False表示相对当前位置移动）
             snF=False        # 不使用多机同步 
         )

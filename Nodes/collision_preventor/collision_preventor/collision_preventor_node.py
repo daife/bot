@@ -8,10 +8,10 @@ class CollisionPreventorNode(Node):
     def __init__(self):
         super().__init__('collision_preventor_node')
         # 参数声明
-        self.declare_parameter('wall_radius', 0.2)
-        self.declare_parameter('mine_radius', 0.3)
-        self.declare_parameter('wall_max_speed', 0.5)
-        self.declare_parameter('mine_max_speed', 1.0)
+        self.declare_parameter('wall_radius', 0.4)
+        self.declare_parameter('mine_radius', 0.4)
+        self.declare_parameter('wall_max_speed', 2.0)
+        self.declare_parameter('mine_max_speed', 2.0)
 
         self.wall_radius = self.get_parameter('wall_radius').value
         self.mine_radius = self.get_parameter('mine_radius').value

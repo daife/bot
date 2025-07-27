@@ -81,8 +81,8 @@ class ControlCenterNode(Node):
     # --- 回调 ---
     def collision_cb(self, msg):
         with self._lock:
-            self.collision_x = msg.linear.x
-            self.collision_y = msg.linear.y
+            self.collision_x = 0 #msg.linear.x
+            self.collision_y = 0 #msg.linear.y
 
     def enemy_lock_cb(self, msg):
         with self._lock:
@@ -142,8 +142,8 @@ class ControlCenterNode(Node):
         pose_msg.pose.pose.orientation.z = 0.0
         pose_msg.pose.pose.orientation.w = 1.0
         # covariance: set small values for x, y, yaw
-        pose_msg.pose.covariance[0] = 0.25  # x
-        pose_msg.pose.covariance[7] = 0.25  # y
+        pose_msg.pose.covariance[0] = 0.185  # x
+        pose_msg.pose.covariance[7] = 0.30  # y
         pose_msg.pose.covariance[35] = 0.06853891945200942  # yaw (deg^2)
         self.initial_pose_pub.publish(pose_msg)
         self.get_logger().info("已发布amcl初始位姿")
@@ -157,7 +157,7 @@ class ControlCenterNode(Node):
 
         # 启动移动到目标点的任务
         self.move_task = asyncio.run_coroutine_threadsafe(self.move_to_target_task(), self.async_loop)
-
+        time.sleep(8)
         # 等待到达目标点或任务结束
         while rclpy.ok():
             with self._lock:
@@ -210,42 +210,41 @@ class ControlCenterNode(Node):
 
     # --- 协程任务 ---
     async def move_to_target_task(self):
-        # 1s加速到2m/s, 1s减速到0, 每0.05s更新
-        total_time = 2.0
         dt = 0.05
+        total_time = 7
         steps = int(total_time / dt)
         for i in range(steps):
             t = i * dt
+            # 0~1s: 加速到2m/s
             if t < 1.0:
                 speed = 2.0 * (t / 1.0)
+                ang_speed = 0.0
+            # 1~1.5s: 减速到1m/s
+            elif t < 2:
+                speed = 2.0 - (t - 1.0) * 1.0
+                ang_speed = 0.0
+            # 1.5~2.5s: 保持1m/s和PI/2角速度
+            elif t < 2.5:
+                speed = 1.0 - (t - 1.5) * 0.5
+                ang_speed = math.pi / 2
+            # 2.5~3.5s: 线性减速到0
+            elif t < 4.5:
+                speed = 0.5
+                ang_speed = math.pi / 8
+            elif t < 6.5:
+                speed = 0.5
             else:
-                speed = 2.0 * (1.0 - (t - 1.0) / 1.0)
-            # 方向
-            with self._lock:
-                pose = self.amcl_pose
-            if pose is None:
-                await asyncio.sleep(dt)
-                continue
-            x, y = pose.position.x, pose.position.y
-            dx = TARGET_X - x
-            dy = TARGET_Y - y
-            dist = math.hypot(dx, dy)
-            if dist < 1e-3:
-                vx, vy = 0.0, 0.0
-            else:
-                # 机器人yaw
-                q = pose.orientation
-                yaw = math.atan2(2.0*(q.w*q.z + q.x*q.y), 1.0 - 2.0*(q.y*q.y + q.z*q.z))
-                # 世界坐标速度
-                vx_world = dx / dist * speed
-                vy_world = dy / dist * speed
-                # 转到机器人坐标
-                vx = math.cos(-yaw) * vx_world - math.sin(-yaw) * vy_world
-                vy = math.sin(-yaw) * vx_world + math.cos(-yaw) * vy_world
+                speed = 0.5 - (t - 6.5) * 1
+                # ang_speed = math.pi / 8
+                # ang_speed = (math.pi / 2) * (1.0 - (t - 2.5) / 1.0)
+         
+            # 直接作为小车自身坐标系速度
+            vx = speed
+            vy = 0.0
             with self._lock:
                 self.vel_x = vx
                 self.vel_y = vy
-                self.vel_yaw = 0.0
+                self.vel_yaw = ang_speed
             await asyncio.sleep(dt)
         # 结束后速度归零
         with self._lock:
