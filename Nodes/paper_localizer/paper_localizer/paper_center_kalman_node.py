@@ -137,6 +137,7 @@ class PaperCenterKalmanNode(Node):
             self.last_z1_time = None
             # self.hit_success_sent = False
         # z=-1不影响计时逻辑
+        # self.hit_success_pub.publish(Bool(data=False))
 
 def main(args=None):
     rclpy.init(args=args)

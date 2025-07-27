@@ -126,7 +126,7 @@ def find_target_camera():
 class PaperLocalizerNode(Node):
     def __init__(self):
         super().__init__('paper_localizer_node')
-        self.declare_parameter('model_path', '/home/HwHiAiUser/yolo_test/yolo11n-seg-self-12-nodrop-125epo-sourceinput.om')
+        self.declare_parameter('model_path', '/home/HwHiAiUser/yolo_test/yolo11n-seg-self-123-nodrop-150epo-1056.om')
         self.model_path = self.get_parameter('model_path').value
 
         # 初始化ACL
