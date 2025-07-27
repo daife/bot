@@ -203,6 +203,7 @@ class ControlCenterNode(Node):
                     self.vel_yaw = 0.0
             # 击中提示任务
             if hit_success and not self.hit_task_triggered:
+                wiringpi.digitalWrite(7, GPIO.HIGH)
                 self.get_logger().info("触发击中提示任务")
                 self.hit_task = asyncio.run_coroutine_threadsafe(self.hit_success_task(), self.async_loop)
                 self.hit_task_triggered = True
@@ -276,7 +277,6 @@ class ControlCenterNode(Node):
             '2',
             '/home/HwHiAiUser/Downloads/1.pcm'
         ])
-        wiringpi.digitalWrite(7, GPIO.HIGH)
         await asyncio.sleep(1.0)
 
     def destroy_node(self):

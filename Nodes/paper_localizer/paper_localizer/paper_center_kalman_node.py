@@ -129,15 +129,16 @@ class PaperCenterKalmanNode(Node):
                 # 已经计时，检查时间间隔
                 if self.last_z1_time is not None and (now - self.last_z1_time) >= 2.0:
                     self.hit_success_pub.publish(Bool(data=True))
+
                     # self.hit_success_sent = True
-                self.last_z1_time = now  # 更新为最新的z=1时间
+                    self.last_z1_time = now  # 更新为最新的z=1时间
         elif msg.position.z == 0.0:
             # 重新开始计时
             self.timer_started = False
             self.last_z1_time = None
+            print('重新计时')
             # self.hit_success_sent = False
         # z=-1不影响计时逻辑
-        # self.hit_success_pub.publish(Bool(data=False))
 
 def main(args=None):
     rclpy.init(args=args)
