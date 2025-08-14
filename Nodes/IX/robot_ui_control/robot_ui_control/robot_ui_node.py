@@ -17,6 +17,7 @@ from sensor_msgs.msg import Image
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import OccupancyGrid, Odometry
 from std_msgs.msg import Bool, Float32, Int32
+from rclpy.action import ActionClient
 
 # 尝试导入CV Bridge，如果失败则给出提示
 try:
@@ -48,6 +49,14 @@ try:
 except ImportError:
     print("Warning: OpenCV not available. Image processing will be disabled.")
     OPENCV_AVAILABLE = False
+
+# 尝试导入机械臂和爪子控制接口
+try:
+    from arm_control_interfaces.action import MoveArm
+    from claw_control_interfaces.action import MoveClaw
+except ImportError:
+    MoveArm = None
+    MoveClaw = None
 
 
 class RobotUINode(Node):
@@ -286,6 +295,15 @@ class MainWindow(QMainWindow):
         self.image_labels = {}  # 存储图像显示标签
         self.is_updating_selectors = False  # 防止递归更新选择器
         
+        # 机械臂与爪子动作客户端
+        self.arm_action_client = None
+        self.claw_action_client = None
+        self.arm_angle = 0.0
+        self.arm_min_angle = -20.0
+        self.arm_max_angle = 19.0
+        self.arm_step = 1.0
+        self.claw_state = 0  # 0: 抓取, 1: 释放
+        
         # 设置窗口
         self.setWindowTitle('机器人控制界面')
         self.setGeometry(100, 100, 1200, 800)
@@ -458,6 +476,13 @@ class MainWindow(QMainWindow):
         # 启动线程
         self.worker_thread.started.connect(self.worker.run)
         self.worker_thread.start()
+
+    def init_action_clients(self):
+        """初始化机械臂和爪子动作客户端"""
+        if MoveArm is not None:
+            self.arm_action_client = ActionClient(self.ros_node, MoveArm, 'move_arm')
+        if MoveClaw is not None:
+            self.claw_action_client = ActionClient(self.ros_node, MoveClaw, 'move_claw')
 
     def create_node_manager_tab(self):
         """创建节点管理标签页"""
@@ -726,6 +751,32 @@ class MainWindow(QMainWindow):
         manual_layout.addLayout(rotation_layout)
         
         layout.addWidget(manual_group)
+        
+        # 机械臂与爪子控制区域
+        arm_claw_group = QGroupBox("机械臂与爪子控制")
+        arm_claw_layout = QHBoxLayout(arm_claw_group)
+
+        # 机械臂角度-1°
+        arm_dec_btn = QPushButton("机械臂 -1°")
+        arm_dec_btn.clicked.connect(lambda: self.send_arm_goal(self.arm_angle - self.arm_step))
+        arm_claw_layout.addWidget(arm_dec_btn)
+
+        # 机械臂角度+1°
+        arm_inc_btn = QPushButton("机械臂 +1°")
+        arm_inc_btn.clicked.connect(lambda: self.send_arm_goal(self.arm_angle + self.arm_step))
+        arm_claw_layout.addWidget(arm_inc_btn)
+
+        # 爪子抓取
+        claw_grab_btn = QPushButton("爪子抓取")
+        claw_grab_btn.clicked.connect(lambda: self.send_claw_goal(0))
+        arm_claw_layout.addWidget(claw_grab_btn)
+
+        # 爪子释放
+        claw_release_btn = QPushButton("爪子释放")
+        claw_release_btn.clicked.connect(lambda: self.send_claw_goal(1))
+        arm_claw_layout.addWidget(claw_release_btn)
+
+        manual_layout.addWidget(arm_claw_group)
         
         self.tab_widget.addTab(tab, "控制器")
 
@@ -1231,6 +1282,39 @@ class MainWindow(QMainWindow):
             
         except Exception as e:
             self.ros_node.get_logger().error(f'Error sending velocity command: {e}')
+
+    def send_arm_goal(self, angle):
+        """发送机械臂动作目标"""
+        if self.arm_action_client is None or MoveArm is None:
+            QMessageBox.warning(self, "错误", "机械臂动作接口不可用")
+            return
+        # 限制角度范围
+        angle = max(self.arm_min_angle, min(self.arm_max_angle, angle))
+        self.arm_angle = angle
+        # 等待服务器
+        if not self.arm_action_client.wait_for_server(timeout_sec=1.0):
+            QMessageBox.warning(self, "错误", "机械臂动作服务器不可用")
+            return
+        goal_msg = MoveArm.Goal()
+        goal_msg.pose = angle
+        self.arm_action_client.send_goal_async(goal_msg)
+        QMessageBox.information(self, "机械臂", f"已发送机械臂角度: {angle}°")
+
+    def send_claw_goal(self, command):
+        """发送爪子动作目标"""
+        if self.claw_action_client is None or MoveClaw is None:
+            QMessageBox.warning(self, "错误", "爪子动作接口不可用")
+            return
+        self.claw_state = command
+        # 等待服务器
+        if not self.claw_action_client.wait_for_server(timeout_sec=1.0):
+            QMessageBox.warning(self, "错误", "爪子动作服务器不可用")
+            return
+        goal_msg = MoveClaw.Goal()
+        goal_msg.command = command
+        self.claw_action_client.send_goal_async(goal_msg)
+        state_str = "抓取" if command == 0 else "释放"
+        QMessageBox.information(self, "爪子", f"已发送爪子命令: {state_str}")
 
     def stop_controller(self):
         """停止当前控制器"""
