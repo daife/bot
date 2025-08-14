@@ -80,6 +80,9 @@ class RobotUINode(Node):
         # 控制器发布器
         self.cmd_vel_publisher = self.create_publisher(Twist, 'cmd_vel', 10)
         
+        # 初始化机械臂和爪子动作客户端
+        self.init_action_clients()
+        
         # 存储当前激活的控制器
         self.active_controller = None
         self.controller_processes = {}
@@ -295,9 +298,7 @@ class MainWindow(QMainWindow):
         self.image_labels = {}  # 存储图像显示标签
         self.is_updating_selectors = False  # 防止递归更新选择器
         
-        # 机械臂与爪子动作客户端
-        self.arm_action_client = None
-        self.claw_action_client = None
+        # 机械臂与爪子控制参数
         self.arm_angle = 0.0
         self.arm_min_angle = -20.0
         self.arm_max_angle = 19.0
@@ -479,10 +480,25 @@ class MainWindow(QMainWindow):
 
     def init_action_clients(self):
         """初始化机械臂和爪子动作客户端"""
-        if MoveArm is not None:
-            self.arm_action_client = ActionClient(self.ros_node, MoveArm, 'move_arm')
-        if MoveClaw is not None:
-            self.claw_action_client = ActionClient(self.ros_node, MoveClaw, 'move_claw')
+        try:
+            if MoveArm is not None:
+                self.arm_action_client = ActionClient(self, MoveArm, 'move_arm')
+                self.get_logger().info('机械臂动作客户端已初始化')
+            else:
+                self.arm_action_client = None
+                self.get_logger().warn('机械臂接口不可用，请检查arm_control_interfaces包')
+                
+            if MoveClaw is not None:
+                self.claw_action_client = ActionClient(self, MoveClaw, 'move_claw')
+                self.get_logger().info('爪子动作客户端已初始化')
+            else:
+                self.claw_action_client = None
+                self.get_logger().warn('爪子接口不可用，请检查claw_control_interfaces包')
+                
+        except Exception as e:
+            self.get_logger().error(f'初始化动作客户端失败: {e}')
+            self.arm_action_client = None
+            self.claw_action_client = None
 
     def create_node_manager_tab(self):
         """创建节点管理标签页"""
@@ -1285,36 +1301,68 @@ class MainWindow(QMainWindow):
 
     def send_arm_goal(self, angle):
         """发送机械臂动作目标"""
-        if self.arm_action_client is None or MoveArm is None:
-            QMessageBox.warning(self, "错误", "机械臂动作接口不可用")
+        if self.ros_node.arm_action_client is None or MoveArm is None:
+            QMessageBox.warning(self, "错误", "机械臂动作接口不可用\n请确保已正确安装arm_control_interfaces包")
+            self.ros_node.get_logger().error('机械臂动作客户端不可用')
             return
+            
         # 限制角度范围
         angle = max(self.arm_min_angle, min(self.arm_max_angle, angle))
         self.arm_angle = angle
-        # 等待服务器
-        if not self.arm_action_client.wait_for_server(timeout_sec=1.0):
-            QMessageBox.warning(self, "错误", "机械臂动作服务器不可用")
-            return
-        goal_msg = MoveArm.Goal()
-        goal_msg.pose = angle
-        self.arm_action_client.send_goal_async(goal_msg)
-        QMessageBox.information(self, "机械臂", f"已发送机械臂角度: {angle}°")
+        
+        try:
+            # 等待服务器可用
+            if not self.ros_node.arm_action_client.wait_for_server(timeout_sec=2.0):
+                QMessageBox.warning(self, "错误", "机械臂动作服务器不可用\n请确保机械臂控制节点正在运行")
+                self.ros_node.get_logger().error('机械臂动作服务器不可用')
+                return
+                
+            # 创建并发送目标
+            goal_msg = MoveArm.Goal()
+            goal_msg.pose = angle
+            
+            # 发送目标
+            future = self.ros_node.arm_action_client.send_goal_async(goal_msg)
+            
+            # 显示成功消息
+            QMessageBox.information(self, "机械臂", f"已发送机械臂角度命令: {angle}°")
+            self.ros_node.get_logger().info(f'发送机械臂角度: {angle}°')
+            
+        except Exception as e:
+            QMessageBox.warning(self, "错误", f"发送机械臂命令失败:\n{str(e)}")
+            self.ros_node.get_logger().error(f'发送机械臂命令失败: {e}')
 
     def send_claw_goal(self, command):
         """发送爪子动作目标"""
-        if self.claw_action_client is None or MoveClaw is None:
-            QMessageBox.warning(self, "错误", "爪子动作接口不可用")
+        if self.ros_node.claw_action_client is None or MoveClaw is None:
+            QMessageBox.warning(self, "错误", "爪子动作接口不可用\n请确保已正确安装claw_control_interfaces包")
+            self.ros_node.get_logger().error('爪子动作客户端不可用')
             return
+            
         self.claw_state = command
-        # 等待服务器
-        if not self.claw_action_client.wait_for_server(timeout_sec=1.0):
-            QMessageBox.warning(self, "错误", "爪子动作服务器不可用")
-            return
-        goal_msg = MoveClaw.Goal()
-        goal_msg.command = command
-        self.claw_action_client.send_goal_async(goal_msg)
-        state_str = "抓取" if command == 0 else "释放"
-        QMessageBox.information(self, "爪子", f"已发送爪子命令: {state_str}")
+        
+        try:
+            # 等待服务器可用
+            if not self.ros_node.claw_action_client.wait_for_server(timeout_sec=2.0):
+                QMessageBox.warning(self, "错误", "爪子动作服务器不可用\n请确保爪子控制节点正在运行")
+                self.ros_node.get_logger().error('爪子动作服务器不可用')
+                return
+                
+            # 创建并发送目标
+            goal_msg = MoveClaw.Goal()
+            goal_msg.command = command
+            
+            # 发送目标
+            future = self.ros_node.claw_action_client.send_goal_async(goal_msg)
+            
+            # 显示成功消息
+            state_str = "抓取" if command == 0 else "释放"
+            QMessageBox.information(self, "爪子", f"已发送爪子命令: {state_str}")
+            self.ros_node.get_logger().info(f'发送爪子命令: {state_str}')
+            
+        except Exception as e:
+            QMessageBox.warning(self, "错误", f"发送爪子命令失败:\n{str(e)}")
+            self.ros_node.get_logger().error(f'发送爪子命令失败: {e}')
 
     def stop_controller(self):
         """停止当前控制器"""
