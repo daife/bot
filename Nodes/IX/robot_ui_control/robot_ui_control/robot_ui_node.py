@@ -252,6 +252,28 @@ class RobotUINode(Node):
             self.get_logger().error(f'Error killing node {node_name}: {e}')
             return False
 
+    def init_action_clients(self):
+        """初始化机械臂和爪子动作客户端"""
+        try:
+            if MoveArm is not None:
+                self.arm_action_client = ActionClient(self, MoveArm, 'move_arm')
+                self.get_logger().info('机械臂动作客户端已初始化')
+            else:
+                self.arm_action_client = None
+                self.get_logger().warn('机械臂接口不可用，请检查arm_control_interfaces包')
+                
+            if MoveClaw is not None:
+                self.claw_action_client = ActionClient(self, MoveClaw, 'move_claw')
+                self.get_logger().info('爪子动作客户端已初始化')
+            else:
+                self.claw_action_client = None
+                self.get_logger().warn('爪子接口不可用，请检查claw_control_interfaces包')
+                
+        except Exception as e:
+            self.get_logger().error(f'初始化动作客户端失败: {e}')
+            self.arm_action_client = None
+            self.claw_action_client = None
+
 
 class ROSWorker(QObject):
     """ROS工作线程"""
@@ -477,28 +499,6 @@ class MainWindow(QMainWindow):
         # 启动线程
         self.worker_thread.started.connect(self.worker.run)
         self.worker_thread.start()
-
-    def init_action_clients(self):
-        """初始化机械臂和爪子动作客户端"""
-        try:
-            if MoveArm is not None:
-                self.arm_action_client = ActionClient(self, MoveArm, 'move_arm')
-                self.get_logger().info('机械臂动作客户端已初始化')
-            else:
-                self.arm_action_client = None
-                self.get_logger().warn('机械臂接口不可用，请检查arm_control_interfaces包')
-                
-            if MoveClaw is not None:
-                self.claw_action_client = ActionClient(self, MoveClaw, 'move_claw')
-                self.get_logger().info('爪子动作客户端已初始化')
-            else:
-                self.claw_action_client = None
-                self.get_logger().warn('爪子接口不可用，请检查claw_control_interfaces包')
-                
-        except Exception as e:
-            self.get_logger().error(f'初始化动作客户端失败: {e}')
-            self.arm_action_client = None
-            self.claw_action_client = None
 
     def create_node_manager_tab(self):
         """创建节点管理标签页"""
