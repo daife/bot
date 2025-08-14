@@ -1324,8 +1324,7 @@ class MainWindow(QMainWindow):
             # 发送目标
             future = self.ros_node.arm_action_client.send_goal_async(goal_msg)
             
-            # 显示成功消息
-            QMessageBox.information(self, "机械臂", f"已发送机械臂角度命令: {angle}°")
+            # 只记录日志，不显示弹窗
             self.ros_node.get_logger().info(f'发送机械臂角度: {angle}°')
             
         except Exception as e:
@@ -1355,9 +1354,8 @@ class MainWindow(QMainWindow):
             # 发送目标
             future = self.ros_node.claw_action_client.send_goal_async(goal_msg)
             
-            # 显示成功消息
+            # 只记录日志，不显示弹窗
             state_str = "抓取" if command == 0 else "释放"
-            QMessageBox.information(self, "爪子", f"已发送爪子命令: {state_str}")
             self.ros_node.get_logger().info(f'发送爪子命令: {state_str}')
             
         except Exception as e:
