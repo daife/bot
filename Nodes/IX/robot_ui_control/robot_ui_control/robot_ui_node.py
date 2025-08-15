@@ -378,15 +378,15 @@ class RobotUINode(Node):
                 
                 # 1. 初始校准 - 左转后右转回正
                 self.get_logger().info('执行初始校准...')
-                self.smooth_speed_change(0, 0, 0.15, 1000)  # 平滑加速到左转
+                self.smooth_speed_change(0., 0., 0.15, 1000)  # 平滑加速到左转
                 time.sleep(1.0)
-                self.smooth_speed_change(0, 0, 0, 1000)     # 平滑停止
+                self.smooth_speed_change(0., 0., 0., 1000)     # 平滑停止
                 time.sleep(0.1)                             # 短暂停顿
                 
                 # 右转回到初始角度
-                self.smooth_speed_change(0, 0, -0.15, 1000) # 平滑加速到右转
+                self.smooth_speed_change(0., 0., -0.15, 1000) # 平滑加速到右转
                 time.sleep(1.0)
-                self.smooth_speed_change(0, 0, 0, 1000)     # 平滑停止
+                self.smooth_speed_change(0., 0., 0., 1000)     # 平滑停止
                 
                 # 机械臂下降准备
                 self._send_arm_command_smooth(-5.0)  # 下降5度
@@ -405,21 +405,21 @@ class RobotUINode(Node):
                 
                 # 2. 开始前进保持低速
                 self.get_logger().info('开始前进阶段...')
-                self.smooth_speed_change(0.3, 0, 0, 2000)   # 平滑加速到低速前进
+                self.smooth_speed_change(0.3, 0., 0., 2000)   # 平滑加速到低速前进
                 time.sleep(0.5)
-                self.smooth_speed_change(0, 0, 0, 2000)     # 平滑停止
+                self.smooth_speed_change(0., 0., 0., 2000)     # 平滑停止
                 
                 # 机械臂下降抓取
-                self._send_claw_command_smooth(0)  # 抓取
+                self._send_claw_command_smooth(0.)  # 抓取
                 
                 # 3. 后退和转向阶段
                 self.get_logger().info('执行后退和转向...')
                 time.sleep(1.0)  # 停顿
                 
                 # 后退一段距离
-                self.smooth_speed_change(-0.2, 0, 0, 1000)  # 平滑加速到后退
+                self.smooth_speed_change(-0.2, 0., 0., 1000)  # 平滑加速到后退
                 time.sleep(0.4)
-                self.smooth_speed_change(0, 0, 0, 1000)     # 平滑停止
+                self.smooth_speed_change(0., 0., 0., 1000)     # 平滑停止
                 time.sleep(0.5)                             # 短暂停顿
                 
                 # 机械臂下降
@@ -429,15 +429,15 @@ class RobotUINode(Node):
                 time.sleep(0.1)
                 
                 # 右转90度
-                self.smooth_speed_change(0, 0, -0.25, 1000) # 平滑加速到右转
+                self.smooth_speed_change(0., 0., -0.25, 1000) # 平滑加速到右转
                 time.sleep(4.0)                             # 右转4秒（约90度）
-                self.smooth_speed_change(0, 0, 0, 1000)     # 平滑停止右转
+                self.smooth_speed_change(0., 0., 0., 1000)     # 平滑停止右转
                 time.sleep(0.3)                             # 短暂停顿
                 
                 # 前进一段距离
-                self.smooth_speed_change(0.2, 0, 0, 1000)   # 平滑加速到前进
+                self.smooth_speed_change(0.2, 0., 0., 1000)   # 平滑加速到前进
                 time.sleep(0.1)
-                self.smooth_speed_change(0, 0, 0, 500)      # 平滑停止
+                self.smooth_speed_change(0., 0., 0., 500)      # 平滑停止
                 
                 # 机械臂上升和释放
                 self._send_arm_command_smooth(5.0)   # 上升5度
