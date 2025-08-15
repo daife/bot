@@ -422,8 +422,11 @@ class RobotUINode(Node):
                 # 机械臂下降
                 self._send_arm_command_smooth(-5.0)  # 下降5度
                 time.sleep(0.1)
-                self._send_arm_command_smooth(-3.0)  # 再下降5度
+                self._send_arm_command_smooth(-5.0)  # 再下降5度
                 time.sleep(0.1)
+                self._send_arm_command_smooth(-5.0)  # 再下降5度
+                time.sleep(0.1)
+                self._send_arm_command_smooth(-5.0)  # 再下降5度
                 
                 # 右转90度
                 self.smooth_speed_change(0., 0., -0.25, 1000) # 平滑加速到右转
@@ -444,6 +447,8 @@ class RobotUINode(Node):
                 
                 # 机械臂上升和释放
                 self._send_arm_command_smooth(5.0)   # 上升5度
+                time.sleep(0.1)
+                self._send_arm_command_smooth(5.0)   # 再上升5度
                 time.sleep(0.1)
                 self._send_arm_command_smooth(5.0)   # 再上升5度
                 time.sleep(0.1)
