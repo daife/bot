@@ -18,7 +18,7 @@ class Claw:
         wiringpi.wiringPiSetup()
         self.gpio_pin = 7
         wiringpi.pinMode(self.gpio_pin, 1)  # 1为输出模式
-        wiringpi.digitalWrite(self.gpio_pin, 0)  # 默认低电平
+        wiringpi.digitalWrite(self.gpio_pin, 1)  # 默认高电平
         self.status = self.STATUS_UNGRASPED
 
     def grasp(self):
@@ -26,8 +26,9 @@ class Claw:
             return
         self.status = self.STATUS_GRASPING
         try:
-            wiringpi.digitalWrite(self.gpio_pin, 1)  # 设置高电平，抓取
+            wiringpi.digitalWrite(self.gpio_pin, 0)  # 设置低电平，抓取
             time.sleep(2)  # 等待动作完成
+            # wiringpi.digitalWrite(self.gpio_pin, 1)  # 恢复高电平
             self.status = self.STATUS_GRASPED
         except Exception as e:
             print(f"[Claw] Grasp failed: {e}")
@@ -37,8 +38,9 @@ class Claw:
         if self.status not in [self.STATUS_GRASPED, self.STATUS_FAILED]:
             return
         try:
-            wiringpi.digitalWrite(self.gpio_pin, 0)  # 设置低电平，释放/初始化
+            wiringpi.digitalWrite(self.gpio_pin, 1)  # 设置高电平，释放
             time.sleep(2)
+            # wiringpi.digitalWrite(self.gpio_pin, 1)  # 恢复高电平
             self.status = self.STATUS_UNGRASPED
         except Exception as e:
             print(f"[Claw] Release failed: {e}")
@@ -51,4 +53,4 @@ class Claw:
         print("[Claw] 当前硬件版本不支持角度读取。")
 
     def close(self):
-        wiringpi.digitalWrite(self.gpio_pin, 0)  # 关闭时确保释放
+        wiringpi.digitalWrite(self.gpio_pin, 1)  # 关闭时确保恢复高电平

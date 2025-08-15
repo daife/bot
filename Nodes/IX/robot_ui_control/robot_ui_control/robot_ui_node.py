@@ -410,7 +410,7 @@ class RobotUINode(Node):
                 self.smooth_speed_change(0., 0., 0., 2000)     # 平滑停止
                 
                 # 机械臂下降抓取
-                self._send_claw_command_smooth(0.)  # 抓取
+                self._send_claw_command_smooth(0)  # 抓取
                 
                 # 3. 后退和转向阶段
                 self.get_logger().info('执行后退和转向...')
