@@ -1698,6 +1698,37 @@ class MainWindow(QMainWindow):
         
         event.accept()
 
+    def run_hardcoded_test(self):
+        """运行硬编码测试"""
+        # 显示确认对话框
+        reply = QMessageBox.question(self, '执行硬编码测试', 
+                                    '是否要执行硬编码测试序列？\n\n'
+                                    '测试将包括：\n'
+                                    '1. 校准转向（左转→右转回正）\n'
+                                    '2. 机械臂准备（下降→上升）\n'
+                                    '3. 前进并抓取\n'
+                                    '4. 后退→右转90°→前进\n'
+                                    '5. 机械臂上升并释放物体\n\n'
+                                    '请确保机器人周围环境安全！',
+                                    QMessageBox.Yes | QMessageBox.No, 
+                                    QMessageBox.No)
+        
+        if reply == QMessageBox.Yes:
+            try:
+                # 调用 ROS 节点中的测试方法
+                self.ros_node.execute_hardcoded_test()
+                
+                # 显示开始信息
+                QMessageBox.information(self, "测试已启动", 
+                                      "硬编码测试序列已开始执行！\n\n"
+                                      "请观察机器人的动作并确保安全。\n"
+                                      "测试过程中请不要手动控制机器人。")
+                
+                self.ros_node.get_logger().info('用户启动了硬编码测试序列')
+                
+            except Exception as e:
+                QMessageBox.warning(self, "错误", f"启动硬编码测试时出错:\n\n{str(e)}")
+                self.ros_node.get_logger().error(f'启动硬编码测试失败: {e}')
 
 def main(args=None):
     # 检查PyQt5是否可用
