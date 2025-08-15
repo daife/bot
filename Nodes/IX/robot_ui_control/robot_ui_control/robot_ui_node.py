@@ -80,6 +80,13 @@ class RobotUINode(Node):
         # 控制器发布器
         self.cmd_vel_publisher = self.create_publisher(Twist, 'cmd_vel', 10)
         
+        # 速度平滑变化相关参数
+        self.INTERPOLATION_STEPS = 50  # 插值步数
+        self.current_velocity_x = 0.0  # 当前X方向速度
+        self.current_velocity_y = 0.0  # 当前Y方向速度
+        self.current_angular_z = 0.0   # 当前角速度
+        self.smooth_change_lock = threading.Lock()  # 平滑变化锁
+        
         # 初始化机械臂和爪子动作客户端
         self.init_action_clients()
         
@@ -273,6 +280,87 @@ class RobotUINode(Node):
             self.get_logger().error(f'初始化动作客户端失败: {e}')
             self.arm_action_client = None
             self.claw_action_client = None
+
+    def smooth_speed_change(self, target_x: float, target_y: float, target_yaw: float, duration_ms: int):
+        """
+        速度平滑变化函数
+        
+        Args:
+            target_x: 目标X方向线速度 (m/s)
+            target_y: 目标Y方向线速度 (m/s) 
+            target_yaw: 目标角速度 (rad/s)
+            duration_ms: 变化持续时间 (毫秒)
+        """
+        def _smooth_change_thread():
+            with self.smooth_change_lock:
+                current_x = self.current_velocity_x
+                current_y = self.current_velocity_y
+                current_yaw = self.current_angular_z
+                
+                step_x = (target_x - current_x) / self.INTERPOLATION_STEPS
+                step_y = (target_y - current_y) / self.INTERPOLATION_STEPS
+                step_yaw = (target_yaw - current_yaw) / self.INTERPOLATION_STEPS
+                
+                # 根据总持续时间计算每步的延时
+                step_delay = duration_ms / self.INTERPOLATION_STEPS / 1000.0  # 转换为秒
+                
+                # 确保延时不小于1ms，避免过快的变化
+                if step_delay < 0.001:
+                    step_delay = 0.001
+                
+                try:
+                    for i in range(self.INTERPOLATION_STEPS):
+                        current_x += step_x
+                        current_y += step_y
+                        current_yaw += step_yaw
+                        
+                        # 发布cmd_vel消息
+                        self._publish_cmd_vel(current_x, current_y, current_yaw)
+                        
+                        # 更新当前速度
+                        self.current_velocity_x = current_x
+                        self.current_velocity_y = current_y
+                        self.current_angular_z = current_yaw
+                        
+                        time.sleep(step_delay)
+                    
+                    # 确保最终值准确
+                    self._publish_cmd_vel(target_x, target_y, target_yaw)
+                    self.current_velocity_x = target_x
+                    self.current_velocity_y = target_y
+                    self.current_angular_z = target_yaw
+                    
+                    self.get_logger().debug(f'Smooth speed change completed: x={target_x}, y={target_y}, yaw={target_yaw}')
+                    
+                except Exception as e:
+                    self.get_logger().error(f'Error during smooth speed change: {e}')
+        
+        # 在单独线程中执行平滑变化，避免阻塞主线程
+        change_thread = threading.Thread(target=_smooth_change_thread, daemon=True)
+        change_thread.start()
+
+    def _publish_cmd_vel(self, linear_x: float, linear_y: float, angular_z: float):
+        """
+        发布cmd_vel消息的内部函数
+        
+        Args:
+            linear_x: X方向线速度
+            linear_y: Y方向线速度
+            angular_z: Z轴角速度
+        """
+        try:
+            twist = Twist()
+            twist.linear.x = linear_x
+            twist.linear.y = linear_y
+            twist.linear.z = 0.0
+            twist.angular.x = 0.0
+            twist.angular.y = 0.0
+            twist.angular.z = angular_z
+            
+            self.cmd_vel_publisher.publish(twist)
+            
+        except Exception as e:
+            self.get_logger().error(f'Error publishing cmd_vel: {e}')
 
 
 class ROSWorker(QObject):
