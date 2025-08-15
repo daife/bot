@@ -364,29 +364,29 @@ class RobotUINode(Node):
 
     def execute_hardcoded_test(self):
         """
-        执行硬编码测试序列
+        执行自动化测试序列
         包含平滑速度变化、机械臂控制和爪子控制
         """
         def _test_sequence():
             try:
-                self.get_logger().info('开始硬编码测试序列')
+                self.get_logger().info('开始自动化测试序列')
                 
                 # 1. 初始校准 - 左转后右转回正
                 self.get_logger().info('执行初始校准...')
-                self.smooth_speed_change(0., 0., 0.15, 1000)  # 平滑加速到左转
+                self.smooth_speed_change(0., 0., -0.15, 1000)  # 平滑加速到左转
                 time.sleep(1.0)
                 self.smooth_speed_change(0., 0., 0., 1000)     # 平滑停止
-                time.sleep(0.1)                             # 短暂停顿
+                time.sleep(0.5)                             # 短暂停顿
                 
                 # 右转回到初始角度
-                self.smooth_speed_change(0., 0., -0.15, 1000) # 平滑加速到右转
+                self.smooth_speed_change(0., 0., 0.15, 1000) # 平滑加速到右转
                 time.sleep(1.0)
                 self.smooth_speed_change(0., 0., 0., 1000)     # 平滑停止
                 
                 # 机械臂下降准备
                 self._send_arm_command_smooth(-5.0)  # 下降5度
                 time.sleep(0.1)
-                self._send_arm_command_smooth(-5.0)  # 再下降5度
+                self._send_arm_command_smooth(-3.0)  # 再下降5度
                 time.sleep(1.0)
                 
                 # 爪子上升准备
@@ -400,8 +400,10 @@ class RobotUINode(Node):
                 
                 # 2. 开始前进保持低速
                 self.get_logger().info('开始前进阶段...')
-                self.smooth_speed_change(0.3, 0., 0., 2000)   # 平滑加速到低速前进
+                self.smooth_speed_change(0.2, 0., 0., 2000)   # 平滑加速到低速前进
                 time.sleep(0.5)
+                self.smooth_speed_change(0.2, 0., 0., 1000) 
+                time.sleep(0.5)                             # 短暂停顿
                 self.smooth_speed_change(0., 0., 0., 2000)     # 平滑停止
                 
                 # 机械臂下降抓取
@@ -420,19 +422,25 @@ class RobotUINode(Node):
                 # 机械臂下降
                 self._send_arm_command_smooth(-5.0)  # 下降5度
                 time.sleep(0.1)
-                self._send_arm_command_smooth(-5.0)  # 再下降5度
+                self._send_arm_command_smooth(-3.0)  # 再下降5度
                 time.sleep(0.1)
                 
                 # 右转90度
                 self.smooth_speed_change(0., 0., -0.25, 1000) # 平滑加速到右转
-                time.sleep(4.0)                             # 右转4秒（约90度）
+                time.sleep(0.5)                             # 右转4秒（约90度）
+                self.smooth_speed_change(0., 0., -0.25, 1000)
+                time.sleep(0.5)                             # 右转4秒（约90度）
+                self.smooth_speed_change(0., 0., -0.25, 1000)
+                time.sleep(0.5)                             # 右转4秒（约90度）
                 self.smooth_speed_change(0., 0., 0., 1000)     # 平滑停止右转
                 time.sleep(0.3)                             # 短暂停顿
                 
                 # 前进一段距离
-                self.smooth_speed_change(0.2, 0., 0., 1000)   # 平滑加速到前进
-                time.sleep(0.1)
-                self.smooth_speed_change(0., 0., 0., 500)      # 平滑停止
+                self.smooth_speed_change(0.3, 0., 0., 1000)   # 平滑加速到前进
+                time.sleep(0.4)
+                self.smooth_speed_change(0.2, 0., 0., 500)
+                time.sleep(0.5)                             # 短暂停顿
+                self.smooth_speed_change(0., 0., 0., 1000)      # 平滑停止
                 
                 # 机械臂上升和释放
                 self._send_arm_command_smooth(5.0)   # 上升5度
@@ -441,10 +449,10 @@ class RobotUINode(Node):
                 time.sleep(0.1)
                 self._send_claw_command_smooth(1)    # 释放
                 
-                self.get_logger().info('硬编码测试序列完成')
+                self.get_logger().info('自动化测试序列完成')
                 
             except Exception as e:
-                self.get_logger().error(f'硬编码测试执行失败: {e}')
+                self.get_logger().error(f'自动化测试执行失败: {e}')
         
         # 在单独线程中执行测试序列，避免阻塞UI
         test_thread = threading.Thread(target=_test_sequence, daemon=True)
@@ -1020,12 +1028,12 @@ class MainWindow(QMainWindow):
 
         manual_layout.addWidget(arm_claw_group)
         
-        # 添加硬编码测试按钮
+        # 添加自动化测试按钮
         hardcoded_test_group = QGroupBox("自动化测试")
         hardcoded_test_layout = QVBoxLayout(hardcoded_test_group)
         
-        # 硬编码测试按钮
-        hardcoded_test_btn = QPushButton("一键硬编码测试")
+        # 自动化测试按钮
+        hardcoded_test_btn = QPushButton("一键自动化测试")
         hardcoded_test_btn.clicked.connect(self.run_hardcoded_test)
         hardcoded_test_btn.setStyleSheet("""
             QPushButton {
@@ -1049,11 +1057,11 @@ class MainWindow(QMainWindow):
         # 测试说明
         test_info = QLabel("""
 测试流程：
-1. 校准转向（左转→右转回正）
-2. 机械臂准备（下降→上升）
+1. 校准转向
+2. 机械臂准备
 3. 前进并抓取
-4. 后退→右转90°→前进
-5. 机械臂上升并释放物体
+4. 搜寻并导航到目标点
+5. 机械臂下降并释放物体
 
 注意：请确保机器人周围环境安全！
         """)
@@ -1694,17 +1702,16 @@ class MainWindow(QMainWindow):
         event.accept()
 
     def run_hardcoded_test(self):
-        """运行硬编码测试"""
+        """运行自动化测试"""
         # 显示确认对话框
-        reply = QMessageBox.question(self, '执行硬编码测试', 
-                                    '是否要执行硬编码测试序列？\n\n'
+        reply = QMessageBox.question(self, '执行自动化测试', 
+                                    '是否要执行自动化测试？\n\n'
                                     '测试将包括：\n'
-                                    '1. 校准转向（左转→右转回正）\n'
-                                    '2. 机械臂准备（下降→上升）\n'
-                                    '3. 前进并抓取\n'
-                                    '4. 后退→右转90°→前进\n'
-                                    '5. 机械臂上升并释放物体\n\n'
-                                    '请确保机器人周围环境安全！',
+                                    '1. 校准转向\n'
+                                    '2. 机械臂准备\n'
+                                    '3. 识别并抓取\n'
+                                    '4. 寻找并导航到目标点\n'
+                                    '5. 机械臂上升并释放物体\n\n',
                                     QMessageBox.Yes | QMessageBox.No, 
                                     QMessageBox.No)
         
@@ -1715,15 +1722,15 @@ class MainWindow(QMainWindow):
                 
                 # 显示开始信息
                 QMessageBox.information(self, "测试已启动", 
-                                      "硬编码测试序列已开始执行！\n\n"
+                                      "测试已开始执行！\n\n"
                                       "请观察机器人的动作并确保安全。\n"
                                       "测试过程中请不要手动控制机器人。")
                 
-                self.ros_node.get_logger().info('用户启动了硬编码测试序列')
+                self.ros_node.get_logger().info('用户启动了测试')
                 
             except Exception as e:
-                QMessageBox.warning(self, "错误", f"启动硬编码测试时出错:\n\n{str(e)}")
-                self.ros_node.get_logger().error(f'启动硬编码测试失败: {e}')
+                QMessageBox.warning(self, "错误", f"启动测试时出错:\n\n{str(e)}")
+                self.ros_node.get_logger().error(f'启动测试失败: {e}')
 
 def main(args=None):
     # 检查PyQt5是否可用
