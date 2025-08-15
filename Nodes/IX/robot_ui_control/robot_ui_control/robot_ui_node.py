@@ -362,6 +362,143 @@ class RobotUINode(Node):
         except Exception as e:
             self.get_logger().error(f'Error publishing cmd_vel: {e}')
 
+    def execute_hardcoded_test(self):
+        """
+        执行硬编码测试序列
+        包含平滑速度变化、机械臂控制和爪子控制
+        """
+        def _test_sequence():
+            try:
+                self.get_logger().info('开始硬编码测试序列')
+                
+                # 1. 初始校准 - 左转后右转回正
+                self.get_logger().info('执行初始校准...')
+                self.smooth_speed_change(0, 0, 0.15, 1000)  # 平滑加速到左转
+                time.sleep(1.0)
+                self.smooth_speed_change(0, 0, 0, 1000)     # 平滑停止
+                time.sleep(0.1)                             # 短暂停顿
+                
+                # 右转回到初始角度
+                self.smooth_speed_change(0, 0, -0.15, 1000) # 平滑加速到右转
+                time.sleep(1.0)
+                self.smooth_speed_change(0, 0, 0, 1000)     # 平滑停止
+                
+                # 机械臂下降准备
+                self._send_arm_command_smooth(-5.0)  # 下降5度
+                time.sleep(0.1)
+                self._send_arm_command_smooth(-5.0)  # 再下降5度
+                time.sleep(1.0)
+                
+                # 爪子上升准备
+                self._send_arm_command_smooth(5.0)   # 上升5度
+                time.sleep(0.1)
+                self._send_arm_command_smooth(5.0)   # 再上升5度
+                time.sleep(0.1)
+                self._send_arm_command_smooth(5.0)   # 再上升5度
+                time.sleep(0.1)
+                self._send_arm_command_smooth(5.0)   # 再上升5度
+                
+                # 2. 开始前进保持低速
+                self.get_logger().info('开始前进阶段...')
+                self.smooth_speed_change(0.3, 0, 0, 2000)   # 平滑加速到低速前进
+                time.sleep(0.5)
+                self.smooth_speed_change(0, 0, 0, 2000)     # 平滑停止
+                
+                # 机械臂下降抓取
+                self._send_claw_command_smooth(0)  # 抓取
+                
+                # 3. 后退和转向阶段
+                self.get_logger().info('执行后退和转向...')
+                time.sleep(1.0)  # 停顿
+                
+                # 后退一段距离
+                self.smooth_speed_change(-0.2, 0, 0, 1000)  # 平滑加速到后退
+                time.sleep(0.4)
+                self.smooth_speed_change(0, 0, 0, 1000)     # 平滑停止
+                time.sleep(0.5)                             # 短暂停顿
+                
+                # 机械臂下降
+                self._send_arm_command_smooth(-5.0)  # 下降5度
+                time.sleep(0.1)
+                self._send_arm_command_smooth(-5.0)  # 再下降5度
+                time.sleep(0.1)
+                
+                # 右转90度
+                self.smooth_speed_change(0, 0, -0.25, 1000) # 平滑加速到右转
+                time.sleep(4.0)                             # 右转4秒（约90度）
+                self.smooth_speed_change(0, 0, 0, 1000)     # 平滑停止右转
+                time.sleep(0.3)                             # 短暂停顿
+                
+                # 前进一段距离
+                self.smooth_speed_change(0.2, 0, 0, 1000)   # 平滑加速到前进
+                time.sleep(0.1)
+                self.smooth_speed_change(0, 0, 0, 500)      # 平滑停止
+                
+                # 机械臂上升和释放
+                self._send_arm_command_smooth(5.0)   # 上升5度
+                time.sleep(0.1)
+                self._send_arm_command_smooth(5.0)   # 再上升5度
+                time.sleep(0.1)
+                self._send_claw_command_smooth(1)    # 释放
+                
+                self.get_logger().info('硬编码测试序列完成')
+                
+            except Exception as e:
+                self.get_logger().error(f'硬编码测试执行失败: {e}')
+        
+        # 在单独线程中执行测试序列，避免阻塞UI
+        test_thread = threading.Thread(target=_test_sequence, daemon=True)
+        test_thread.start()
+
+    def _send_arm_command_smooth(self, angle_change):
+        """
+        平滑发送机械臂命令
+        
+        Args:
+            angle_change: 角度变化量（正数上升，负数下降）
+        """
+        try:
+            if self.arm_action_client is None:
+                return
+                
+            # 计算新角度（假设当前角度为0，实际应该记录当前角度）
+            new_angle = max(self.arm_min_angle, min(self.arm_max_angle, angle_change))
+            
+            if self.arm_action_client.wait_for_server(timeout_sec=1.0):
+                goal_msg = MoveArm.Goal()
+                goal_msg.pose = new_angle
+                self.arm_action_client.send_goal_async(goal_msg)
+                self.get_logger().debug(f'发送机械臂角度变化: {angle_change}°')
+            else:
+                self.get_logger().warn('机械臂动作服务器不可用')
+                
+        except Exception as e:
+            self.get_logger().error(f'发送机械臂命令失败: {e}')
+
+    def _send_claw_command_smooth(self, command):
+        """
+        平滑发送爪子命令
+        
+        Args:
+            command: 0=抓取, 1=释放
+        """
+        try:
+            if self.claw_action_client is None:
+                return
+                
+            if self.claw_action_client.wait_for_server(timeout_sec=1.0):
+                goal_msg = MoveClaw.Goal()
+                goal_msg.command = command
+                self.claw_action_client.send_goal_async(goal_msg)
+                state_str = "抓取" if command == 0 else "释放"
+                self.get_logger().debug(f'发送爪子命令: {state_str}')
+            else:
+                self.get_logger().warn('爪子动作服务器不可用')
+                
+        except Exception as e:
+            self.get_logger().error(f'发送爪子命令失败: {e}')
+
+    # ...existing code...
 
 class ROSWorker(QObject):
     """ROS工作线程"""
@@ -881,6 +1018,49 @@ class MainWindow(QMainWindow):
         arm_claw_layout.addWidget(claw_release_btn)
 
         manual_layout.addWidget(arm_claw_group)
+        
+        # 添加硬编码测试按钮
+        hardcoded_test_group = QGroupBox("自动化测试")
+        hardcoded_test_layout = QVBoxLayout(hardcoded_test_group)
+        
+        # 硬编码测试按钮
+        hardcoded_test_btn = QPushButton("一键硬编码测试")
+        hardcoded_test_btn.clicked.connect(self.run_hardcoded_test)
+        hardcoded_test_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #ff6b35;
+                color: #ffffff;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 6px;
+                font-weight: bold;
+                font-size: 14px;
+            }
+            QPushButton:hover {
+                background-color: #e55a2b;
+            }
+            QPushButton:pressed {
+                background-color: #cc4e24;
+            }
+        """)
+        hardcoded_test_layout.addWidget(hardcoded_test_btn)
+        
+        # 测试说明
+        test_info = QLabel("""
+测试流程：
+1. 校准转向（左转→右转回正）
+2. 机械臂准备（下降→上升）
+3. 前进并抓取
+4. 后退→右转90°→前进
+5. 机械臂上升并释放物体
+
+注意：请确保机器人周围环境安全！
+        """)
+        test_info.setStyleSheet("color: #ccc; font-size: 11px; padding: 10px;")
+        test_info.setWordWrap(True)
+        hardcoded_test_layout.addWidget(test_info)
+        
+        manual_layout.addWidget(hardcoded_test_group)
         
         self.tab_widget.addTab(tab, "控制器")
 
