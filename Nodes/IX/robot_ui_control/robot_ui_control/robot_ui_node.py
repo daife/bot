@@ -87,6 +87,11 @@ class RobotUINode(Node):
         self.current_angular_z = 0.0   # 当前角速度
         self.smooth_change_lock = threading.Lock()  # 平滑变化锁
         
+        # 机械臂控制参数
+        self.arm_angle = 0.0
+        self.arm_min_angle = -20.0
+        self.arm_max_angle = 19.0
+        
         # 初始化机械臂和爪子动作客户端
         self.init_action_clients()
         
@@ -461,14 +466,15 @@ class RobotUINode(Node):
             if self.arm_action_client is None:
                 return
                 
-            # 计算新角度（假设当前角度为0，实际应该记录当前角度）
-            new_angle = max(self.arm_min_angle, min(self.arm_max_angle, angle_change))
+            # 更新当前角度并限制在范围内
+            self.arm_angle += angle_change
+            self.arm_angle = max(self.arm_min_angle, min(self.arm_max_angle, self.arm_angle))
             
             if self.arm_action_client.wait_for_server(timeout_sec=1.0):
                 goal_msg = MoveArm.Goal()
-                goal_msg.pose = new_angle
+                goal_msg.pose = self.arm_angle
                 self.arm_action_client.send_goal_async(goal_msg)
-                self.get_logger().debug(f'发送机械臂角度变化: {angle_change}°')
+                self.get_logger().debug(f'发送机械臂角度: {self.arm_angle}°')
             else:
                 self.get_logger().warn('机械臂动作服务器不可用')
                 
@@ -551,7 +557,7 @@ class MainWindow(QMainWindow):
         self.arm_max_angle = 19.0
         self.arm_step = 1.0
         self.claw_state = 0  # 0: 抓取, 1: 释放
-        
+
         # 设置窗口
         self.setWindowTitle('机器人控制界面')
         self.setGeometry(100, 100, 1200, 800)
