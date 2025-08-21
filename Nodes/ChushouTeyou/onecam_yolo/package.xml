@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>onecam_yolo</name>
+  <version>0.0.0</version>
+  <description>YOLO detector for one camera, publishes image topic</description>
+  <maintainer email="user@todo.todo">HwHiAiUser</maintainer>
+  <license>TODO: License declaration</license>
+  <buildtool_depend>ament_python</buildtool_depend>
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>cv_bridge</exec_depend>
+  <exec_depend>pyudev</exec_depend>
+  <exec_depend>numpy</exec_depend>
+  <exec_depend>opencv-python</exec_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>
