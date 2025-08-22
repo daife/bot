@@ -23,14 +23,14 @@ def generate_launch_description():
     # 配置文件
     configuration_basename = LaunchConfiguration('configuration_basename', default='fishbot_2d.lua')
     # 是否启动RViz
-    launch_rviz = LaunchConfiguration('launch_rviz', default='true')
+    launch_rviz = LaunchConfiguration('launch_rviz', default='false')
     rviz_config_dir = os.path.join(pkg_share, 'config')+"/cartographer.rviz"
     print(f"rviz config in {rviz_config_dir}")
 
     # 声明launch参数
     declare_launch_rviz_cmd = DeclareLaunchArgument(
         'launch_rviz',
-        default_value='true',
+        default_value='false',
         description='Whether to start RViz')
     
     #=====================声明节点=================================

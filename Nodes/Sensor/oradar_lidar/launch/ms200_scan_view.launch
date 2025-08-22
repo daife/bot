@@ -2,7 +2,7 @@
   <node pkg="oradar_lidar" type="oradar_scan" name="oradar_scan" respawn="false" output="screen">
 
     <param name="device_model" type="string"   value="MS200"/>				<!--设备型号: MS200-->
-    <param name="frame_id"     type="string"   value="laser_frame"/>  <!--配置frame_id-->
+    <param name="frame_id"     type="string"   value="lidar_link"/>  <!--配置frame_id-->
     <param name="scan_topic"   type="string"   value="MS200/scan" />  <!--设置激光雷达的topic名称--> 
     <param name="port_name"    type="string"   value="/dev/ttyACM0"/> <!--配置串口设备port: dev/ttyACM0-->
     <param name="baudrate"     type="int"      value="230400"/>		    <!--配置串口波特率:230400-->
