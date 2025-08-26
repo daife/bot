@@ -87,9 +87,9 @@ class CarStatusManager:
             # 根据yolo_node.py的逻辑：
             # position.x = dx (目标相对于图像中心的x偏移)
             # position.y = dy (目标相对于图像中心的y偏移)  
-            # position.z = 1.0 表示检测到目标，0.0 表示未检测到
+            # position.z = 0.0 表示未检测到
             
-            self.target_detected = (msg.position.z > 0.5)  # z > 0.5 表示检测到目标
+            self.target_detected = (msg.position.z > 0.0)  # z > 0.0 表示检测到目标
             
             if self.target_detected:
                 self.target_position['x'] = msg.position.x

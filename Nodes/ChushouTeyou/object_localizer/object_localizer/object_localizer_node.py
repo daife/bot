@@ -387,7 +387,7 @@ class ObjectLocalizerNode(Node):
         position_msg.detected = False
         position_msg.x = 0.0
         position_msg.y = 0.0
-        position_msg.z = 0.0
+        position_msg.z = 0.0  # 没有检测到时为0
         position_msg.confidence = 0.0
         
         # 检查是否检测到物体
@@ -405,6 +405,9 @@ class ObjectLocalizerNode(Node):
             width_bottom = int(self.current_detection.width * self.scale_factor)
             height_bottom = int(self.current_detection.height * self.scale_factor)
             
+            # 计算检测框周长
+            detection_perimeter = 2 * (width_bottom + height_bottom)
+            
             # 计算底部检测框中心点
             bottom_center_x = x_bottom + width_bottom / 2
             bottom_center_y = y_bottom + height_bottom / 2
@@ -416,6 +419,8 @@ class ObjectLocalizerNode(Node):
                 self.get_logger().warn('检测框超出图像边界')
                 if self.show_debug_visualization:
                     self.publish_debug_image(x_bottom, y_bottom, width_bottom, height_bottom, 0, 0, 0, 0, 0, 0.0)
+                # 检测框无效时z=0
+                position_msg.z = 0.0
                 self.position_publisher.publish(position_msg)
                 return
             
@@ -427,6 +432,8 @@ class ObjectLocalizerNode(Node):
                 self.get_logger().warn(f'检测框太小: {template.shape}')
                 if self.show_debug_visualization:
                     self.publish_debug_image(x_bottom, y_bottom, width_bottom, height_bottom, 0, 0, 0, 0, 0, 0.0)
+                # 检测框太小时z=0
+                position_msg.z = 0.0
                 self.position_publisher.publish(position_msg)
                 return
             
@@ -437,6 +444,8 @@ class ObjectLocalizerNode(Node):
                 self.get_logger().warn('未找到可能的模板匹配')
                 if self.show_debug_visualization:
                     self.publish_debug_image(x_bottom, y_bottom, width_bottom, height_bottom, 0, 0, 0, 0, 0, 0.0)
+                # 未找到匹配时z=0
+                position_msg.z = 0.0
                 self.position_publisher.publish(position_msg)
                 return
             
@@ -496,6 +505,8 @@ class ObjectLocalizerNode(Node):
                         x_bottom, y_bottom, width_bottom, height_bottom,
                         match_x, match_y, width_top, height_top, 
                         match_confidence, color_similarity, False)
+                # 没有找到有效匹配时z=0
+                position_msg.z = 0.0
                 self.position_publisher.publish(position_msg)
                 return
             
@@ -583,10 +594,12 @@ class ObjectLocalizerNode(Node):
                     position_msg.detected = True
                     position_msg.x = float(object_position[0])
                     position_msg.y = float(object_position[1])
-                    position_msg.z = float(object_position[2])
+                    position_msg.z = float(detection_perimeter)  # 使用检测框周长作为z值
                     position_msg.confidence = float(overall_confidence)
                 else:
                     self.get_logger().warn(f'三角测量置信度低: {overall_confidence}')
+                    # 置信度低时z=0
+                    position_msg.z = 0.0
                 
                 # 发布物体位置
                 self.position_publisher.publish(position_msg)
@@ -602,7 +615,8 @@ class ObjectLocalizerNode(Node):
                 self.get_logger().error(f'计算物体位置时出错: {e}')
                 import traceback
                 self.get_logger().error(traceback.format_exc())
-                # 尽管出错，仍然显示匹配结果
+                # 尽管出错，仍然显示匹配结果，但z=0
+                position_msg.z = 0.0
                 if self.show_debug_visualization:
                     self.publish_debug_image(
                         x_bottom, y_bottom, width_bottom, height_bottom, 
@@ -612,7 +626,8 @@ class ObjectLocalizerNode(Node):
                 
         except Exception as e:
             self.get_logger().error(f'定位物体时出错: {e}')
-            # 在任何错误情况下，尝试显示调试信息
+            # 在任何错误情况下，尝试显示调试信息，z=0
+            position_msg.z = 0.0
             if self.show_debug_visualization:
                 self.publish_debug_image(0, 0, 0, 0, 0, 0, 0, 0, 0, 0.0)
             self.position_publisher.publish(position_msg)
