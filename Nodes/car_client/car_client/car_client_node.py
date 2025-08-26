@@ -180,14 +180,3 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
-    except KeyboardInterrupt:
-        node.get_logger().info('用户中断')
-    finally:
-        # 停止小车
-        node.car_controller.stop_all()
-        node.destroy_node()
-        rclpy.shutdown()
-
-
-if __name__ == '__main__':
-    main()
