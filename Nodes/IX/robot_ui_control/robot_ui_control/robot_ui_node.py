@@ -80,6 +80,12 @@ class RobotUINode(Node):
         # 控制器发布器
         self.cmd_vel_publisher = self.create_publisher(Twist, 'cmd_vel', 10)
         
+        # 添加自动化控制发布器
+        self.enable_auto_publisher = self.create_publisher(Bool, 'enable_auto', 10)
+        
+        # 自动化状态
+        self.auto_enabled = False
+        
         # 速度平滑变化相关参数
         self.INTERPOLATION_STEPS = 50  # 插值步数
         self.current_velocity_x = 0.0  # 当前X方向速度
@@ -362,157 +368,25 @@ class RobotUINode(Node):
         except Exception as e:
             self.get_logger().error(f'Error publishing cmd_vel: {e}')
 
-    def execute_hardcoded_test(self):
-        """
-        执行自动化测试序列
-        包含平滑速度变化、机械臂控制和爪子控制
-        """
-        def _test_sequence():
-            try:
-                self.get_logger().info('开始自动化测试序列')
-                
-                # 1. 初始校准 - 左转后右转回正
-                self.get_logger().info('执行初始校准...')
-                self.smooth_speed_change(0., 0., -0.15, 1000)  # 平滑加速到左转
-                time.sleep(1.0)
-                self.smooth_speed_change(0., 0., 0., 1000)     # 平滑停止
-                time.sleep(0.5)                             # 短暂停顿
-                
-                # 右转回到初始角度
-                self.smooth_speed_change(0., 0., 0.15, 1000) # 平滑加速到右转
-                time.sleep(1.0)
-                self.smooth_speed_change(0., 0., 0., 1000)     # 平滑停止
-                
-                # 机械臂下降准备
-                self._send_arm_command_smooth(-5.0)  # 下降5度
-                time.sleep(0.1)
-                self._send_arm_command_smooth(-3.0)  # 再下降5度
-                time.sleep(1.0)
-                
-                # 爪子上升准备
-                self._send_arm_command_smooth(5.0)   # 上升5度
-                time.sleep(0.1)
-                self._send_arm_command_smooth(5.0)   # 再上升5度
-                time.sleep(0.1)
-                self._send_arm_command_smooth(5.0)   # 再上升5度
-                time.sleep(0.1)
-                self._send_arm_command_smooth(5.0)   # 再上升5度
-                
-                # 2. 开始前进保持低速
-                self.get_logger().info('开始前进阶段...')
-                self.smooth_speed_change(0.2, 0., 0., 2000)   # 平滑加速到低速前进
-                time.sleep(0.5)
-                self.smooth_speed_change(0.2, 0., 0., 1000) 
-                time.sleep(0.5)                             # 短暂停顿
-                self.smooth_speed_change(0., 0., 0., 2000)     # 平滑停止
-                
-                # 机械臂下降抓取
-                self._send_claw_command_smooth(0)  # 抓取
-                
-                # 3. 后退和转向阶段
-                self.get_logger().info('执行后退和转向...')
-                time.sleep(1.0)  # 停顿
-                
-                # 后退一段距离
-                self.smooth_speed_change(-0.2, 0., 0., 1000)  # 平滑加速到后退
-                time.sleep(0.4)
-                self.smooth_speed_change(0., 0., 0., 1000)     # 平滑停止
-                time.sleep(0.5)                             # 短暂停顿
-                
-                # 机械臂下降
-                self._send_arm_command_smooth(-5.0)  # 下降5度
-                time.sleep(0.1)
-                self._send_arm_command_smooth(-5.0)  # 再下降5度
-                time.sleep(0.1)
-                self._send_arm_command_smooth(-5.0)  # 再下降5度
-                time.sleep(0.1)
-                self._send_arm_command_smooth(-5.0)  # 再下降5度
-                
-                # 右转90度
-                self.smooth_speed_change(0., 0., -0.25, 1000) # 平滑加速到右转
-                time.sleep(0.5)                             # 右转4秒（约90度）
-                self.smooth_speed_change(0., 0., -0.25, 1000)
-                time.sleep(0.5)                             # 右转4秒（约90度）
-                self.smooth_speed_change(0., 0., -0.25, 1000)
-                time.sleep(0.5)                             # 右转4秒（约90度）
-                self.smooth_speed_change(0., 0., 0., 1000)     # 平滑停止右转
-                time.sleep(0.3)                             # 短暂停顿
-                
-                # 前进一段距离
-                self.smooth_speed_change(0.3, 0., 0., 1000)   # 平滑加速到前进
-                time.sleep(0.4)
-                self.smooth_speed_change(0.2, 0., 0., 500)
-                time.sleep(0.5)                             # 短暂停顿
-                self.smooth_speed_change(0., 0., 0., 1000)      # 平滑停止
-                
-                # 机械臂上升和释放
-                self._send_arm_command_smooth(5.0)   # 上升5度
-                time.sleep(0.1)
-                self._send_arm_command_smooth(5.0)   # 再上升5度
-                time.sleep(0.1)
-                self._send_arm_command_smooth(5.0)   # 再上升5度
-                time.sleep(0.1)
-                self._send_claw_command_smooth(1)    # 释放
-                
-                self.get_logger().info('自动化测试序列完成')
-                
-            except Exception as e:
-                self.get_logger().error(f'自动化测试执行失败: {e}')
-        
-        # 在单独线程中执行测试序列，避免阻塞UI
-        test_thread = threading.Thread(target=_test_sequence, daemon=True)
-        test_thread.start()
-
-    def _send_arm_command_smooth(self, angle_change):
-        """
-        平滑发送机械臂命令
-        
-        Args:
-            angle_change: 角度变化量（正数上升，负数下降）
-        """
+    def toggle_auto_task(self):
+        """切换自动化任务状态"""
         try:
-            if self.arm_action_client is None:
-                return
-                
-            # 更新当前角度并限制在范围内
-            self.arm_angle += angle_change
-            self.arm_angle = max(self.arm_min_angle, min(self.arm_max_angle, self.arm_angle))
+            # 切换状态
+            self.auto_enabled = not self.auto_enabled
             
-            if self.arm_action_client.wait_for_server(timeout_sec=1.0):
-                goal_msg = MoveArm.Goal()
-                goal_msg.pose = self.arm_angle
-                self.arm_action_client.send_goal_async(goal_msg)
-                self.get_logger().debug(f'发送机械臂角度: {self.arm_angle}°')
+            # 发布enable_auto消息
+            enable_msg = Bool()
+            enable_msg.data = self.auto_enabled
+            self.enable_auto_publisher.publish(enable_msg)
+            
+            # 记录日志
+            if self.auto_enabled:
+                self.get_logger().info('启动自动化任务节点')
             else:
-                self.get_logger().warn('机械臂动作服务器不可用')
+                self.get_logger().info('停止自动化任务节点')
                 
         except Exception as e:
-            self.get_logger().error(f'发送机械臂命令失败: {e}')
-
-    def _send_claw_command_smooth(self, command):
-        """
-        平滑发送爪子命令
-        
-        Args:
-            command: 0=抓取, 1=释放
-        """
-        try:
-            if self.claw_action_client is None:
-                return
-                
-            if self.claw_action_client.wait_for_server(timeout_sec=1.0):
-                goal_msg = MoveClaw.Goal()
-                goal_msg.command = command
-                self.claw_action_client.send_goal_async(goal_msg)
-                state_str = "抓取" if command == 0 else "释放"
-                self.get_logger().debug(f'发送爪子命令: {state_str}')
-            else:
-                self.get_logger().warn('爪子动作服务器不可用')
-                
-        except Exception as e:
-            self.get_logger().error(f'发送爪子命令失败: {e}')
-
-    # ...existing code...
+            self.get_logger().error(f'切换自动化任务状态失败: {e}')
 
 class ROSWorker(QObject):
     """ROS工作线程"""
@@ -1034,15 +908,15 @@ class MainWindow(QMainWindow):
         manual_layout.addWidget(arm_claw_group)
         
         # 添加自动化测试按钮
-        hardcoded_test_group = QGroupBox("自动化测试")
+        hardcoded_test_group = QGroupBox("自动化控制")
         hardcoded_test_layout = QVBoxLayout(hardcoded_test_group)
         
-        # 自动化测试按钮
-        hardcoded_test_btn = QPushButton("一键自动化测试")
-        hardcoded_test_btn.clicked.connect(self.run_hardcoded_test)
-        hardcoded_test_btn.setStyleSheet("""
+        # 自动化任务按钮（改为切换按钮）
+        self.auto_task_btn = QPushButton("启动自动化任务")
+        self.auto_task_btn.clicked.connect(self.toggle_auto_task)
+        self.auto_task_btn.setStyleSheet("""
             QPushButton {
-                background-color: #ff6b35;
+                background-color: #28a745;
                 color: #ffffff;
                 border: none;
                 padding: 12px 24px;
@@ -1051,24 +925,35 @@ class MainWindow(QMainWindow):
                 font-size: 14px;
             }
             QPushButton:hover {
-                background-color: #e55a2b;
+                background-color: #218838;
             }
             QPushButton:pressed {
-                background-color: #cc4e24;
+                background-color: #1e7e34;
             }
         """)
-        hardcoded_test_layout.addWidget(hardcoded_test_btn)
+        hardcoded_test_layout.addWidget(self.auto_task_btn)
         
-        # 测试说明
+        # 自动化状态显示
+        self.auto_status_label = QLabel("自动化任务: 未启动")
+        self.auto_status_label.setStyleSheet("color: #888; font-size: 12px; padding: 5px;")
+        hardcoded_test_layout.addWidget(self.auto_status_label)
+        
+        # 测试说明（更新说明文字）
         test_info = QLabel("""
-测试流程：
-1. 校准转向
-2. 机械臂准备
-3. 前进并抓取
-4. 搜寻并导航到目标点
-5. 机械臂下降并释放物体
+真正的自动化流程：
+1. 释放机械爪，移动到原点
+2. 降低机械臂高度
+3. 搜索物体（前进直到检测到）
+4. 接近物体并进行精确定位
+5. 抓取物体
+6. 移动到目标点并释放
 
-注意：请确保机器人周围环境安全！
+需要配合：
+- auto_task_node（自动化任务节点）
+- onecam_yolo（物体检测节点）
+- TF坐标系（定位系统）
+
+注意：请确保所有相关节点正在运行！
         """)
         test_info.setStyleSheet("color: #ccc; font-size: 11px; padding: 10px;")
         test_info.setWordWrap(True)
@@ -1706,36 +1591,79 @@ class MainWindow(QMainWindow):
         
         event.accept()
 
-    def run_hardcoded_test(self):
-        """运行自动化测试"""
-        # 显示确认对话框
-        reply = QMessageBox.question(self, '执行自动化测试', 
-                                    '是否要执行自动化测试？\n\n'
-                                    '测试将包括：\n'
-                                    '1. 校准转向\n'
-                                    '2. 机械臂准备\n'
-                                    '3. 识别并抓取\n'
-                                    '4. 寻找并导航到目标点\n'
-                                    '5. 机械臂上升并释放物体\n\n',
-                                    QMessageBox.Yes | QMessageBox.No, 
-                                    QMessageBox.No)
-        
-        if reply == QMessageBox.Yes:
-            try:
-                # 调用 ROS 节点中的测试方法
-                self.ros_node.execute_hardcoded_test()
+    def toggle_auto_task(self):
+        """切换自动化任务"""
+        try:
+            # 调用ROS节点的切换方法
+            self.ros_node.toggle_auto_task()
+            
+            # 更新按钮状态和文字
+            if self.ros_node.auto_enabled:
+                self.auto_task_btn.setText("停止自动化任务")
+                self.auto_task_btn.setStyleSheet("""
+                    QPushButton {
+                        background-color: #dc3545;
+                        color: #ffffff;
+                        border: none;
+                        padding: 12px 24px;
+                        border-radius: 6px;
+                        font-weight: bold;
+                        font-size: 14px;
+                    }
+                    QPushButton:hover {
+                        background-color: #c82333;
+                    }
+                    QPushButton:pressed {
+                        background-color: #bd2130;
+                    }
+                """)
+                self.auto_status_label.setText("自动化任务: 运行中")
+                self.auto_status_label.setStyleSheet("color: #28a745; font-size: 12px; padding: 5px; font-weight: bold;")
                 
-                # 显示开始信息
-                QMessageBox.information(self, "测试已启动", 
-                                      "测试已开始执行！\n\n"
-                                      "请观察机器人的动作并确保安全。\n"
-                                      "测试过程中请不要手动控制机器人。")
+                # 显示启动消息
+                QMessageBox.information(self, "自动化任务已启动", 
+                                      "自动化任务已启动！\n\n"
+                                      "机器人将开始执行自动化流程：\n"
+                                      "1. 移动到原点\n"
+                                      "2. 搜索并抓取物体\n"
+                                      "3. 移动到目标位置并释放\n\n"
+                                      "请确保：\n"
+                                      "- auto_task_node 正在运行\n"
+                                      "- onecam_yolo 正在运行\n"
+                                      "- 机器人周围环境安全")
+            else:
+                self.auto_task_btn.setText("启动自动化任务")
+                self.auto_task_btn.setStyleSheet("""
+                    QPushButton {
+                        background-color: #28a745;
+                        color: #ffffff;
+                        border: none;
+                        padding: 12px 24px;
+                        border-radius: 6px;
+                        font-weight: bold;
+                        font-size: 14px;
+                    }
+                    QPushButton:hover {
+                        background-color: #218838;
+                    }
+                    QPushButton:pressed {
+                        background-color: #1e7e34;
+                    }
+                """)
+                self.auto_status_label.setText("自动化任务: 已停止")
+                self.auto_status_label.setStyleSheet("color: #dc3545; font-size: 12px; padding: 5px; font-weight: bold;")
                 
-                self.ros_node.get_logger().info('用户启动了测试')
+                # 显示停止消息
+                QMessageBox.information(self, "自动化任务已停止", 
+                                      "自动化任务已停止！\n\n"
+                                      "机器人将：\n"
+                                      "1. 释放机械爪\n"
+                                      "2. 返回原点\n"
+                                      "3. 等待下次启动")
                 
-            except Exception as e:
-                QMessageBox.warning(self, "错误", f"启动测试时出错:\n\n{str(e)}")
-                self.ros_node.get_logger().error(f'启动测试失败: {e}')
+        except Exception as e:
+            QMessageBox.warning(self, "错误", f"切换自动化任务时出错:\n\n{str(e)}")
+            self.ros_node.get_logger().error(f'切换自动化任务失败: {e}')
 
 def main(args=None):
     # 检查PyQt5是否可用
